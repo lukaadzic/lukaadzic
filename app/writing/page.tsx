@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { SocialDock } from "@/components/social-dock";
 
 type Tab = {
   id: string;
@@ -184,7 +185,7 @@ export default function Writing() {
         </div>
 
         {/* Code Editor Content */}
-        <div className="px-20">
+        <div className="px-20 pb-24">
           {/* Writing Content */}
           <div className="py-8 min-h-screen">
             <h1 className="text-3xl font-bold mb-8">Writing</h1>
@@ -208,6 +209,7 @@ export default function Writing() {
           </div>
         </div>
       </div>
+      <SocialDock />
     </div>
   );
 }
