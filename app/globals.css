@@ -5,14 +5,14 @@
   --foreground: #171717;
 }
 
-@theme inline {
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-jura);
-  --font-mono: var(--font-jura);
+  --font-sans: var(--font-jetbrains-mono);
+  --font-mono: var(--font-jetbrains-mono);
 }
-.font-jura {
-  font-family: var(--font-jura);
+.font-jetbrains-mono {
+  font-family: var(--font-jetbrains-mono);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -25,5 +25,5 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-jura), sans-serif;
+  font-family: var(--font-jetbrains-mono), sans-serif;
 }

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Jura } from "next/font/google";
+import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const jura = Jura({
-  variable: "--font-jura",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -21,7 +21,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${jura.variable} antialiased font-jura`}>
+      <body
+        className={`${jetbrainsMono.variable} antialiased font-jetbrains-mono`}
+      >
         {children}
       </body>
     </html>
