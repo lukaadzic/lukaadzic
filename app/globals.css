@@ -36,3 +36,155 @@ body {
   mask-image: linear-gradient(to bottom, black 0%, black 70%, transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, black 0%, black 70%, transparent 100%);
 }
+
+/* Mobile responsive fixes */
+@media (max-width: 768px) {
+  /* Fix typewriter text overlapping on mobile */
+  .typewriter-container {
+    height: auto !important;
+    min-height: 100px;
+    padding-bottom: 1rem;
+  }
+
+  /* Responsive text sizes */
+  .mobile-text-lg {
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+  }
+
+  .mobile-text-xl {
+    font-size: 18px !important;
+    line-height: 1.4 !important;
+  }
+
+  .mobile-text-2xl {
+    font-size: 20px !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Mobile padding adjustments */
+  .mobile-padding {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  /* Mobile header spacing */
+  .mobile-header {
+    padding-top: 1rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* Mobile post spacing */
+  .mobile-post-spacing {
+    margin-bottom: 2rem !important;
+  }
+
+  /* Prevent typewriter text from breaking awkwardly */
+  .typewriter-container {
+    word-break: keep-all !important;
+    overflow-wrap: break-word !important;
+  }
+
+  .typewriter-container a {
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    display: inline !important;
+  }
+
+  /* Ensure @ symbols stay with their text */
+  .typewriter-container a[href*="cobpot"],
+  .typewriter-container a[href*="wharton"],
+  .typewriter-container a[href*="pingless"] {
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+  }
+
+  /* Disable dock magnification on mobile for faster interaction */
+  .dock-container {
+    transform: none !important;
+  }
+
+  .dock-container [data-dock-icon] {
+    transform: none !important;
+    transition: none !important;
+    scale: 1 !important;
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  /* Disable all hover effects on mobile */
+  .dock-container:hover [data-dock-icon] {
+    transform: none !important;
+    scale: 1 !important;
+  }
+
+  .dock-container [data-dock-icon]:hover {
+    transform: none !important;
+    scale: 1 !important;
+  }
+
+  /* Fast tap response */
+  .dock-container a {
+    -webkit-tap-highlight-color: transparent !important;
+    touch-action: manipulation !important;
+  }
+
+  /* Disable pointer events that trigger magnification */
+  .dock-container {
+    pointer-events: auto;
+  }
+
+  .dock-container * {
+    pointer-events: auto;
+  }
+
+/* Disable dock hover effects on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .dock-container [data-dock-icon] {
+    transform: none !important;
+    transition: none !important;
+    scale: 1 !important;
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .dock-container:hover [data-dock-icon],
+  .dock-container [data-dock-icon]:hover {
+    transform: none !important;
+    scale: 1 !important;
+  }
+}
+}
+
+/* Tablet and medium screen responsive fixes */
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Tablet text sizes */
+  .tablet-text-base {
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+  }
+
+  .tablet-text-lg {
+    font-size: 16px !important;
+    line-height: 1.4 !important;
+  }
+
+  .tablet-text-xl {
+    font-size: 18px !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Tablet padding */
+  .tablet-padding {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  /* Prevent title wrapping on tablets */
+  .tablet-title-nowrap {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 300px !important;
+  }
+}

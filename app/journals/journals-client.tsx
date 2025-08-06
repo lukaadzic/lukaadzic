@@ -398,7 +398,7 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
             style={{ paddingLeft: "16px", paddingRight: "16px" }}
           >
             <div>
-              <h1 className="text-[24px] font-bold text-foreground mb-1">
+              <h1 className="text-[24px] font-bold text-foreground hover:text-foreground/80 transition-colors mb-1 block">
                 Journals
               </h1>
             </div>
@@ -419,7 +419,10 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
               {posts.length > 0 ? (
                 <div className="space-y-12">
                   {posts.map((post, index) => (
-                    <article key={post.slug} className="group font-mono">
+                    <article
+                      key={post.slug}
+                      className="group font-mono mobile-post-spacing"
+                    >
                       {/* Post Header */}
                       <div className="flex items-start gap-3 mb-4">
                         <span className="text-green-400 text-sm mt-0.5 select-none font-bold">
@@ -430,7 +433,7 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
                             <span className="text-cyan-400 text-sm font-medium">
                               ~/{post.postType === "take" ? "takes" : "posts"}/
                             </span>
-                            <h2 className="font-medium text-foreground text-lg">
+                            <h2 className="font-medium text-foreground text-lg mobile-text-lg tablet-text-lg tablet-title-nowrap">
                               {post.title}
                             </h2>
                             <span

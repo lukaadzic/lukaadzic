@@ -43,15 +43,15 @@ const DescriptionTypewriter = ({ speed = 1 }: { speed?: number }) => {
   const lines = [
     {
       text: "Replacing your chief of staff with ",
-      links: [{ text: "@ Cobpot", href: "https://cobpot.com" }],
+      links: [{ text: "@\u00A0Cobpot", href: "https://cobpot.com" }],
       suffix: ".",
     },
     {
       text: "Studying finance ",
       links: [
-        { text: "@ Wharton", href: "https://www.wharton.upenn.edu/" },
+        { text: "@\u00A0Wharton", href: "https://www.wharton.upenn.edu/" },
         { text: " & running a web agency ", href: null },
-        { text: "@ Pingless", href: "https://pingless.dev" },
+        { text: "@\u00A0Pingless", href: "https://pingless.dev" },
       ],
       suffix: ".",
     },
@@ -77,7 +77,7 @@ const DescriptionTypewriter = ({ speed = 1 }: { speed?: number }) => {
         const lineElement = (
           <div
             key={currentLineIndex}
-            className={`text-[18px] text-foreground/80 ${
+            className={`text-[18px] mobile-text-lg text-foreground/80 ${
               currentLineIndex === 0 ? "pt-1" : "pt-4"
             }`}
           >
@@ -188,7 +188,7 @@ const DescriptionTypewriter = ({ speed = 1 }: { speed?: number }) => {
       {displayedLines}
       {!isComplete && (
         <div
-          className={`text-[18px] text-foreground/80 ${
+          className={`text-[18px] mobile-text-lg text-foreground/80 ${
             currentLineIndex === 0 ? "pt-1" : "pt-4"
           }`}
         >
@@ -448,7 +448,7 @@ export default function Home() {
               <div>
                 {/* Profile Section */}
                 <div
-                  className=""
+                  className="typewriter-container mobile-padding"
                   style={{
                     height: "80px",
                     paddingLeft: "16px",
@@ -460,10 +460,10 @@ export default function Home() {
                 </div>
                 {/* Projects Section */}
                 <div
-                  className="mt-4 space-y-6"
+                  className="mt-4 space-y-6 mobile-padding"
                   style={{ paddingLeft: "16px", paddingRight: "16px" }}
                 >
-                  <p className="text-[18px] text-foreground/80 leading-7">
+                  <p className="text-[18px] mobile-text-lg text-foreground/80 leading-7">
                     Stuff I shipped:
                   </p>
 
@@ -484,12 +484,12 @@ export default function Home() {
                             <span className="text-cyan-400 text-sm font-medium">
                               ~/projects/
                             </span>
-                            <h3 className="font-medium text-foreground text-sm truncate">
+                            <h3 className="font-medium text-foreground text-sm mobile-text-lg tablet-text-base truncate">
                               financial-bubble-detection-dashboard
                             </h3>
                             <span className="text-green-400 text-xs">●</span>
                           </div>
-                          <p className="text-xs text-foreground/60 mb-2 leading-relaxed">
+                          <p className="text-xs mobile-text-lg text-foreground/60 mb-2 leading-relaxed">
                             Real-time financial bubble detection using options
                             data
                           </p>
@@ -533,12 +533,12 @@ export default function Home() {
                             <span className="text-cyan-400 text-sm font-medium">
                               ~/projects/
                             </span>
-                            <h3 className="font-medium text-foreground text-sm truncate">
+                            <h3 className="font-medium text-foreground text-sm mobile-text-lg tablet-text-base truncate">
                               maritime-penn-web-app
                             </h3>
                             <span className="text-green-400 text-xs">●</span>
                           </div>
-                          <p className="text-xs text-foreground/60 mb-2 leading-relaxed">
+                          <p className="text-xs mobile-text-lg text-foreground/60 mb-2 leading-relaxed">
                             Building tomorrow's maritime leaders at UPenn &
                             Wharton
                           </p>
