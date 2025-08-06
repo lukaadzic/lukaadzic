@@ -39,48 +39,42 @@ export default function WritingClient({ posts }: WritingClientProps) {
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [activeTab, setActiveTab] = useState("writing");
 
-  // Load tabs from localStorage
+  // Load tabs from sessionStorage
   useEffect(() => {
-    const savedTabs = localStorage.getItem("portfolioTabs");
+    const editorTabsState = sessionStorage.getItem("editorTabs");
     let initialTabs: Tab[] = [
       { id: "portfolio", name: "lukaadzic.tsx", content: "portfolio" },
       { id: "writing", name: "writing.tsx", content: "writing" },
     ];
 
-    if (savedTabs) {
-      const parsedTabs = JSON.parse(savedTabs);
-      // Always ensure both tabs are present
-      const hasPortfolio = parsedTabs.some(
-        (tab: Tab) => tab.id === "portfolio"
-      );
-      const hasWriting = parsedTabs.some((tab: Tab) => tab.id === "writing");
-
-      if (!hasPortfolio) {
-        parsedTabs.unshift({
-          id: "portfolio",
-          name: "lukaadzic.tsx",
-          content: "portfolio",
-        });
+    // Only check sessionStorage for editor tabs (from navigation)
+    // This preserves tabs when navigating between pages
+    if (editorTabsState) {
+      try {
+        const { tabs: editorTabs } = JSON.parse(editorTabsState);
+        setTabs(editorTabs);
+        setActiveTab("writing"); // Always set writing as active when on writing page
+        return;
+      } catch (error) {
+        console.error("Error parsing editor tabs state:", error);
       }
-      if (!hasWriting) {
-        parsedTabs.push({
-          id: "writing",
-          name: "writing.tsx",
-          content: "writing",
-        });
-      }
-      initialTabs = parsedTabs;
     }
 
+    // Default: show portfolio and writing tabs when directly accessing writing
     setTabs(initialTabs);
+    setActiveTab("writing");
   }, []);
 
-  // Save tabs to localStorage whenever tabs change
+  // Save tabs to sessionStorage whenever tabs change (for navigation persistence)
   useEffect(() => {
     if (tabs.length > 0) {
-      localStorage.setItem("portfolioTabs", JSON.stringify(tabs));
+      const tabsState = {
+        tabs,
+        activeTab,
+      };
+      sessionStorage.setItem("editorTabs", JSON.stringify(tabsState));
     }
-  }, [tabs]);
+  }, [tabs, activeTab]);
 
   const closeTab = (tabId: string, e: React.MouseEvent) => {
     e.preventDefault();

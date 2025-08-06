@@ -8,7 +8,7 @@ import ReactMarkdown from "react-markdown";
 type Tab = {
   id: string;
   name: string;
-  content: "portfolio" | "journals";
+  content: "portfolio" | "journals" | "post";
 };
 
 type Post = {
@@ -39,61 +39,42 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [activeTab, setActiveTab] = useState("journals");
 
-  // Load tabs from localStorage
+  // Load tabs from sessionStorage/localStorage
   useEffect(() => {
-    const savedTabs = localStorage.getItem("portfolioTabs");
+    const editorTabsState = sessionStorage.getItem("editorTabs");
     let initialTabs: Tab[] = [
       { id: "portfolio", name: "lukaadzic.tsx", content: "portfolio" },
       { id: "journals", name: "journals.tsx", content: "journals" },
     ];
 
-    if (savedTabs) {
+    // Only check sessionStorage for editor tabs (from navigation)
+    // This preserves tabs when navigating between pages
+    if (editorTabsState) {
       try {
-        const parsedTabs = JSON.parse(savedTabs);
-        // Filter to only keep valid tabs
-        const validTabs = parsedTabs.filter(
-          (tab: Tab) =>
-            tab.content === "portfolio" || tab.content === "journals"
-        );
-
-        // Always ensure both tabs are present
-        const hasPortfolio = validTabs.some(
-          (tab: Tab) => tab.id === "portfolio"
-        );
-        const hasJournals = validTabs.some((tab: Tab) => tab.id === "journals");
-
-        if (!hasPortfolio) {
-          validTabs.unshift({
-            id: "portfolio",
-            name: "lukaadzic.tsx",
-            content: "portfolio",
-          });
-        }
-
-        if (!hasJournals) {
-          validTabs.push({
-            id: "journals",
-            name: "journals.tsx",
-            content: "journals",
-          });
-        }
-
-        initialTabs = validTabs;
+        const { tabs: editorTabs } = JSON.parse(editorTabsState);
+        setTabs(editorTabs);
+        setActiveTab("journals"); // Always set journals as active when on journals page
+        return;
       } catch (error) {
-        console.log("Error parsing saved tabs, using defaults");
+        console.error("Error parsing editor tabs state:", error);
       }
     }
 
+    // Default: show portfolio and journals tabs when directly accessing journals
     setTabs(initialTabs);
     setActiveTab("journals");
   }, []);
 
-  // Save tabs to localStorage whenever tabs change
+  // Save tabs to sessionStorage whenever tabs change (for navigation persistence)
   useEffect(() => {
     if (tabs.length > 0) {
-      localStorage.setItem("portfolioTabs", JSON.stringify(tabs));
+      const tabsState = {
+        tabs,
+        activeTab,
+      };
+      sessionStorage.setItem("editorTabs", JSON.stringify(tabsState));
     }
-  }, [tabs]);
+  }, [tabs, activeTab]);
 
   const closeTab = (tabId: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -109,16 +90,6 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
 
     // If we're closing the journals tab and we're currently on it, go to portfolio
     if (activeTab === tabId && tabId === "journals") {
-      router.push("/");
-    }
-  };
-
-  const switchTab = (tabId: string) => {
-    // Update UI state immediately for fast visual feedback
-    setActiveTab(tabId);
-
-    // Navigate immediately without waiting
-    if (tabId === "portfolio") {
       router.push("/");
     }
   };
@@ -299,96 +270,120 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
       >
         {/* Code Editor Tab Bar */}
         <div
-          className="flex items-end border-b border-dashed px-4 pt-2"
+          className="border-b border-dashed px-4 pt-2 tab-scroll-container"
           style={{
             borderColor: "oklch(0.4 0.1 240 / 0.3)",
             backgroundColor: "oklch(0.12 0.1 240)",
             height: "52px",
           }}
         >
-          {tabs.map((tab) => (
-            <div
-              key={tab.id}
-              className="flex items-center gap-2 rounded-t-md text-sm border-t border-l border-r border-dashed mr-1"
-              style={{
-                backgroundColor:
-                  activeTab === tab.id
-                    ? "oklch(0.2 0.08 240)"
-                    : "oklch(0.16 0.06 240)",
-                borderColor: "oklch(0.4 0.1 240 / 0.3)",
-                marginBottom: "-1px",
-                opacity: activeTab === tab.id ? 1 : 0.8,
-                minWidth: "140px",
-              }}
-            >
-              <div className="flex items-center justify-between w-full">
-                {tab.content === "portfolio" ? (
-                  <Link
-                    href="/"
-                    className="flex items-center gap-2 px-3 py-2 flex-1"
-                    style={{
-                      color:
-                        activeTab === tab.id
-                          ? "oklch(0.9 0.02 240)"
-                          : "oklch(0.7 0.04 240)",
-                    }}
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
+          <div className="flex items-end h-full min-w-max">
+            {tabs.map((tab) => (
+              <div
+                key={tab.id}
+                className="flex items-center gap-2 rounded-t-md text-sm border-t border-l border-r border-dashed mr-1"
+                style={{
+                  backgroundColor:
+                    activeTab === tab.id
+                      ? "oklch(0.2 0.08 240)"
+                      : "oklch(0.16 0.06 240)",
+                  borderColor: "oklch(0.4 0.1 240 / 0.3)",
+                  marginBottom: "-1px",
+                  opacity: activeTab === tab.id ? 1 : 0.8,
+                  minWidth: "140px",
+                }}
+              >
+                <div className="flex items-center justify-between w-full">
+                  {tab.content === "portfolio" ? (
+                    <Link
+                      href="/"
+                      className="flex items-center gap-2 px-3 py-2 flex-1 tab-link"
+                      style={{
+                        color:
+                          activeTab === tab.id
+                            ? "oklch(0.9 0.02 240)"
+                            : "oklch(0.7 0.04 240)",
+                      }}
                     >
-                      <path d="M1.5 6.375c0-1.036.84-1.875 1.875-1.875h17.25c1.035 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875H3.375A1.875 1.875 0 0 1 1.5 17.625V6.375zM21 9.375A.375.375 0 0 0 20.625 9h-7.5a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5zm0 3.75a.375.375 0 0 0-.375-.375h-7.5a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5zm0 3.75a.375.375 0 0 0-.375-.375h-7.5a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5zM10.875 18.75a.375.375 0 0 0 .375-.375v-1.5a.375.375 0 0 0-.375-.375h-7.5a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5zM3.375 15.375a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5a.375.375 0 0 0-.375-.375h-7.5zm0-3.75a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5a.375.375 0 0 0-.375-.375h-7.5z" />
-                    </svg>
-                    <span>{tab.name}</span>
-                  </Link>
-                ) : (
-                  <div
-                    className="flex items-center gap-2 px-3 py-2 flex-1"
-                    style={{
-                      color:
-                        activeTab === tab.id
-                          ? "oklch(0.9 0.02 240)"
-                          : "oklch(0.7 0.04 240)",
-                    }}
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
+                      <svg
+                        className="w-4 h-4"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" />
+                        <path d="m12 5.432 8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z" />
+                      </svg>
+                      <span>{tab.name}</span>
+                    </Link>
+                  ) : tab.content === "journals" ? (
+                    <div
+                      className="flex items-center gap-2 px-3 py-2 flex-1"
+                      style={{
+                        color:
+                          activeTab === tab.id
+                            ? "oklch(0.9 0.02 240)"
+                            : "oklch(0.7 0.04 240)",
+                      }}
                     >
-                      <path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9z" />
-                    </svg>
-                    <span>{tab.name}</span>
-                  </div>
-                )}
+                      <svg
+                        className="w-4 h-4"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M1.5 6.375c0-1.036.84-1.875 1.875-1.875h17.25c1.035 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875H3.375A1.875 1.875 0 0 1 1.5 17.625V6.375zM21 9.375A.375.375 0 0 0 20.625 9h-7.5a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5zm0 3.75a.375.375 0 0 0-.375-.375h-7.5a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5zm0 3.75a.375.375 0 0 0-.375-.375h-7.5a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5zM10.875 18.75a.375.375 0 0 0 .375-.375v-1.5a.375.375 0 0 0-.375-.375h-7.5a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5zM3.375 15.375a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5a.375.375 0 0 0-.375-.375h-7.5zm0-3.75a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5a.375.375 0 0 0-.375-.375h-7.5z" />
+                      </svg>
+                      <span>{tab.name}</span>
+                    </div>
+                  ) : (
+                    <Link
+                      href={`/journals/${tab.id}`}
+                      className="flex items-center gap-2 px-3 py-2 flex-1 tab-link"
+                      style={{
+                        color:
+                          activeTab === tab.id
+                            ? "oklch(0.9 0.02 240)"
+                            : "oklch(0.7 0.04 240)",
+                      }}
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0016.5 9h-1.875a1.875 1.875 0 01-1.875-1.875V5.25A3.75 3.75 0 009 1.5H5.625z" />
+                        <path d="M12.971 1.816A5.23 5.23 0 0114.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 013.434 1.279 9.768 9.768 0 00-6.963-6.963z" />
+                      </svg>
+                      <span>{tab.name}</span>
+                    </Link>
+                  )}
 
-                {tab.id === "journals" && (
-                  <button
-                    onClick={(e) => closeTab(tab.id, e)}
-                    className="ml-1 px-1 py-1 hover:bg-foreground/10 transition-colors rounded-sm group"
-                    style={{
-                      color: "oklch(0.6 0.04 240)",
-                    }}
-                  >
-                    <svg
-                      className="w-3 h-3 opacity-60 group-hover:opacity-100 transition-opacity"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                  {(tab.id === "journals" || tab.content === "post") && (
+                    <button
+                      onClick={(e) => closeTab(tab.id, e)}
+                      className="ml-1 px-1 py-1 hover:bg-foreground/10 transition-colors rounded-sm group"
+                      style={{
+                        color: "oklch(0.6 0.04 240)",
+                      }}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                )}
+                      <svg
+                        className="w-3 h-3 opacity-60 group-hover:opacity-100 transition-opacity"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Code Editor Content */}
@@ -433,9 +428,12 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
                             <span className="text-cyan-400 text-sm font-medium">
                               ~/{post.postType === "take" ? "takes" : "posts"}/
                             </span>
-                            <h2 className="font-medium text-foreground text-lg mobile-text-lg tablet-text-lg tablet-title-nowrap">
+                            <Link
+                              href={`/journals/${post.slug}`}
+                              className="font-medium text-foreground text-lg mobile-text-lg tablet-text-lg tablet-title-nowrap hover:text-foreground/80 transition-colors"
+                            >
                               {post.title}
-                            </h2>
+                            </Link>
                             <span
                               className={`text-xs ${
                                 post.postType === "take"
@@ -505,7 +503,7 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
                           )}
 
                           {/* Post Content */}
-                          <div className="ml-6 max-w-none">
+                          <div className="max-w-none">
                             {renderPostContent(
                               post.content,
                               post.excerpt,
