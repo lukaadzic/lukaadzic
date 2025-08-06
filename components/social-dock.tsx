@@ -5,7 +5,7 @@ import { Dock, DockIcon } from "@/components/magicui/dock";
 
 export function SocialDock() {
   return (
-    <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+    <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
       <Dock
         iconSize={28}
         iconMagnification={42}

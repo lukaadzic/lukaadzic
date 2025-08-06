@@ -114,7 +114,10 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
   };
 
   const switchTab = (tabId: string) => {
+    // Update UI state immediately for fast visual feedback
     setActiveTab(tabId);
+
+    // Navigate immediately without waiting
     if (tabId === "portfolio") {
       router.push("/");
     }
@@ -341,14 +344,13 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
                   </Link>
                 ) : (
                   <div
-                    className="flex items-center gap-2 px-3 py-2 flex-1 cursor-pointer"
+                    className="flex items-center gap-2 px-3 py-2 flex-1"
                     style={{
                       color:
                         activeTab === tab.id
                           ? "oklch(0.9 0.02 240)"
                           : "oklch(0.7 0.04 240)",
                     }}
-                    onClick={() => switchTab(tab.id)}
                   >
                     <svg
                       className="w-4 h-4"
@@ -391,16 +393,29 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
 
         {/* Code Editor Content */}
         <div className="pb-24">
+          <header
+            className="flex justify-between items-start pt-8"
+            style={{ paddingLeft: "16px", paddingRight: "16px" }}
+          >
+            <div>
+              <h1 className="text-[24px] font-bold text-foreground mb-1">
+                Journals
+              </h1>
+            </div>
+            <Link
+              href="/"
+              className="text-[16px] text-foreground hover:text-foreground/80 transition-colors"
+            >
+              Portfolio
+            </Link>
+          </header>
+
           {/* Writing Content */}
           <div
             className="py-8 min-h-screen"
             style={{ paddingLeft: "16px", paddingRight: "16px" }}
           >
             <div className="space-y-8">
-              <p className="text-[18px] text-foreground/80 leading-7 font-mono">
-                Journals:
-              </p>
-
               {posts.length > 0 ? (
                 <div className="space-y-12">
                   {posts.map((post, index) => (

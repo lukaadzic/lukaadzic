@@ -292,6 +292,7 @@ export default function Home() {
   };
 
   const switchTab = (tabId: string) => {
+    // Update UI state immediately for fast visual feedback
     setActiveTab(tabId);
   };
 
@@ -372,14 +373,13 @@ export default function Home() {
                     </Link>
                   ) : (
                     <div
-                      className="flex items-center gap-2 px-3 py-2 flex-1 cursor-pointer"
+                      className="flex items-center gap-2 px-3 py-2 flex-1"
                       style={{
                         color:
                           activeTab === tab.id
                             ? "oklch(0.9 0.02 240)"
                             : "oklch(0.7 0.04 240)",
                       }}
-                      onClick={() => switchTab(tab.id)}
                     >
                       <svg
                         className="w-4 h-4"
