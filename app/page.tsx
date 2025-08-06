@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SocialDock } from "@/components/social-dock";
@@ -47,22 +47,25 @@ const DescriptionTypewriter = ({ speed = 1 }: { speed?: number }) => {
   const [showCursor, setShowCursor] = useState(true);
   const [isComplete, setIsComplete] = useState(false);
 
-  const lines = [
-    {
-      text: "Replacing your chief of staff with ",
-      links: [{ text: "@\u00A0Cobpot", href: "https://cobpot.com" }],
-      suffix: ".",
-    },
-    {
-      text: "Studying finance ",
-      links: [
-        { text: "@\u00A0Wharton", href: "https://www.wharton.upenn.edu/" },
-        { text: " & running a web agency ", href: null },
-        { text: "@\u00A0Pingless", href: "https://pingless.dev" },
-      ],
-      suffix: ".",
-    },
-  ];
+  const lines = useMemo(
+    () => [
+      {
+        text: "Replacing your chief of staff with ",
+        links: [{ text: "@\u00A0Cobpot", href: "https://cobpot.com" }],
+        suffix: ".",
+      },
+      {
+        text: "Studying finance ",
+        links: [
+          { text: "@\u00A0Wharton", href: "https://www.wharton.upenn.edu/" },
+          { text: " & running a web agency ", href: null },
+          { text: "@\u00A0Pingless", href: "https://pingless.dev" },
+        ],
+        suffix: ".",
+      },
+    ],
+    []
+  );
 
   useEffect(() => {
     if (currentLineIndex >= lines.length) {
@@ -115,7 +118,7 @@ const DescriptionTypewriter = ({ speed = 1 }: { speed?: number }) => {
     }, speed);
 
     return () => clearTimeout(timeout);
-  }, [currentCharIndex, currentLineIndex, speed]);
+  }, [currentCharIndex, currentLineIndex, speed, lines]);
 
   // Cursor blinking effect
   useEffect(() => {
@@ -227,7 +230,7 @@ export default function Home() {
   // Load tabs from sessionStorage/localStorage on mount
   useEffect(() => {
     const editorTabsState = sessionStorage.getItem("editorTabs");
-    let initialTabs: Tab[] = [
+    const initialTabs: Tab[] = [
       { id: "portfolio", name: "lukaadzic.tsx", content: "portfolio" },
     ];
 
@@ -596,7 +599,7 @@ export default function Home() {
                             <span className="text-green-400 text-xs">●</span>
                           </div>
                           <p className="text-xs mobile-text-lg text-foreground/60 mb-2 leading-relaxed">
-                            Building tomorrow's maritime leaders at UPenn &
+                            Building tomorrow&apos;s maritime leaders at UPenn &
                             Wharton
                           </p>
                         </div>

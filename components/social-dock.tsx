@@ -25,12 +25,14 @@ export function SocialDock() {
         iconMagnification={isMobile ? 28 : 42}
         iconDistance={isMobile ? 0 : 100}
         className="backdrop-blur-md shadow-lg rounded-xl h-[52px] mt-0 dock-container"
-        style={{
-          backgroundColor: "oklch(0.15 0.08 240 / 0.7)",
-          borderColor: "oklch(0.4 0.1 240 / 0.3)",
-          borderWidth: "1px",
-          borderStyle: "solid",
-        }}
+        {...({
+          style: {
+            backgroundColor: "oklch(0.15 0.08 240 / 0.7)",
+            borderColor: "oklch(0.4 0.1 240 / 0.3)",
+            borderWidth: "1px",
+            borderStyle: "solid",
+          } as React.CSSProperties,
+        } as React.HTMLAttributes<HTMLDivElement>)}
       >
         {/* Home */}
         <DockIcon>

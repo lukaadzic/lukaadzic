@@ -31,7 +31,7 @@ type Post = {
 const reader = createReader(process.cwd(), config);
 
 // Function to convert Markdoc content to markdown string
-function convertToMarkdown(content: any): string {
+function convertToMarkdown(content: unknown): string {
   if (!content) return "";
 
   if (typeof content === "string") {
@@ -39,8 +39,24 @@ function convertToMarkdown(content: any): string {
   }
 
   try {
+    // Handle different content formats
+    let nodeToTransform;
+
+    if (typeof content === "object" && content !== null) {
+      const contentObj = content as Record<string, unknown>;
+      if (contentObj.node) {
+        nodeToTransform = contentObj.node;
+      } else {
+        nodeToTransform = content;
+      }
+    } else {
+      nodeToTransform = content;
+    }
+
     // Transform Markdoc AST to renderable content
-    const transformed = Markdoc.transform(content.node || content);
+    const transformed = Markdoc.transform(
+      nodeToTransform as Parameters<typeof Markdoc.transform>[0]
+    );
 
     // Convert to markdown-like string
     const markdown = renderToMarkdown(transformed);
@@ -68,7 +84,7 @@ function cleanMarkdocFormatting(text: string): string {
 }
 
 // Simple function to convert transformed content to markdown
-function renderToMarkdown(content: any): string {
+function renderToMarkdown(content: unknown): string {
   if (!content) return "";
 
   if (typeof content === "string") {
@@ -79,51 +95,57 @@ function renderToMarkdown(content: any): string {
     return content.map(renderToMarkdown).join("");
   }
 
-  if (typeof content === "object" && content.name) {
-    const children = content.children
-      ? content.children.map(renderToMarkdown).join("")
-      : "";
+  if (typeof content === "object" && content !== null) {
+    const contentObj = content as Record<string, unknown>;
+    if (contentObj.name) {
+      const children = contentObj.children
+        ? (contentObj.children as unknown[]).map(renderToMarkdown).join("")
+        : "";
 
-    switch (content.name) {
-      case "p":
-        return children + "\n\n";
-      case "h1":
-        return `# ${children}\n\n`;
-      case "h2":
-        return `## ${children}\n\n`;
-      case "h3":
-        return `### ${children}\n\n`;
-      case "h4":
-        return `#### ${children}\n\n`;
-      case "h5":
-        return `##### ${children}\n\n`;
-      case "h6":
-        return `###### ${children}\n\n`;
-      case "strong":
-        return `**${children}**`;
-      case "em":
-        return `*${children}*`;
-      case "code":
-        return `\`${children}\``;
-      case "pre":
-        return `\`\`\`\n${children}\n\`\`\`\n\n`;
-      case "a":
-        const href = content.attributes?.href || "#";
-        return `[${children}](${href})`;
-      case "ul":
-        return children + "\n";
-      case "ol":
-        return children + "\n";
-      case "li":
-        return `- ${children}\n`;
-      case "blockquote":
-        return `> ${children}\n\n`;
-      case "hr":
-        return `---\n\n`;
-      case "br":
-        return "  \n";
-      default:
-        return children;
+      switch (contentObj.name) {
+        case "p":
+          return children + "\n\n";
+        case "h1":
+          return `# ${children}\n\n`;
+        case "h2":
+          return `## ${children}\n\n`;
+        case "h3":
+          return `### ${children}\n\n`;
+        case "h4":
+          return `#### ${children}\n\n`;
+        case "h5":
+          return `##### ${children}\n\n`;
+        case "h6":
+          return `###### ${children}\n\n`;
+        case "strong":
+          return `**${children}**`;
+        case "em":
+          return `*${children}*`;
+        case "code":
+          return `\`${children}\``;
+        case "pre":
+          return `\`\`\`\n${children}\n\`\`\`\n\n`;
+        case "a":
+          const attrs = contentObj.attributes as
+            | Record<string, unknown>
+            | undefined;
+          const href = attrs?.href || "#";
+          return `[${children}](${href})`;
+        case "ul":
+          return children + "\n";
+        case "ol":
+          return children + "\n";
+        case "li":
+          return `- ${children}\n`;
+        case "blockquote":
+          return `> ${children}\n\n`;
+        case "hr":
+          return `---\n\n`;
+        case "br":
+          return "  \n";
+        default:
+          return children;
+      }
     }
   }
 

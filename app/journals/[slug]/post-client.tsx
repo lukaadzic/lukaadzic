@@ -1,9 +1,16 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { SocialDock } from "@/components/social-dock";
 import ReactMarkdown from "react-markdown";
+
+type Tab = {
+  id: string;
+  name: string;
+  content: "portfolio" | "journals" | "post";
+};
 
 type Post = {
   slug: string;
@@ -31,21 +38,22 @@ interface PostClientProps {
 export default function PostClient({ post }: PostClientProps) {
   const router = useRouter();
 
-  // Initialize with consistent state for SSR
-  const [tabs, setTabs] = useState<Tab[]>([
-    { id: "portfolio", name: "lukaadzic.tsx", content: "portfolio" as const },
-    { id: "journals", name: "journals.tsx", content: "journals" as const },
-    { id: post.slug, name: `${post.slug}.tsx`, content: "post" as const },
-  ]);
-
-  // Always set activeTab to current post slug when on post page
+  // Initialize with empty state - will be populated from sessionStorage or defaults
+  const [tabs, setTabs] = useState<Tab[]>([]);
   const [activeTab, setActiveTab] = useState(post.slug);
-
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Load tabs from sessionStorage after hydration
   useEffect(() => {
-    let finalTabs = tabs; // Start with default tabs
+    // Default tabs for this post
+    const defaultTabs: Tab[] = [
+      { id: "portfolio", name: "lukaadzic.tsx", content: "portfolio" as const },
+      { id: "journals", name: "journals.tsx", content: "journals" as const },
+      { id: post.slug, name: `${post.slug}.tsx`, content: "post" as const },
+    ];
+
+    let finalTabs = defaultTabs;
 
     const editorTabsState = sessionStorage.getItem("editorTabs");
     if (editorTabsState) {
@@ -54,18 +62,18 @@ export default function PostClient({ post }: PostClientProps) {
 
         // Check if current post tab already exists
         const hasCurrentPost = editorTabs.some(
-          (tab: any) => tab.id === post.slug
+          (tab: Tab) => tab.id === post.slug
         );
 
         if (hasCurrentPost) {
           // Update the existing post tab to have the correct name
-          finalTabs = editorTabs.map((tab: any) =>
+          finalTabs = editorTabs.map((tab: Tab) =>
             tab.id === post.slug ? { ...tab, name: `${post.slug}.tsx` } : tab
           );
         } else {
           // Replace any existing post tab with the current post tab
           const nonPostTabs = editorTabs.filter(
-            (tab: any) => tab.content !== "post"
+            (tab: Tab) => tab.content !== "post"
           );
           finalTabs = [
             ...nonPostTabs,
@@ -76,11 +84,13 @@ export default function PostClient({ post }: PostClientProps) {
             },
           ];
         }
-        setTabs(finalTabs);
       } catch (error) {
         console.error("Error parsing editor tabs state:", error);
       }
     }
+
+    setTabs(finalTabs);
+    setIsInitialized(true);
 
     // Update sessionStorage with final state
     const tabsState = {
@@ -88,7 +98,18 @@ export default function PostClient({ post }: PostClientProps) {
       activeTab: post.slug,
     };
     sessionStorage.setItem("editorTabs", JSON.stringify(tabsState));
-  }, []); // Empty dependency array - runs only once after hydration
+  }, [post.slug]); // Only depend on post.slug
+
+  // Save tabs to sessionStorage when they change (but only after initialization)
+  useEffect(() => {
+    if (isInitialized && tabs.length > 0) {
+      const tabsState = {
+        tabs,
+        activeTab,
+      };
+      sessionStorage.setItem("editorTabs", JSON.stringify(tabsState));
+    }
+  }, [tabs, activeTab, isInitialized]);
 
   // Collect all images (featured + additional)
   const allImages = [
@@ -461,12 +482,14 @@ export default function PostClient({ post }: PostClientProps) {
                             </div>
                             <div className="p-2">
                               <div className="w-full h-48 rounded border border-foreground/10 overflow-hidden bg-foreground/5">
-                                <img
-                                  src={allImages[currentImageIndex]?.src}
+                                <Image
+                                  src={allImages[currentImageIndex]?.src || ""}
                                   alt={
                                     allImages[currentImageIndex]?.alt ||
                                     post.title
                                   }
+                                  width={400}
+                                  height={192}
                                   className="w-full h-full object-cover"
                                   style={{
                                     objectPosition: allImages[currentImageIndex]

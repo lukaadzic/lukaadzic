@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { SocialDock } from "@/components/social-dock";
 import ReactMarkdown from "react-markdown";
@@ -51,19 +52,25 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
 
     if (editorTabsState) {
       try {
-        const { tabs: editorTabs } = JSON.parse(editorTabsState);
+        const { tabs: editorTabs } = JSON.parse(editorTabsState) as {
+          tabs: Tab[];
+        };
 
         // Always use the existing tabs from sessionStorage
         // Only add journal tab if it doesn't exist
         const journalsTabExists = editorTabs.some(
-          (tab) => tab.id === "journals"
+          (tab: Tab) => tab.id === "journals"
         );
 
         if (!journalsTabExists) {
           // Add journal tab to existing tabs
           const newTabs = [
             ...editorTabs,
-            { id: "journals", name: "journals.tsx", content: "journals" },
+            {
+              id: "journals",
+              name: "journals.tsx",
+              content: "journals" as const,
+            },
           ];
           setTabs(newTabs);
         } else {
@@ -208,8 +215,8 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
     if (!textToRender || textToRender.trim() === "") {
       return (
         <p className="text-foreground/60 italic">
-          No content available. Please add content in the "Content" field in
-          Keystatic admin.
+          No content available. Please add content in the &quot;Content&quot;
+          field in Keystatic admin.
         </p>
       );
     }
@@ -595,9 +602,11 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
                                 </div>
                                 <div className="p-2">
                                   <div className="w-full h-48 rounded border border-foreground/10 overflow-hidden bg-foreground/5">
-                                    <img
+                                    <Image
                                       src={post.featuredImage}
                                       alt={post.title}
+                                      width={400}
+                                      height={192}
                                       className="w-full h-full object-cover"
                                       style={{
                                         objectPosition: getObjectPosition(

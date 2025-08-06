@@ -6,12 +6,28 @@ import Markdoc from "@markdoc/markdoc";
 const reader = createReader(process.cwd(), keystaticConfig);
 
 // Convert Markdoc content to markdown string
-function convertMarkdocToMarkdown(content: any): string {
+function convertMarkdocToMarkdown(content: unknown): string {
   if (!content) return "";
 
   try {
+    // Handle different content formats
+    let nodeToTransform;
+
+    if (typeof content === "object" && content !== null) {
+      const contentObj = content as Record<string, unknown>;
+      if (contentObj.node) {
+        nodeToTransform = contentObj.node;
+      } else {
+        nodeToTransform = content;
+      }
+    } else {
+      nodeToTransform = content;
+    }
+
     // Transform Markdoc AST to renderable content
-    const transformed = Markdoc.transform(content.node || content);
+    const transformed = Markdoc.transform(
+      nodeToTransform as Parameters<typeof Markdoc.transform>[0]
+    );
 
     // Convert to markdown-like string
     const markdown = renderToMarkdown(transformed);
@@ -39,7 +55,7 @@ function cleanMarkdocFormatting(text: string): string {
 }
 
 // Simple function to convert transformed content to markdown
-function renderToMarkdown(node: any): string {
+function renderToMarkdown(node: unknown): string {
   if (typeof node === "string") {
     return node;
   }
@@ -52,7 +68,9 @@ function renderToMarkdown(node: any): string {
     return "";
   }
 
-  const { name, attributes, children } = node;
+  const nodeObj = node as Record<string, unknown>;
+  const { name, attributes, children } = nodeObj;
+  const attrs = attributes as Record<string, unknown> | undefined;
 
   // Handle different node types
   switch (name) {
@@ -79,7 +97,7 @@ function renderToMarkdown(node: any): string {
     case "pre":
       return `\`\`\`\n${renderToMarkdown(children)}\n\`\`\`\n\n`;
     case "a":
-      return `[${renderToMarkdown(children)}](${attributes?.href || ""})`;
+      return `[${renderToMarkdown(children)}](${attrs?.href || ""})`;
     case "ul":
       return `${renderToMarkdown(children)}\n`;
     case "ol":
@@ -99,10 +117,10 @@ function renderToMarkdown(node: any): string {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { slug } = params;
+    const { slug } = await params;
 
     // Get the post from Keystatic
     const post = await reader.collections.posts.read(slug);
