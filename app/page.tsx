@@ -1,32 +1,38 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SocialDock } from "@/components/social-dock";
 
-// Live age component
+// Live age component - ultra fast loading with immediate calculation
 const LiveAge = () => {
-  const [age, setAge] = useState(0);
+  // Pre-calculate birth timestamp once for maximum performance
+  const birthTimestamp = useMemo(() => new Date(2005, 11, 7).getTime(), []);
+
+  const calculateAge = useCallback(() => {
+    const now = Date.now(); // Faster than new Date().getTime()
+    const ageInMs = now - birthTimestamp;
+    return ageInMs / (365.25 * 24 * 60 * 60 * 1000);
+  }, [birthTimestamp]);
+
+  // Initialize with actual age immediately - no 0 flash or loading state
+  const [age, setAge] = useState(() => calculateAge());
 
   useEffect(() => {
-    const birthDate = new Date(2005, 11, 7); // December 7, 2005 (month is 0-indexed)
-
-    const updateAge = () => {
-      const now = new Date();
-      const ageInMs = now.getTime() - birthDate.getTime();
-      const ageInYears = ageInMs / (365.25 * 24 * 60 * 60 * 1000);
-      setAge(ageInYears);
-    };
-
-    updateAge(); // Initial calculation
-    const interval = setInterval(updateAge, 100); // Update every 100ms
+    // High-frequency updates for ultra smooth live effect
+    const interval = setInterval(() => {
+      setAge(calculateAge());
+    }, 50); // 20fps for smooth animation
 
     return () => clearInterval(interval);
-  }, []);
+  }, [calculateAge]);
+
+  // Memoize the formatted age string to avoid unnecessary re-renders
+  const formattedAge = useMemo(() => age.toFixed(8), [age]);
 
   return (
     <div className="text-[14px] text-foreground/60 mb-4">
-      {age.toFixed(8)} years old
+      {formattedAge} years old
     </div>
   );
 };
@@ -312,7 +318,7 @@ export default function Home() {
   const handleJournalsClick = (e: React.MouseEvent) => {
     e.preventDefault();
 
-    // Simply navigate to journals - let the journals page handle its own tab management
+    // Ultra fast navigation with immediate transition
     router.push("/journals");
   };
 
@@ -362,7 +368,7 @@ export default function Home() {
               {tabs.map((tab) => (
                 <div
                   key={tab.id}
-                  className="tab-item flex items-center gap-2 rounded-t-md text-sm border-t border-l border-r border-dashed mr-1 hover:bg-foreground/5 transition-all duration-150"
+                  className="tab-item flex items-center gap-2 rounded-t-md text-sm border-t border-l border-r border-dashed mr-1 hover:bg-foreground/5 transition-all duration-75"
                   style={{
                     backgroundColor:
                       activeTab === tab.id
@@ -420,6 +426,7 @@ export default function Home() {
                       <Link
                         href={`/journals/${tab.id}`}
                         onClick={(e) => switchTab(tab.id, e)}
+                        prefetch={true}
                         className="flex items-center gap-2 px-3 py-2 flex-1 tab-link"
                         style={{
                           color:
@@ -442,7 +449,7 @@ export default function Home() {
                     {(tab.id === "journals" || tab.content === "post") && (
                       <button
                         onClick={(e) => closeTab(tab.id, e)}
-                        className="ml-1 px-1 py-1 transition-all duration-150 rounded-sm group"
+                        className="ml-1 px-1 py-1 transition-all duration-75 rounded-sm group"
                         style={{
                           color: "oklch(0.6 0.04 240)",
                         }}
@@ -486,7 +493,8 @@ export default function Home() {
               <Link
                 href="/journals"
                 onClick={handleJournalsClick}
-                className="text-[16px] text-foreground hover:text-foreground/80 transition-colors cursor-pointer"
+                prefetch={true}
+                className="text-[16px] text-foreground hover:text-foreground/80 transition-colors duration-75 cursor-pointer"
               >
                 Journals
               </Link>

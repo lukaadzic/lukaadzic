@@ -244,7 +244,7 @@ export default function PostClient({ post }: PostClientProps) {
               {tabs.map((tab) => (
                 <div
                   key={tab.id}
-                  className="tab-item flex items-center gap-2 rounded-t-md text-sm border-t border-l border-r border-dashed mr-1 hover:bg-foreground/5 transition-all duration-150"
+                  className="tab-item flex items-center gap-2 rounded-t-md text-sm border-t border-l border-r border-dashed mr-1 hover:bg-foreground/5 transition-all duration-75"
                   style={{
                     backgroundColor:
                       activeTab === tab.id
@@ -260,6 +260,7 @@ export default function PostClient({ post }: PostClientProps) {
                     {tab.content === "portfolio" ? (
                       <Link
                         href="/"
+                        prefetch={true}
                         className="flex items-center gap-2 px-3 py-2 flex-1 tab-link"
                         style={{
                           color:
@@ -281,6 +282,7 @@ export default function PostClient({ post }: PostClientProps) {
                     ) : tab.content === "journals" ? (
                       <Link
                         href="/journals"
+                        prefetch={true}
                         className="flex items-center gap-2 px-3 py-2 flex-1 tab-link"
                         style={{
                           color:
@@ -301,7 +303,7 @@ export default function PostClient({ post }: PostClientProps) {
                     ) : (
                       <button
                         onClick={(e) => switchTab(tab.id, e)}
-                        className="flex items-center gap-2 px-3 py-2 flex-1 tab-link transition-all duration-150"
+                        className="flex items-center gap-2 px-3 py-2 flex-1 tab-link transition-all duration-75"
                         style={{
                           color:
                             activeTab === tab.id
@@ -323,7 +325,7 @@ export default function PostClient({ post }: PostClientProps) {
                     {(tab.id === "journals" || tab.content === "post") && (
                       <button
                         onClick={(e) => closeTab(tab.id, e)}
-                        className="ml-1 px-1 py-1 transition-all duration-150 rounded-sm group"
+                        className="ml-1 px-1 py-1 transition-all duration-75 rounded-sm group"
                         style={{ color: "oklch(0.6 0.04 240)" }}
                       >
                         <svg

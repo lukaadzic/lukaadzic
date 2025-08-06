@@ -320,7 +320,8 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
             <Link
               href={`/journals/${slug}`}
               onClick={(e) => handlePostClick(slug, e)}
-              className="pointer-events-auto inline-flex items-center gap-1 px-2 py-1 text-xs font-mono text-cyan-400/60 hover:text-cyan-300 bg-foreground/5 hover:bg-foreground/8 border border-foreground/10 hover:border-cyan-400/30 rounded transition-all duration-200 whitespace-nowrap"
+              prefetch={true}
+              className="pointer-events-auto inline-flex items-center gap-1 px-2 py-1 text-xs font-mono text-cyan-400/60 hover:text-cyan-300 bg-foreground/5 hover:bg-foreground/8 border border-foreground/10 hover:border-cyan-400/30 rounded transition-all duration-75 whitespace-nowrap"
               style={{ textDecoration: "none" }}
             >
               <span>read more</span>
@@ -386,7 +387,7 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
             {tabs.map((tab) => (
               <div
                 key={tab.id}
-                className="tab-item flex items-center gap-2 rounded-t-md text-sm border-t border-l border-r border-dashed mr-1 hover:bg-foreground/5 transition-all duration-150"
+                className="tab-item flex items-center gap-2 rounded-t-md text-sm border-t border-l border-r border-dashed mr-1 hover:bg-foreground/5 transition-all duration-75"
                 style={{
                   backgroundColor:
                     activeTab === tab.id
@@ -403,6 +404,7 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
                     <Link
                       href="/"
                       onClick={(e) => switchTab(tab.id, e)}
+                      prefetch={true}
                       className="flex items-center gap-2 px-3 py-2 flex-1 tab-link"
                       style={{
                         color:
@@ -444,6 +446,7 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
                     <Link
                       href={`/journals/${tab.id}`}
                       onClick={(e) => switchTab(tab.id, e)}
+                      prefetch={true}
                       className="flex items-center gap-2 px-3 py-2 flex-1 tab-link"
                       style={{
                         color:
@@ -467,7 +470,7 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
                   {(tab.id === "journals" || tab.content === "post") && (
                     <button
                       onClick={(e) => closeTab(tab.id, e)}
-                      className="ml-1 px-1 py-1 transition-all duration-150 rounded-sm group"
+                      className="ml-1 px-1 py-1 transition-all duration-75 rounded-sm group"
                       style={{
                         color: "oklch(0.6 0.04 240)",
                       }}
@@ -538,6 +541,7 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
                             <Link
                               href={`/journals/${post.slug}`}
                               onClick={(e) => handlePostClick(post.slug, e)}
+                              prefetch={true}
                               className="font-medium text-foreground text-lg mobile-text-lg tablet-text-lg tablet-title-nowrap hover:text-foreground/80 transition-colors"
                             >
                               {post.title}
