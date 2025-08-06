@@ -17,6 +17,10 @@ type Post = {
   publishedDate: string | null;
   excerpt: string;
   featuredImage?: string | null;
+  additionalImages?: Array<{
+    image: string | null;
+    alt: string;
+  }>;
   content: string;
 };
 
@@ -404,14 +408,32 @@ export default function WritingClient({ posts }: WritingClientProps) {
                         </div>
                       </div>
 
-                      {/* Featured Image */}
+                      {/* Featured Image - CLI Style */}
                       {post.featuredImage && (
                         <div className="ml-6 mb-6">
-                          <img
-                            src={post.featuredImage}
-                            alt={post.title}
-                            className="rounded-lg border border-foreground/10 max-w-full h-auto"
-                          />
+                          {/* Terminal-style image container */}
+                          <div className="border border-dashed border-foreground/20 rounded-md overflow-hidden bg-foreground/5 max-w-lg">
+                            {/* Terminal header bar */}
+                            <div className="flex items-center gap-2 px-2 py-1.5 bg-foreground/10 border-b border-dashed border-foreground/20">
+                              <div className="flex gap-1">
+                                <div className="w-1.5 h-1.5 rounded-full bg-red-400/60"></div>
+                                <div className="w-1.5 h-1.5 rounded-full bg-yellow-400/60"></div>
+                                <div className="w-1.5 h-1.5 rounded-full bg-green-400/60"></div>
+                              </div>
+                              <span className="text-xs font-mono text-foreground/50 ml-1.5 truncate">
+                                {post.title.toLowerCase().replace(/\s+/g, "-")}
+                                .jpg
+                              </span>
+                            </div>
+                            {/* Image content */}
+                            <div className="p-2">
+                              <img
+                                src={post.featuredImage}
+                                alt={post.title}
+                                className="w-full h-auto rounded border border-foreground/10 max-h-48 object-cover"
+                              />
+                            </div>
+                          </div>
                         </div>
                       )}
 

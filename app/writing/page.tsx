@@ -9,6 +9,10 @@ type Post = {
   publishedDate: string | null;
   excerpt: string;
   featuredImage?: string | null;
+  additionalImages?: Array<{
+    image: string | null;
+    alt: string;
+  }>;
   content: string;
 };
 
@@ -150,6 +154,10 @@ export default async function Writing() {
           publishedDate: post.entry.publishedDate,
           excerpt: post.entry.excerpt,
           featuredImage: post.entry.featuredImage,
+          additionalImages: (post.entry.additionalImages || []).map((img) => ({
+            image: img.image,
+            alt: img.alt,
+          })),
           content: markdownContent,
         };
       })
