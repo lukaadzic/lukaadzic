@@ -15,8 +15,14 @@ type Post = {
   slug: string;
   title: string;
   publishedDate: string | null;
+  postType: "post" | "take";
   excerpt: string;
   featuredImage?: string | null;
+  featuredImagePosition?: string; // Legacy field - ignored
+  featuredImageCrop?: {
+    x: number;
+    y: number;
+  };
   additionalImages?: Array<{
     image: string | null;
     alt: string;
@@ -98,11 +104,17 @@ export default function WritingClient({ posts }: WritingClientProps) {
     setActiveTab(tabId);
   };
 
+  // Function to convert crop values to CSS object-position
+  const getObjectPosition = (crop: { x: number; y: number }) => {
+    return `${crop.x}% ${crop.y}%`;
+  };
+
   // Function to render post content properly
   const renderPostContent = (
     content: string,
     excerpt: string,
-    slug: string
+    slug: string,
+    postType: "post" | "take"
   ) => {
     // If no main content, show excerpt as fallback
     const textToRender = content && content.trim() !== "" ? content : excerpt;
@@ -116,8 +128,8 @@ export default function WritingClient({ posts }: WritingClientProps) {
       );
     }
 
-    // Check if content is longer than 150 characters
-    const isLongContent = textToRender.length > 150;
+    // For takes, always show full content. For posts, check length and truncate
+    const isLongContent = postType === "post" && textToRender.length > 150;
     const displayContent = isLongContent
       ? textToRender.substring(0, 150) + "..."
       : textToRender;
@@ -369,7 +381,7 @@ export default function WritingClient({ posts }: WritingClientProps) {
           >
             <div className="space-y-8">
               <p className="text-[18px] text-foreground/80 leading-7 font-mono">
-                Posts I&apos;ve Written:
+                Posts & Takes:
               </p>
 
               {posts.length > 0 ? (
@@ -384,12 +396,25 @@ export default function WritingClient({ posts }: WritingClientProps) {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2">
                             <span className="text-cyan-400 text-sm font-medium">
-                              ~/posts/
+                              ~/{post.postType === "take" ? "takes" : "posts"}/
                             </span>
                             <h2 className="font-medium text-foreground text-lg">
                               {post.title}
                             </h2>
-                            <span className="text-green-400 text-xs">●</span>
+                            <span
+                              className={`text-xs ${
+                                post.postType === "take"
+                                  ? "text-yellow-400"
+                                  : "text-green-400"
+                              }`}
+                            >
+                              {post.postType === "take" ? "◆" : "●"}
+                            </span>
+                            {post.postType === "take" && (
+                              <span className="text-xs text-yellow-400/60 font-mono">
+                                quick take
+                              </span>
+                            )}
                           </div>
                           {post.publishedDate && (
                             <div className="flex items-center gap-2 text-xs mb-3">
@@ -427,11 +452,18 @@ export default function WritingClient({ posts }: WritingClientProps) {
                             </div>
                             {/* Image content */}
                             <div className="p-2">
-                              <img
-                                src={post.featuredImage}
-                                alt={post.title}
-                                className="w-full h-auto rounded border border-foreground/10 max-h-48 object-cover"
-                              />
+                              <div className="w-full h-48 rounded border border-foreground/10 overflow-hidden bg-foreground/5">
+                                <img
+                                  src={post.featuredImage}
+                                  alt={post.title}
+                                  className="w-full h-full object-cover"
+                                  style={{
+                                    objectPosition: getObjectPosition(
+                                      post.featuredImageCrop || { x: 50, y: 50 }
+                                    ),
+                                  }}
+                                />
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -442,7 +474,8 @@ export default function WritingClient({ posts }: WritingClientProps) {
                         {renderPostContent(
                           post.content,
                           post.excerpt,
-                          post.slug
+                          post.slug,
+                          post.postType
                         )}
                       </div>
 

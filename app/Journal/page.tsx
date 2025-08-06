@@ -2,6 +2,7 @@ import { createReader } from "@keystatic/core/reader";
 import config from "../../keystatic.config";
 import WritingClient from "./writing-client";
 import Markdoc from "@markdoc/markdoc";
+import WritingClient from "./writing-client";
 
 type Post = {
   slug: string;
@@ -184,5 +185,5 @@ export default async function Writing() {
     console.error("Error fetching posts:", error);
   }
 
-  return <WritingClient posts={posts} />;
+  return <WritingClientClient posts={posts} />;
 }
