@@ -30,27 +30,65 @@ interface PostClientProps {
 
 export default function PostClient({ post }: PostClientProps) {
   const router = useRouter();
-  const [tabs, setTabs] = useState(() => {
-    // Check if we have session state from navigation
+
+  // Initialize with consistent state for SSR
+  const [tabs, setTabs] = useState<Tab[]>([
+    { id: "portfolio", name: "lukaadzic.tsx", content: "portfolio" as const },
+    { id: "journals", name: "journals.tsx", content: "journals" as const },
+    { id: post.slug, name: `${post.slug}.tsx`, content: "post" as const },
+  ]);
+
+  // Always set activeTab to current post slug when on post page
+  const [activeTab, setActiveTab] = useState(post.slug);
+
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Load tabs from sessionStorage after hydration
+  useEffect(() => {
+    let finalTabs = tabs; // Start with default tabs
+
     const editorTabsState = sessionStorage.getItem("editorTabs");
     if (editorTabsState) {
       try {
         const { tabs: editorTabs } = JSON.parse(editorTabsState);
-        return editorTabs;
+
+        // Check if current post tab already exists
+        const hasCurrentPost = editorTabs.some(
+          (tab: any) => tab.id === post.slug
+        );
+
+        if (hasCurrentPost) {
+          // Update the existing post tab to have the correct name
+          finalTabs = editorTabs.map((tab: any) =>
+            tab.id === post.slug ? { ...tab, name: `${post.slug}.tsx` } : tab
+          );
+        } else {
+          // Replace any existing post tab with the current post tab
+          const nonPostTabs = editorTabs.filter(
+            (tab: any) => tab.content !== "post"
+          );
+          finalTabs = [
+            ...nonPostTabs,
+            {
+              id: post.slug,
+              name: `${post.slug}.tsx`,
+              content: "post" as const,
+            },
+          ];
+        }
+        setTabs(finalTabs);
       } catch (error) {
         console.error("Error parsing editor tabs state:", error);
       }
     }
 
-    // Default: show all three tabs when directly accessing a post
-    return [
-      { id: "portfolio", name: "lukaadzic.tsx", content: "portfolio" as const },
-      { id: "journals", name: "journals.tsx", content: "journals" as const },
-      { id: post.slug, name: `${post.slug}.tsx`, content: "post" as const },
-    ];
-  });
-  const [activeTab, setActiveTab] = useState(post.slug);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    // Update sessionStorage with final state
+    const tabsState = {
+      tabs: finalTabs,
+      activeTab: post.slug,
+    };
+    sessionStorage.setItem("editorTabs", JSON.stringify(tabsState));
+  }, []); // Empty dependency array - runs only once after hydration
 
   // Collect all images (featured + additional)
   const allImages = [
@@ -72,6 +110,17 @@ export default function PostClient({ post }: PostClientProps) {
       })) || []),
   ];
 
+  // Helper function to truncate long tab names
+  const truncateTabName = (name: string) => {
+    if (name.length <= 50) return name;
+
+    // Remove .tsx extension, truncate, then add ...tsx
+    const nameWithoutExt = name.replace(".tsx", "");
+    if (nameWithoutExt.length <= 47) return name; // 47 + 3 chars for .tsx = 50
+
+    return nameWithoutExt.substring(0, 44) + "...tsx";
+  };
+
   const switchTab = (tabId: string, e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
@@ -84,7 +133,6 @@ export default function PostClient({ post }: PostClientProps) {
     const tabsState = {
       tabs,
       activeTab: tabId,
-      currentPost: post.slug,
     };
     sessionStorage.setItem("editorTabs", JSON.stringify(tabsState));
 
@@ -93,6 +141,9 @@ export default function PostClient({ post }: PostClientProps) {
       router.push("/");
     } else if (tabId === "journals") {
       router.push("/journals");
+    } else if (tabId !== post.slug) {
+      // It's a different post tab - navigate to that post
+      router.push(`/journals/${tabId}`);
     }
     // If it's the current post tab, just stay here - don't navigate
   };
@@ -101,12 +152,26 @@ export default function PostClient({ post }: PostClientProps) {
     e.preventDefault();
     e.stopPropagation();
 
-    // Don't allow closing the portfolio or journals tabs
-    if (tabId === "portfolio" || tabId === "journals") return;
+    // Don't allow closing the portfolio tab
+    if (tabId === "portfolio") return;
 
-    // Only close if it's the current post tab and X was clicked
+    // Remove the tab from tabs array
+    const newTabs = tabs.filter((tab) => tab.id !== tabId);
+
+    // Update sessionStorage with new tabs
+    const tabsState = {
+      tabs: newTabs,
+      activeTab: tabId === post.slug ? "journals" : activeTab,
+    };
+    sessionStorage.setItem("editorTabs", JSON.stringify(tabsState));
+
+    // Navigate based on which tab was closed
     if (tabId === post.slug) {
-      window.location.href = "/journals";
+      // If closing current post tab, go to journals
+      router.push("/journals");
+    } else if (tabId === "journals") {
+      // If closing journals tab, go to portfolio
+      router.push("/");
     }
   };
 
@@ -158,7 +223,7 @@ export default function PostClient({ post }: PostClientProps) {
         <div
           className="mx-auto border-l border-r border-dashed"
           style={{
-            maxWidth: "928px",
+            maxWidth: "926px",
             borderColor: "oklch(0.4 0.1 240 / 0.3)",
             borderWidth: "1px",
           }}
@@ -172,11 +237,14 @@ export default function PostClient({ post }: PostClientProps) {
               height: "52px", // Fixed height to prevent layout shift
             }}
           >
-            <div className="flex items-end h-full min-w-max">
+            <div
+              className="flex items-end h-full"
+              style={{ minWidth: "max-content" }}
+            >
               {tabs.map((tab) => (
                 <div
                   key={tab.id}
-                  className="flex items-center gap-2 rounded-t-md text-sm border-t border-l border-r border-dashed mr-1 flex-shrink-0"
+                  className="tab-item flex items-center gap-2 rounded-t-md text-sm border-t border-l border-r border-dashed mr-1 hover:bg-foreground/5 transition-all duration-150"
                   style={{
                     backgroundColor:
                       activeTab === tab.id
@@ -208,7 +276,7 @@ export default function PostClient({ post }: PostClientProps) {
                           <path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" />
                           <path d="m12 5.432 8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z" />
                         </svg>
-                        <span>{tab.name}</span>
+                        <span>{truncateTabName(tab.name)}</span>
                       </Link>
                     ) : tab.content === "journals" ? (
                       <Link
@@ -228,11 +296,12 @@ export default function PostClient({ post }: PostClientProps) {
                         >
                           <path d="M1.5 6.375c0-1.036.84-1.875 1.875-1.875h17.25c1.035 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875H3.375A1.875 1.875 0 0 1 1.5 17.625V6.375zM21 9.375A.375.375 0 0 0 20.625 9h-7.5a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5zm0 3.75a.375.375 0 0 0-.375-.375h-7.5a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5zm0 3.75a.375.375 0 0 0-.375-.375h-7.5a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5zM10.875 18.75a.375.375 0 0 0 .375-.375v-1.5a.375.375 0 0 0-.375-.375h-7.5a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5zM3.375 15.375a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5a.375.375 0 0 0-.375-.375h-7.5zm0-3.75a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5a.375.375 0 0 0-.375-.375h-7.5z" />
                         </svg>
-                        <span>{tab.name}</span>
+                        <span>{truncateTabName(tab.name)}</span>
                       </Link>
                     ) : (
-                      <div
-                        className="flex items-center gap-2 px-3 py-2 flex-1"
+                      <button
+                        onClick={(e) => switchTab(tab.id, e)}
+                        className="flex items-center gap-2 px-3 py-2 flex-1 tab-link transition-all duration-150"
                         style={{
                           color:
                             activeTab === tab.id
@@ -248,13 +317,13 @@ export default function PostClient({ post }: PostClientProps) {
                           <path d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0016.5 9h-1.875a1.875 1.875 0 01-1.875-1.875V5.25A3.75 3.75 0 009 1.5H5.625z" />
                           <path d="M12.971 1.816A5.23 5.23 0 0114.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 013.434 1.279 9.768 9.768 0 00-6.963-6.963z" />
                         </svg>
-                        <span>{tab.name}</span>
-                      </div>
+                        <span>{truncateTabName(tab.name)}</span>
+                      </button>
                     )}
-                    {tab.id === post.slug && (
+                    {(tab.id === "journals" || tab.content === "post") && (
                       <button
                         onClick={(e) => closeTab(tab.id, e)}
-                        className="ml-1 px-1 py-1 hover:bg-foreground/10 transition-colors rounded-sm group"
+                        className="ml-1 px-1 py-1 transition-all duration-150 rounded-sm group"
                         style={{ color: "oklch(0.6 0.04 240)" }}
                       >
                         <svg
@@ -294,7 +363,7 @@ export default function PostClient({ post }: PostClientProps) {
 
             {/* Writing Content */}
             <div
-              className="py-8 min-h-screen"
+              className="py-8 min-h-screen post-content tab-content-container"
               style={{ paddingLeft: "16px", paddingRight: "16px" }}
             >
               <div className="space-y-8">
@@ -341,71 +410,75 @@ export default function PostClient({ post }: PostClientProps) {
                       </div>
                     </div>
 
-                    {/* Featured Image */}
+                    {/* Featured Image - CLI Style */}
                     {allImages.length > 0 && (
-                      <div className="flex items-start gap-3 mb-4">
+                      <div className="flex items-start gap-3 mb-6">
                         <span className="text-transparent text-sm mt-0.5 select-none font-bold">
                           ❯
                         </span>
                         <div className="flex-1 min-w-0">
-                          <div className="mb-2">
-                            <div className="flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-green-400/60"></div>
-                            </div>
-                            <span className="text-xs font-mono text-foreground/50 ml-1.5 truncate">
-                              {allImages[currentImageIndex]?.alt
-                                ? allImages[currentImageIndex].alt
-                                    .toLowerCase()
-                                    .replace(/\s+/g, "-")
-                                : post.title.toLowerCase().replace(/\s+/g, "-")}
-                              .jpg
-                            </span>
-                          </div>
-                          <div className="p-2">
-                            <div className="w-full h-48 rounded border border-foreground/10 overflow-hidden bg-foreground/5 relative">
-                              <img
-                                src={allImages[currentImageIndex]?.src}
-                                alt={
-                                  allImages[currentImageIndex]?.alt ||
-                                  post.title
-                                }
-                                className="w-full h-full object-cover"
-                                style={{
-                                  objectPosition: allImages[currentImageIndex]
-                                    ?.crop
-                                    ? getObjectPosition(
-                                        allImages[currentImageIndex].crop!
-                                      )
-                                    : "50% 50%",
-                                }}
-                              />
-
-                              {/* Navigation arrows */}
+                          <div className="border border-dashed border-foreground/20 rounded-md overflow-hidden bg-foreground/5 max-w-lg">
+                            <div className="flex items-center gap-2 px-2 py-1.5 bg-foreground/10 border-b border-dashed border-foreground/20">
+                              <div className="flex gap-1">
+                                <div className="w-1.5 h-1.5 rounded-full bg-red-400/60"></div>
+                                <div className="w-1.5 h-1.5 rounded-full bg-yellow-400/60"></div>
+                                <div className="w-1.5 h-1.5 rounded-full bg-green-400/60"></div>
+                              </div>
+                              <span className="text-xs font-mono text-foreground/50 ml-1.5 truncate">
+                                {allImages[currentImageIndex]?.alt
+                                  ? allImages[currentImageIndex].alt
+                                      .toLowerCase()
+                                      .replace(/\s+/g, "-")
+                                  : post.title
+                                      .toLowerCase()
+                                      .replace(/\s+/g, "-")}
+                                .jpg
+                              </span>
+                              {/* Navigation controls in header */}
                               {allImages.length > 1 && (
-                                <>
+                                <div className="flex items-center gap-2 ml-auto">
                                   <button
                                     onClick={prevImage}
-                                    className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                                    className="w-4 h-4 flex items-center justify-center text-foreground/50 hover:text-foreground/80 transition-colors text-xs"
+                                    title="Previous image"
                                   >
                                     ❮
                                   </button>
+                                  <span className="text-xs text-foreground/40 px-1">
+                                    {currentImageIndex + 1}/{allImages.length}
+                                  </span>
                                   <button
                                     onClick={nextImage}
-                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                                    className="w-4 h-4 flex items-center justify-center text-foreground/50 hover:text-foreground/80 transition-colors text-xs"
+                                    title="Next image"
                                   >
                                     ❯
                                   </button>
-                                </>
+                                </div>
                               )}
                             </div>
-
-                            {/* Image counter and dots */}
-                            {allImages.length > 1 && (
-                              <div className="flex items-center justify-between mt-2">
-                                <span className="text-xs text-foreground/50 font-mono">
-                                  {currentImageIndex + 1} / {allImages.length}
-                                </span>
-                                <div className="flex gap-1">
+                            <div className="p-2">
+                              <div className="w-full h-48 rounded border border-foreground/10 overflow-hidden bg-foreground/5">
+                                <img
+                                  src={allImages[currentImageIndex]?.src}
+                                  alt={
+                                    allImages[currentImageIndex]?.alt ||
+                                    post.title
+                                  }
+                                  className="w-full h-full object-cover"
+                                  style={{
+                                    objectPosition: allImages[currentImageIndex]
+                                      ?.crop
+                                      ? getObjectPosition(
+                                          allImages[currentImageIndex].crop!
+                                        )
+                                      : "center center",
+                                  }}
+                                />
+                              </div>
+                              {/* Image dots indicator */}
+                              {allImages.length > 1 && (
+                                <div className="flex justify-center gap-1 mt-2">
                                   {allImages.map((_, index) => (
                                     <button
                                       key={index}
@@ -420,8 +493,8 @@ export default function PostClient({ post }: PostClientProps) {
                                     />
                                   ))}
                                 </div>
-                              </div>
-                            )}
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>

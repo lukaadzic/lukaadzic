@@ -36,45 +36,108 @@ interface JournalsClientProps {
 
 export default function JournalsClient({ posts }: JournalsClientProps) {
   const router = useRouter();
-  const [tabs, setTabs] = useState<Tab[]>([]);
+
+  // Initialize with default state for SSR
+  const [tabs, setTabs] = useState<Tab[]>([
+    { id: "portfolio", name: "lukaadzic.tsx", content: "portfolio" },
+    { id: "journals", name: "journals.tsx", content: "journals" },
+  ]);
+
   const [activeTab, setActiveTab] = useState("journals");
 
-  // Load tabs from sessionStorage/localStorage
+  // Load tabs from sessionStorage after hydration and ensure journal tab exists
   useEffect(() => {
     const editorTabsState = sessionStorage.getItem("editorTabs");
-    let initialTabs: Tab[] = [
-      { id: "portfolio", name: "lukaadzic.tsx", content: "portfolio" },
-      { id: "journals", name: "journals.tsx", content: "journals" },
-    ];
 
-    // Only check sessionStorage for editor tabs (from navigation)
-    // This preserves tabs when navigating between pages
     if (editorTabsState) {
       try {
         const { tabs: editorTabs } = JSON.parse(editorTabsState);
-        setTabs(editorTabs);
-        setActiveTab("journals"); // Always set journals as active when on journals page
-        return;
+
+        // Always use the existing tabs from sessionStorage
+        // Only add journal tab if it doesn't exist
+        const journalsTabExists = editorTabs.some(
+          (tab) => tab.id === "journals"
+        );
+
+        if (!journalsTabExists) {
+          // Add journal tab to existing tabs
+          const newTabs = [
+            ...editorTabs,
+            { id: "journals", name: "journals.tsx", content: "journals" },
+          ];
+          setTabs(newTabs);
+        } else {
+          // Use existing tabs as-is
+          setTabs(editorTabs);
+        }
       } catch (error) {
         console.error("Error parsing editor tabs state:", error);
+        // Fallback to default tabs on error
+        setTabs([
+          { id: "portfolio", name: "lukaadzic.tsx", content: "portfolio" },
+          { id: "journals", name: "journals.tsx", content: "journals" },
+        ]);
       }
+    } else {
+      // No sessionStorage, use default tabs
+      setTabs([
+        { id: "portfolio", name: "lukaadzic.tsx", content: "portfolio" },
+        { id: "journals", name: "journals.tsx", content: "journals" },
+      ]);
     }
 
-    // Default: show portfolio and journals tabs when directly accessing journals
-    setTabs(initialTabs);
     setActiveTab("journals");
+    setIsInitialized(true);
   }, []);
 
-  // Save tabs to sessionStorage whenever tabs change (for navigation persistence)
+  // Save tabs to sessionStorage only when tabs change after initial load
+  const [isInitialized, setIsInitialized] = useState(false);
+
   useEffect(() => {
-    if (tabs.length > 0) {
+    if (isInitialized && tabs.length > 0) {
       const tabsState = {
         tabs,
         activeTab,
       };
       sessionStorage.setItem("editorTabs", JSON.stringify(tabsState));
     }
-  }, [tabs, activeTab]);
+  }, [tabs, activeTab, isInitialized]);
+
+  // Helper function to truncate long tab names
+  const truncateTabName = (name: string) => {
+    if (name.length <= 50) return name;
+
+    // Remove .tsx extension, truncate, then add ...tsx
+    const nameWithoutExt = name.replace(".tsx", "");
+    if (nameWithoutExt.length <= 47) return name; // 47 + 3 chars for .tsx = 50
+
+    return nameWithoutExt.substring(0, 44) + "...tsx";
+  };
+
+  const switchTab = (tabId: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    // Store current tabs state in sessionStorage BEFORE navigation to prevent layout shifts
+    const tabsState = {
+      tabs,
+      activeTab: tabId,
+    };
+    sessionStorage.setItem("editorTabs", JSON.stringify(tabsState));
+
+    // Navigate using Next.js router (no page reload)
+    if (tabId === "portfolio") {
+      router.push("/");
+    } else if (tabId !== "journals") {
+      // It's a post tab
+      router.push(`/journals/${tabId}`);
+    } else {
+      // If it's journals tab, just update the active state
+      setActiveTab(tabId);
+    }
+  };
 
   const closeTab = (tabId: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -88,10 +151,48 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
     const newTabs = tabs.filter((tab) => tab.id !== tabId);
     setTabs(newTabs);
 
+    // Update sessionStorage with new tabs
+    const tabsState = {
+      tabs: newTabs,
+      activeTab: activeTab === tabId ? "journals" : activeTab,
+    };
+    sessionStorage.setItem("editorTabs", JSON.stringify(tabsState));
+
     // If we're closing the journals tab and we're currently on it, go to portfolio
     if (activeTab === tabId && tabId === "journals") {
       router.push("/");
     }
+    // If we're closing a post tab, stay on journals page but update active tab
+    else if (activeTab === tabId && tabId !== "journals") {
+      setActiveTab("journals");
+    }
+  };
+
+  const handlePostClick = (slug: string, e: React.MouseEvent) => {
+    e.preventDefault();
+
+    // Check if this specific post tab already exists
+    const postTabExists = tabs.some((tab) => tab.id === slug);
+
+    if (!postTabExists) {
+      // Replace any existing post tab with the new post tab
+      const nonPostTabs = tabs.filter((tab) => tab.content !== "post");
+      const newTabs = [
+        ...nonPostTabs,
+        { id: slug, name: `${slug}.tsx`, content: "post" as const },
+      ];
+      setTabs(newTabs);
+
+      // Save to sessionStorage for navigation
+      const tabsState = {
+        tabs: newTabs,
+        activeTab: slug,
+      };
+      sessionStorage.setItem("editorTabs", JSON.stringify(tabsState));
+    }
+
+    // Navigate to post using Next.js router
+    router.push(`/journals/${slug}`);
   };
 
   // Function to render post content properly
@@ -218,6 +319,7 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
           <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-30 pointer-events-none">
             <Link
               href={`/journals/${slug}`}
+              onClick={(e) => handlePostClick(slug, e)}
               className="pointer-events-auto inline-flex items-center gap-1 px-2 py-1 text-xs font-mono text-cyan-400/60 hover:text-cyan-300 bg-foreground/5 hover:bg-foreground/8 border border-foreground/10 hover:border-cyan-400/30 rounded transition-all duration-200 whitespace-nowrap"
               style={{ textDecoration: "none" }}
             >
@@ -263,7 +365,7 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
       <div
         className="mx-auto border-l border-r border-b border-dashed"
         style={{
-          maxWidth: "928px",
+          maxWidth: "926px",
           borderColor: "oklch(0.4 0.1 240 / 0.3)",
           borderWidth: "1px",
         }}
@@ -277,11 +379,14 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
             height: "52px",
           }}
         >
-          <div className="flex items-end h-full min-w-max">
+          <div
+            className="flex items-end h-full"
+            style={{ minWidth: "max-content" }}
+          >
             {tabs.map((tab) => (
               <div
                 key={tab.id}
-                className="flex items-center gap-2 rounded-t-md text-sm border-t border-l border-r border-dashed mr-1"
+                className="tab-item flex items-center gap-2 rounded-t-md text-sm border-t border-l border-r border-dashed mr-1 hover:bg-foreground/5 transition-all duration-150"
                 style={{
                   backgroundColor:
                     activeTab === tab.id
@@ -297,6 +402,7 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
                   {tab.content === "portfolio" ? (
                     <Link
                       href="/"
+                      onClick={(e) => switchTab(tab.id, e)}
                       className="flex items-center gap-2 px-3 py-2 flex-1 tab-link"
                       style={{
                         color:
@@ -313,7 +419,7 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
                         <path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" />
                         <path d="m12 5.432 8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z" />
                       </svg>
-                      <span>{tab.name}</span>
+                      <span>{truncateTabName(tab.name)}</span>
                     </Link>
                   ) : tab.content === "journals" ? (
                     <div
@@ -332,11 +438,12 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
                       >
                         <path d="M1.5 6.375c0-1.036.84-1.875 1.875-1.875h17.25c1.035 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875H3.375A1.875 1.875 0 0 1 1.5 17.625V6.375zM21 9.375A.375.375 0 0 0 20.625 9h-7.5a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5zm0 3.75a.375.375 0 0 0-.375-.375h-7.5a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5zm0 3.75a.375.375 0 0 0-.375-.375h-7.5a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5zM10.875 18.75a.375.375 0 0 0 .375-.375v-1.5a.375.375 0 0 0-.375-.375h-7.5a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5zM3.375 15.375a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5a.375.375 0 0 0-.375-.375h-7.5zm0-3.75a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5a.375.375 0 0 0-.375-.375h-7.5z" />
                       </svg>
-                      <span>{tab.name}</span>
+                      <span>{truncateTabName(tab.name)}</span>
                     </div>
                   ) : (
                     <Link
                       href={`/journals/${tab.id}`}
+                      onClick={(e) => switchTab(tab.id, e)}
                       className="flex items-center gap-2 px-3 py-2 flex-1 tab-link"
                       style={{
                         color:
@@ -353,14 +460,14 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
                         <path d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0016.5 9h-1.875a1.875 1.875 0 01-1.875-1.875V5.25A3.75 3.75 0 009 1.5H5.625z" />
                         <path d="M12.971 1.816A5.23 5.23 0 0114.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 013.434 1.279 9.768 9.768 0 00-6.963-6.963z" />
                       </svg>
-                      <span>{tab.name}</span>
+                      <span>{truncateTabName(tab.name)}</span>
                     </Link>
                   )}
 
                   {(tab.id === "journals" || tab.content === "post") && (
                     <button
                       onClick={(e) => closeTab(tab.id, e)}
-                      className="ml-1 px-1 py-1 hover:bg-foreground/10 transition-colors rounded-sm group"
+                      className="ml-1 px-1 py-1 transition-all duration-150 rounded-sm group"
                       style={{
                         color: "oklch(0.6 0.04 240)",
                       }}
@@ -407,7 +514,7 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
 
           {/* Writing Content */}
           <div
-            className="py-8 min-h-screen"
+            className="py-8 min-h-screen tab-content-container"
             style={{ paddingLeft: "16px", paddingRight: "16px" }}
           >
             <div className="space-y-8">
@@ -430,6 +537,7 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
                             </span>
                             <Link
                               href={`/journals/${post.slug}`}
+                              onClick={(e) => handlePostClick(post.slug, e)}
                               className="font-medium text-foreground text-lg mobile-text-lg tablet-text-lg tablet-title-nowrap hover:text-foreground/80 transition-colors"
                             >
                               {post.title}

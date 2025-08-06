@@ -23,14 +23,16 @@ type Post = {
 async function getPost(slug: string): Promise<Post | null> {
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/posts/${slug}`,
+      `${
+        process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+      }/api/posts/${slug}`,
       { cache: "no-store" }
     );
-    
+
     if (!response.ok) {
       return null;
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error("Error fetching post:", error);
@@ -41,9 +43,10 @@ async function getPost(slug: string): Promise<Post | null> {
 export default async function PostPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const post = await getPost(params.slug);
+  const { slug } = await params;
+  const post = await getPost(slug);
 
   if (!post) {
     notFound();
@@ -55,9 +58,10 @@ export default async function PostPage({
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const post = await getPost(params.slug);
+  const { slug } = await params;
+  const post = await getPost(slug);
 
   if (!post) {
     return {

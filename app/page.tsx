@@ -1,6 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { SocialDock } from "@/components/social-dock";
 
 // Live age component
@@ -213,6 +214,7 @@ type Tab = {
 };
 
 export default function Home() {
+  const router = useRouter();
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [activeTab, setActiveTab] = useState("portfolio");
 
@@ -252,6 +254,42 @@ export default function Home() {
     }
   }, [tabs, activeTab]);
 
+  // Helper function to truncate long tab names
+  const truncateTabName = (name: string) => {
+    if (name.length <= 50) return name;
+
+    // Remove .tsx extension, truncate, then add ...tsx
+    const nameWithoutExt = name.replace(".tsx", "");
+    if (nameWithoutExt.length <= 47) return name; // 47 + 3 chars for .tsx = 50
+
+    return nameWithoutExt.substring(0, 44) + "...tsx";
+  };
+
+  const switchTab = (tabId: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    // Store current tabs state in sessionStorage BEFORE navigation to prevent layout shifts
+    const tabsState = {
+      tabs,
+      activeTab: tabId,
+    };
+    sessionStorage.setItem("editorTabs", JSON.stringify(tabsState));
+
+    // Navigate using Next.js router (no page reload)
+    if (tabId === "journals") {
+      router.push("/journals");
+    } else if (tabId !== "portfolio") {
+      // It's a post tab
+      router.push(`/journals/${tabId}`);
+    } else {
+      // If it's portfolio tab, just update the active state
+      setActiveTab(tabId);
+    }
+  };
+
   const closeTab = (tabId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -274,27 +312,8 @@ export default function Home() {
   const handleJournalsClick = (e: React.MouseEvent) => {
     e.preventDefault();
 
-    // Check if journals tab already exists
-    const journalsTabExists = tabs.some((tab) => tab.id === "journals");
-
-    if (!journalsTabExists) {
-      // Add journals tab
-      const newTabs = [
-        ...tabs,
-        { id: "journals", name: "journals.tsx", content: "journals" as const },
-      ];
-      setTabs(newTabs);
-
-      // Save to sessionStorage for navigation
-      const tabsState = {
-        tabs: newTabs,
-        activeTab: "journals",
-      };
-      sessionStorage.setItem("editorTabs", JSON.stringify(tabsState));
-    }
-
-    // Navigate to journals
-    window.location.href = "/journals";
+    // Simply navigate to journals - let the journals page handle its own tab management
+    router.push("/journals");
   };
 
   return (
@@ -322,7 +341,7 @@ export default function Home() {
         <div
           className="mx-auto border-l border-r border-dashed"
           style={{
-            maxWidth: "928px",
+            maxWidth: "926px",
             borderColor: "oklch(0.4 0.1 240 / 0.3)",
             borderWidth: "1px",
           }}
@@ -336,11 +355,14 @@ export default function Home() {
               height: "52px", // Fixed height to prevent layout shift
             }}
           >
-            <div className="flex items-end h-full min-w-max">
+            <div
+              className="flex items-end h-full"
+              style={{ minWidth: "max-content" }}
+            >
               {tabs.map((tab) => (
                 <div
                   key={tab.id}
-                  className="flex items-center gap-2 rounded-t-md text-sm border-t border-l border-r border-dashed mr-1"
+                  className="tab-item flex items-center gap-2 rounded-t-md text-sm border-t border-l border-r border-dashed mr-1 hover:bg-foreground/5 transition-all duration-150"
                   style={{
                     backgroundColor:
                       activeTab === tab.id
@@ -376,6 +398,7 @@ export default function Home() {
                     ) : tab.content === "journals" ? (
                       <Link
                         href="/journals"
+                        onClick={(e) => switchTab(tab.id, e)}
                         className="flex items-center gap-2 px-3 py-2 flex-1 tab-link"
                         style={{
                           color:
@@ -396,6 +419,7 @@ export default function Home() {
                     ) : (
                       <Link
                         href={`/journals/${tab.id}`}
+                        onClick={(e) => switchTab(tab.id, e)}
                         className="flex items-center gap-2 px-3 py-2 flex-1 tab-link"
                         style={{
                           color:
@@ -412,13 +436,13 @@ export default function Home() {
                           <path d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0016.5 9h-1.875a1.875 1.875 0 01-1.875-1.875V5.25A3.75 3.75 0 009 1.5H5.625z" />
                           <path d="M12.971 1.816A5.23 5.23 0 0114.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 013.434 1.279 9.768 9.768 0 00-6.963-6.963z" />
                         </svg>
-                        <span>{tab.name}</span>
+                        <span>{truncateTabName(tab.name)}</span>
                       </Link>
                     )}
                     {(tab.id === "journals" || tab.content === "post") && (
                       <button
                         onClick={(e) => closeTab(tab.id, e)}
-                        className="ml-1 px-1 py-1 hover:bg-foreground/10 transition-colors rounded-sm group"
+                        className="ml-1 px-1 py-1 transition-all duration-150 rounded-sm group"
                         style={{
                           color: "oklch(0.6 0.04 240)",
                         }}
@@ -459,13 +483,13 @@ export default function Home() {
                 </Link>
                 <LiveAge />
               </div>
-              <a
+              <Link
                 href="/journals"
                 onClick={handleJournalsClick}
                 className="text-[16px] text-foreground hover:text-foreground/80 transition-colors cursor-pointer"
               >
                 Journals
-              </a>
+              </Link>
             </header>
 
             {/* Conditional Content Based on Active Tab */}
