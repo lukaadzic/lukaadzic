@@ -30,3 +30,9 @@ body {
   color: var(--foreground);
   font-family: var(--font-jetbrains-mono), sans-serif;
 }
+
+/* CSS mask for fading content */
+.mask-fade-bottom {
+  mask-image: linear-gradient(to bottom, black 0%, black 70%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 70%, transparent 100%);
+}

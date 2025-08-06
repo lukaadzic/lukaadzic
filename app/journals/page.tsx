@@ -1,8 +1,13 @@
 import { createReader } from "@keystatic/core/reader";
 import config from "../../keystatic.config";
-import WritingClient from "./writing-client";
+import JournalsClient from "./journals-client";
 import Markdoc from "@markdoc/markdoc";
-import WritingClient from "./writing-client";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Journals - Luka Adzic",
+  description: "My thoughts, insights, and experiences",
+};
 
 type Post = {
   slug: string;
@@ -125,7 +130,7 @@ function renderToMarkdown(content: any): string {
   return String(content);
 }
 
-export default async function Writing() {
+export default async function Journals() {
   // Fetch posts with full content on the server
   let posts: Post[] = [];
 
@@ -142,18 +147,6 @@ export default async function Writing() {
         } else if (typeof content === "string") {
           markdownContent = content;
         }
-
-        // Debug logging
-        console.log("Post:", post.slug);
-        console.log("Raw content:", content);
-        if (content && content.node && content.node.children) {
-          console.log("Children:", content.node.children);
-          content.node.children.forEach((child: any, index: number) => {
-            console.log(`Child ${index}:`, child);
-          });
-        }
-        console.log("Extracted content:", markdownContent);
-        console.log("Excerpt:", post.entry.excerpt);
 
         return {
           slug: post.slug,
@@ -185,5 +178,5 @@ export default async function Writing() {
     console.error("Error fetching posts:", error);
   }
 
-  return <WritingClientClient posts={posts} />;
+  return <JournalsClient posts={posts} />;
 }

@@ -209,7 +209,7 @@ const DescriptionTypewriter = ({ speed = 1 }: { speed?: number }) => {
 type Tab = {
   id: string;
   name: string;
-  content: "portfolio" | "writing";
+  content: "portfolio" | "journals";
 };
 
 export default function Home() {
@@ -224,22 +224,33 @@ export default function Home() {
     ];
 
     if (savedTabs) {
-      const parsedTabs = JSON.parse(savedTabs);
-      // Always ensure portfolio tab is present
-      const hasPortfolio = parsedTabs.some(
-        (tab: Tab) => tab.id === "portfolio"
-      );
-      if (!hasPortfolio) {
-        parsedTabs.unshift({
-          id: "portfolio",
-          name: "lukaadzic.tsx",
-          content: "portfolio",
-        });
+      try {
+        const parsedTabs = JSON.parse(savedTabs);
+        // Filter to only keep valid tabs
+        const validTabs = parsedTabs.filter(
+          (tab: Tab) =>
+            tab.content === "portfolio" || tab.content === "journals"
+        );
+
+        // Always ensure portfolio tab is present
+        const hasPortfolio = validTabs.some(
+          (tab: Tab) => tab.id === "portfolio"
+        );
+        if (!hasPortfolio) {
+          validTabs.unshift({
+            id: "portfolio",
+            name: "lukaadzic.tsx",
+            content: "portfolio",
+          });
+        }
+        initialTabs = validTabs;
+      } catch (error) {
+        console.log("Error parsing saved tabs, using defaults");
       }
-      initialTabs = parsedTabs;
     }
 
     setTabs(initialTabs);
+    setActiveTab("portfolio");
   }, []);
 
   // Save tabs to localStorage whenever tabs change
@@ -249,13 +260,13 @@ export default function Home() {
     }
   }, [tabs]);
 
-  const openWritingTab = () => {
-    const writingTabExists = tabs.find((tab) => tab.content === "writing");
-    if (!writingTabExists) {
+  const openJournalsTab = () => {
+    const journalsTabExists = tabs.find((tab) => tab.content === "journals");
+    if (!journalsTabExists) {
       const newTab = {
-        id: "writing",
-        name: "writing.tsx",
-        content: "writing" as const,
+        id: "journals",
+        name: "journals.tsx",
+        content: "journals" as const,
       };
       setTabs([...tabs, newTab]);
     }
@@ -273,9 +284,9 @@ export default function Home() {
     const newTabs = tabs.filter((tab) => tab.id !== tabId);
     setTabs(newTabs);
 
-    // If we're closing the writing tab and we're currently on it, go to portfolio
-    if (activeTab === tabId && tabId === "writing") {
-      // Stay on current page (portfolio) since we're closing writing tab
+    // If we're closing the journals tab and we're currently on it, go to portfolio
+    if (activeTab === tabId && tabId === "journals") {
+      // Stay on current page (portfolio) since we're closing journals tab
       setActiveTab("portfolio");
     }
   };
@@ -339,9 +350,9 @@ export default function Home() {
                 }}
               >
                 <div className="flex items-center justify-between w-full">
-                  {tab.content === "writing" ? (
+                  {tab.content === "journals" ? (
                     <Link
-                      href="/writing"
+                      href="/journals"
                       className="flex items-center gap-2 px-3 py-2 flex-1"
                       style={{
                         color:
@@ -380,17 +391,28 @@ export default function Home() {
                       <span>{tab.name}</span>
                     </div>
                   )}
-                  {tab.id === "writing" && (
-                    <svg
-                      className="w-3 h-3 opacity-60 hover:opacity-100 cursor-pointer mr-2"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      onClick={(e) => {
-                        closeTab(tab.id, e);
+                  {tab.id === "journals" && (
+                    <button
+                      onClick={(e) => closeTab(tab.id, e)}
+                      className="ml-1 px-1 py-1 hover:bg-foreground/10 transition-colors rounded-sm group"
+                      style={{
+                        color: "oklch(0.6 0.04 240)",
                       }}
                     >
-                      <path d="M6.225 4.811a1 1 0 00-1.414 1.414L10.586 12 4.81 17.775a1 1 0 101.414 1.414L12 13.414l5.775 5.775a1 1 0 001.414-1.414L13.414 12l5.775-5.775a1 1 0 00-1.414-1.414L12 10.586 6.225 4.81z" />
-                    </svg>
+                      <svg
+                        className="w-3 h-3 opacity-60 group-hover:opacity-100 transition-opacity"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
                   )}
                 </div>
               </div>
@@ -413,11 +435,11 @@ export default function Home() {
                 <LiveAge />
               </div>
               <Link
-                href="/writing"
+                href="/journals"
                 className="text-[16px] text-foreground hover:text-foreground/80 transition-colors"
-                onClick={openWritingTab}
+                onClick={openJournalsTab}
               >
-                Writing
+                Journals
               </Link>
             </header>
 

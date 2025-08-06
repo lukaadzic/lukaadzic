@@ -7,7 +7,7 @@ export default config({
   },
   collections: {
     posts: collection({
-      label: "Posts",
+      label: "Journal Entries",
       slugField: "title",
       path: "src/content/posts/*",
       format: { contentField: "content" },
@@ -15,10 +15,10 @@ export default config({
         title: fields.slug({ name: { label: "Title" } }),
         publishedDate: fields.date({ label: "Published Date" }),
         postType: fields.select({
-          label: "Post Type",
+          label: "Entry Type",
           options: [
-            { label: "Long Post", value: "post" },
-            { label: "Quick Take", value: "take" },
+            { label: "Long Entry", value: "post" },
+            { label: "Quick Note", value: "take" },
           ],
           defaultValue: "post",
         }),
