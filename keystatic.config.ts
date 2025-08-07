@@ -29,8 +29,10 @@ export default config({
           label: "Excerpt",
           description: "A short description of the post",
         }),
-        featuredImage: fields.cloudImage({
+        featuredImage: fields.image({
           label: "Featured Image",
+          directory: "public/images/posts",
+          publicPath: "/images/posts/",
         }),
         featuredImagePosition: fields.text({
           label: "Legacy Position (ignore - will be removed)",

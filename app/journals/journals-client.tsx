@@ -602,7 +602,7 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
                                 <div className="p-2">
                                   <div className="w-full h-48 rounded border border-foreground/10 overflow-hidden bg-foreground/5">
                                     <Image
-                                      src={post.featuredImage}
+                                      src={post.featuredImage || ""}
                                       alt={post.title}
                                       width={400}
                                       height={192}
