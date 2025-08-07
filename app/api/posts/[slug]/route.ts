@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createReader } from "@keystatic/core/reader";
-import keystaticConfig from "@/keystatic.config";
-import Markdoc from "@markdoc/markdoc";
 
-const reader = createReader(process.cwd(), keystaticConfig);
+// For now, return a 404 since we're using cloud storage
+// and need to implement proper cloud API access
 
 // Convert Markdoc content to markdown string
 function convertMarkdocToMarkdown(content: unknown): string {
@@ -123,40 +121,11 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
-  try {
-    const { slug } = await params;
+  const { slug } = await params;
 
-    // Get the post from Keystatic
-    const post = await reader.collections.posts.read(slug);
-
-    if (!post) {
-      return NextResponse.json({ error: "Post not found" }, { status: 404 });
-    }
-
-    // Process the content - convert Markdoc to markdown
-    const contentResult = await post.content();
-    const content = convertMarkdocToMarkdown(contentResult);
-
-    // Format the response
-    const formattedPost = {
-      slug,
-      title: post.title,
-      publishedDate: post.publishedDate,
-      postType: post.postType,
-      excerpt: post.excerpt,
-      featuredImage: post.featuredImage,
-      featuredImagePosition: post.featuredImagePosition,
-      featuredImageCrop: post.featuredImageCrop,
-      additionalImages: post.additionalImages,
-      content,
-    };
-
-    return NextResponse.json(formattedPost);
-  } catch (error) {
-    console.error("Error fetching post:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
+  // For now, return 404 since we need to implement cloud storage access
+  return NextResponse.json(
+    { error: "Post not found - cloud storage not yet implemented" },
+    { status: 404 }
+  );
 }
