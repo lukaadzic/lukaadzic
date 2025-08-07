@@ -34,7 +34,8 @@ function convertMarkdocToMarkdown(content: unknown): string {
 
     // Clean up Markdoc-specific formatting
     return cleanMarkdocFormatting(markdown);
-  } catch {
+  } catch (error) {
+    console.error("Error converting Markdoc to markdown:", error);
     return "";
   }
 }
@@ -48,6 +49,10 @@ function cleanMarkdocFormatting(text: string): string {
       .replace(/\\\s*\n/g, "  \n") // Backslash followed by newline
       // Clean up multiple newlines
       .replace(/\n{3,}/g, "\n\n")
+      // Ensure proper spacing around list items
+      .replace(/(\n)- /g, "\n\n- ")
+      // Ensure proper spacing around numbered lists
+      .replace(/(\n)\d+\. /g, "\n\n$2")
       // Trim whitespace
       .trim()
   );
@@ -147,7 +152,8 @@ export async function GET(
     };
 
     return NextResponse.json(formattedPost);
-  } catch {
+  } catch (error) {
+    console.error("Error fetching post:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

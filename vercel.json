@@ -1,7 +1,4 @@
 {
-    "installCommand": "bun install --frozen-lockfile",
-    "buildCommand": "bun run build --turbo",
-    "env": {
-      "LIGHTNINGCSS_PLATFORM": "linux-x64-gnu"
-    }
+    "installCommand": "bun install",
+    "buildCommand": "bun run build"
   }
