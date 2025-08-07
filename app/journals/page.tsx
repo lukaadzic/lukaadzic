@@ -31,53 +31,20 @@ type Post = {
 
 async function getPosts(): Promise<Post[]> {
   try {
-    // Try to fetch from Keystatic admin API endpoints
-    const response = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-      }/keystatic/branch/main/collection/posts`,
-      { cache: "no-store" }
-    );
+    // Check if we have the required environment variables for Keystatic Cloud
+    const hasKeysaticAuth =
+      process.env.KEYSTATIC_SECRET &&
+      process.env.KEYSTATIC_GITHUB_CLIENT_ID &&
+      process.env.KEYSTATIC_GITHUB_CLIENT_SECRET;
 
-    if (!response.ok) {
-      console.error(
-        "Failed to fetch from Keystatic admin API:",
-        response.status
+    if (!hasKeysaticAuth) {
+      console.warn(
+        "Keystatic Cloud authentication not configured. Please set KEYSTATIC_SECRET, KEYSTATIC_GITHUB_CLIENT_ID, and KEYSTATIC_GITHUB_CLIENT_SECRET environment variables."
       );
       return [];
     }
 
-    const data = await response.json();
-
-    // If data is an array of post entries
-    if (Array.isArray(data)) {
-      const posts = data.map((item: any) => ({
-        slug: item.slug || item.key || "",
-        title: item.title || "",
-        publishedDate: item.publishedDate || null,
-        postType: item.postType || "post",
-        excerpt: item.excerpt || "",
-        featuredImage: item.featuredImage || null,
-        featuredImagePosition: item.featuredImagePosition || "",
-        featuredImageCrop: {
-          x: item.featuredImageCrop?.x ?? 50,
-          y: item.featuredImageCrop?.y ?? 50,
-        },
-        additionalImages: (item.additionalImages || []).map((img: any) => ({
-          image: img.image,
-          alt: img.alt,
-        })),
-        content: item.content || "",
-      }));
-
-      return posts.sort((a, b) => {
-        const dateA = a.publishedDate ? new Date(a.publishedDate).getTime() : 0;
-        const dateB = b.publishedDate ? new Date(b.publishedDate).getTime() : 0;
-        return dateB - dateA;
-      });
-    }
-
-    // Fallback: try using the reader
+    // Try using the Keystatic reader with cloud storage
     const allPosts = await reader.collections.posts.all();
 
     const postsWithContent = await Promise.all(
