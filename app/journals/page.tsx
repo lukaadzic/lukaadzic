@@ -10,6 +10,21 @@ export const metadata: Metadata = {
 
 const reader = createReader(process.cwd(), keystaticConfig);
 
+// Type for Markdoc Node
+interface MarkdocNode {
+  $$mdtype?: string;
+  type?: string;
+  attributes?: {
+    content?: string;
+    [key: string]: unknown;
+  };
+  children?: MarkdocNode[];
+  value?: string;
+  text?: string;
+  content?: string;
+  node?: MarkdocNode;
+}
+
 // Helper function to extract text from Markdoc AST
 function extractTextFromMarkdoc(content: unknown): string {
   if (typeof content === "string") {
@@ -21,19 +36,104 @@ function extractTextFromMarkdoc(content: unknown): string {
   }
 
   if (content && typeof content === "object") {
-    const obj = content as Record<string, unknown>;
+    const node = content as MarkdocNode;
+    // Handle Markdoc Node objects (with $$mdtype)
+    if (node.$$mdtype === "Node") {
+      // Handle text nodes
+      if (node.type === "text") {
+        return (
+          node.attributes?.content ||
+          node.value ||
+          node.text ||
+          node.content ||
+          ""
+        );
+      }
 
-    if (obj.type === "text") {
-      return (obj.text as string) || "";
+      // Handle softbreak nodes (line breaks)
+      if (node.type === "softbreak") {
+        return " ";
+      }
+
+      // Handle hardbreak nodes (line breaks)
+      if (node.type === "hardbreak") {
+        return "\n";
+      }
+
+      // Handle document/root nodes
+      if (node.type === "document" && node.children) {
+        return extractTextFromMarkdoc(node.children);
+      }
+
+      // Handle paragraph nodes
+      if (node.type === "paragraph") {
+        if (node.children) {
+          return extractTextFromMarkdoc(node.children) + "\n\n";
+        }
+        return "\n\n";
+      }
+
+      // Handle inline nodes (contain the actual text nodes)
+      if (node.type === "inline") {
+        if (node.children) {
+          return extractTextFromMarkdoc(node.children);
+        }
+        return "";
+      }
+
+      // Handle heading nodes
+      if (node.type === "heading" && node.children) {
+        return extractTextFromMarkdoc(node.children) + "\n\n";
+      }
+
+      // Handle list nodes
+      if (node.type === "list" && node.children) {
+        return extractTextFromMarkdoc(node.children) + "\n";
+      }
+
+      // Handle list item nodes
+      if (node.type === "item" && node.children) {
+        return "• " + extractTextFromMarkdoc(node.children) + "\n";
+      }
+
+      // Handle strong/emphasis nodes
+      if (
+        (node.type === "strong" || node.type === "emphasis") &&
+        node.children
+      ) {
+        return extractTextFromMarkdoc(node.children);
+      }
+
+      // Handle link nodes
+      if (node.type === "link" && node.children) {
+        return extractTextFromMarkdoc(node.children);
+      }
+
+      // Handle generic children for Markdoc nodes
+      if (node.children) {
+        return extractTextFromMarkdoc(node.children);
+      }
     }
 
-    if (obj.children) {
-      return extractTextFromMarkdoc(obj.children);
+    // Handle regular objects (non-Markdoc)
+    // Handle text nodes
+    if (node.type === "text") {
+      return node.text || node.value || "";
     }
 
-    // Try to extract from common Markdoc properties
-    if (obj.content) {
-      return extractTextFromMarkdoc(obj.content);
+    // Handle generic children
+    if (node.children) {
+      return extractTextFromMarkdoc(node.children);
+    }
+
+    // Handle content property
+    if (node.content) {
+      return extractTextFromMarkdoc(node.content);
+    }
+
+    // Handle node property (Keystatic wrapper)
+    if (node.node) {
+      return extractTextFromMarkdoc(node.node);
     }
   }
 
@@ -61,7 +161,7 @@ type Post = {
 
 async function getPosts(): Promise<Post[]> {
   try {
-    // Use Keystatic reader with local storage (no authentication needed)
+    // Use Keystatic reader to get all posts
     const allPosts = await reader.collections.posts.all();
 
     const postsWithContent = await Promise.all(
@@ -70,19 +170,37 @@ async function getPosts(): Promise<Post[]> {
           // Get the content from the post
           const content = await post.entry.content();
 
-          // Convert Markdoc content to a readable string
+          // Convert content to string using proper Markdoc extraction
           let contentString = "";
           if (typeof content === "string") {
             contentString = content;
-          } else if (content && typeof content === "object") {
-            // For Markdoc AST, try to extract text content
-            contentString = extractTextFromMarkdoc(content);
+          } else if (content) {
+            // Try different approaches to extract content
+            const contentNode = content as MarkdocNode;
+            if (contentNode.children) {
+              contentString = extractTextFromMarkdoc(content);
+            } else if (Array.isArray(content)) {
+              contentString = content
+                .map((item) => extractTextFromMarkdoc(item))
+                .join("\n");
+            } else if (contentNode.node) {
+              // Keystatic might return { node: Node } format
+              contentString = extractTextFromMarkdoc(contentNode.node);
+            } else {
+              // Fallback: try to stringify and extract meaningful content
+              const contentStr = JSON.stringify(content);
+              console.log(`Raw content string for ${post.slug}:`, contentStr);
+              contentString = extractTextFromMarkdoc(content);
+            }
           }
+
+          // Clean up content by replacing backslashes with proper line breaks
+          const cleanContent = contentString.trim().replace(/\\\s*$/gm, "");
 
           // Generate excerpt if not provided
           const excerpt =
             post.entry.excerpt ||
-            (contentString ? contentString.substring(0, 200) + "..." : "");
+            (cleanContent ? cleanContent.substring(0, 200) + "..." : "");
 
           return {
             slug: post.slug,
@@ -97,25 +215,21 @@ async function getPosts(): Promise<Post[]> {
               y: post.entry.featuredImageCrop?.y ?? 50,
             },
             additionalImages: (post.entry.additionalImages || []).map(
-              (img) => ({
-                image: img.image,
+              (img: { image: string | null; alt: string }) => ({
+                image: img.image || "",
                 alt: img.alt,
               })
             ),
-            content: contentString,
+            content: cleanContent,
           };
         } catch (contentError) {
           console.error(`Error processing post ${post.slug}:`, contentError);
-
-          // Fallback: create post without content
-          const excerpt = post.entry.excerpt || "Content unavailable";
-
           return {
             slug: post.slug,
             title: post.entry.title || "",
             publishedDate: post.entry.publishedDate || null,
             postType: post.entry.postType || "post",
-            excerpt,
+            excerpt: post.entry.excerpt || "Content unavailable",
             featuredImage: post.entry.featuredImage || null,
             featuredImagePosition: post.entry.featuredImagePosition || "",
             featuredImageCrop: {
@@ -123,8 +237,8 @@ async function getPosts(): Promise<Post[]> {
               y: post.entry.featuredImageCrop?.y ?? 50,
             },
             additionalImages: (post.entry.additionalImages || []).map(
-              (img) => ({
-                image: img.image,
+              (img: { image: string | null; alt: string }) => ({
+                image: img.image || "",
                 alt: img.alt,
               })
             ),
