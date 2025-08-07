@@ -1,9 +1,4 @@
 {
     "installCommand": "bun install --frozen-lockfile",
-    "buildCommand": "bun run build",
-    "functions": {
-      "app/**": {
-        "runtime": "nodejs20.x"
-      }
-    }
+    "buildCommand": "bun run build --turbo"
   }
