@@ -164,11 +164,6 @@ async function getPost(slug: string): Promise<Post | null> {
       );
       const rawContent = fs.readFileSync(contentPath, "utf8");
 
-      console.log(
-        `Debug: Raw file content for ${slug}:`,
-        rawContent.substring(0, 200) + "..."
-      );
-
       // Extract content after the frontmatter (after the second ---)
       // More flexible regex to handle different line endings
       const contentMatch = rawContent.match(
@@ -176,12 +171,9 @@ async function getPost(slug: string): Promise<Post | null> {
       );
       let markdownContent = contentMatch ? contentMatch[1].trim() : "";
 
-      console.log(`Debug: First regex match result:`, !!contentMatch);
-
       // If the first regex doesn't work, try a simpler approach
       if (!markdownContent) {
         const parts = rawContent.split(/\r?\n---\r?\n/);
-        console.log(`Debug: Split by \\r?\\n---\\r?\\n parts:`, parts.length);
         if (parts.length >= 2) {
           markdownContent = parts[1].trim();
         }
@@ -190,13 +182,8 @@ async function getPost(slug: string): Promise<Post | null> {
       // If still no content, try splitting on just "---"
       if (!markdownContent) {
         const sections = rawContent.split("---");
-        console.log(`Debug: Split by --- sections:`, sections.length);
         if (sections.length >= 3) {
           markdownContent = sections[2].trim();
-          console.log(
-            `Debug: Section 2 content:`,
-            sections[2].substring(0, 100) + "..."
-          );
         }
       }
 
@@ -220,38 +207,17 @@ async function getPost(slug: string): Promise<Post | null> {
 
         if (contentLines.length > 0) {
           markdownContent = contentLines.join("\n").trim();
-          console.log(
-            `Debug: Line-by-line extraction successful, length:`,
-            markdownContent.length
-          );
         }
       }
 
-      console.log(
-        `Debug: Extracted markdown for ${slug}:`,
-        markdownContent.substring(0, 200) + "..."
-      );
-      console.log(
-        `Debug: Full extracted markdown length:`,
-        markdownContent.length
-      );
-
       // Clean up the content - replace backslashes at end of lines with proper line breaks
       cleanContent = markdownContent.replace(/\\\s*$/gm, "  "); // Two spaces for markdown line breaks
-
-      console.log(
-        `Debug: Final clean content for ${slug}:`,
-        cleanContent.substring(0, 200) + "..."
-      );
-      console.log(`Debug: Final content length:`, cleanContent.length);
     } catch (fileError) {
       console.error("Error reading markdown file:", fileError);
 
       // Fallback to Keystatic content extraction
       try {
         const content = await post.content();
-        console.log(`Debug: Fallback - Content type:`, typeof content);
-        console.log(`Debug: Fallback - Content value:`, content);
 
         if (typeof content === "string") {
           cleanContent = content;

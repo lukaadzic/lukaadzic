@@ -39,6 +39,7 @@ export function SocialDock() {
         <DockIcon>
           <Link
             href="/"
+            aria-label="Go to homepage"
             className="flex items-center justify-center w-full h-full text-foreground/70 hover:text-foreground transition-colors duration-200"
             style={{
               WebkitTapHighlightColor: "transparent",
@@ -70,6 +71,7 @@ export function SocialDock() {
             href="https://linkedin.com/in/lukaadzic"
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="Visit Luka Adzic's LinkedIn profile"
             className="flex items-center justify-center w-full h-full text-foreground/70 hover:text-foreground transition-colors duration-200"
             style={{
               WebkitTapHighlightColor: "transparent",
@@ -88,6 +90,7 @@ export function SocialDock() {
             href="https://github.com/lukaadzic"
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="Visit Luka Adzic's GitHub profile"
             className="flex items-center justify-center w-full h-full text-foreground/70 hover:text-foreground transition-colors duration-200"
             style={{
               WebkitTapHighlightColor: "transparent",
@@ -106,6 +109,7 @@ export function SocialDock() {
             href="https://instagram.com/lukaadzic7"
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="Visit Luka Adzic's Instagram profile"
             className="flex items-center justify-center w-full h-full text-foreground/70 hover:text-foreground transition-colors duration-200"
             style={{
               WebkitTapHighlightColor: "transparent",
@@ -124,6 +128,7 @@ export function SocialDock() {
             href="https://facebook.com/adzicluka"
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="Visit Luka Adzic's Facebook profile"
             className="flex items-center justify-center w-full h-full text-foreground/70 hover:text-foreground transition-colors duration-200"
             style={{
               WebkitTapHighlightColor: "transparent",
@@ -142,6 +147,7 @@ export function SocialDock() {
             href="https://x.com/lukaadzic7"
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="Visit Luka Adzic's X (Twitter) profile"
             className="flex items-center justify-center w-full h-full text-foreground/70 hover:text-foreground transition-colors duration-200"
             style={{
               WebkitTapHighlightColor: "transparent",

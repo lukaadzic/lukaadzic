@@ -151,9 +151,7 @@ export async function GET(
     // Get the content
     const content = await post.content();
 
-    // Debug: log what we're getting
-    console.log(`API Content for ${slug}:`, typeof content, content);
-
+    
     let contentString = "";
     if (typeof content === "string") {
       contentString = content;
@@ -172,7 +170,6 @@ export async function GET(
       } else {
         // Fallback: try to stringify and extract meaningful content
         const contentStr = JSON.stringify(content);
-        console.log(`API Raw content string for ${slug}:`, contentStr);
         contentString = extractTextFromMarkdoc(content);
       }
     }

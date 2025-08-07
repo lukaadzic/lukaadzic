@@ -209,7 +209,7 @@ const DescriptionTypewriter = ({ speed = 1 }: { speed?: number }) => {
           <span
             className={`${
               showCursor ? "opacity-100" : "opacity-0"
-            } transition-opacity`}
+            } transition-opacity inline-block w-[1ch]`}
           >
             |
           </span>
@@ -455,6 +455,7 @@ export default function Home() {
                     {(tab.id === "journals" || tab.content === "post") && (
                       <button
                         onClick={(e) => closeTab(tab.id, e)}
+                        aria-label={`Close ${tab.name} tab`}
                         className="ml-1 px-1 py-1 transition-all duration-75 rounded-sm group"
                         style={{
                           color: "oklch(0.6 0.04 240)",

@@ -180,6 +180,7 @@ body {
   .typewriter-container {
     word-break: keep-all !important;
     overflow-wrap: break-word !important;
+  contain: layout paint style;
   }
 
   .typewriter-container a {

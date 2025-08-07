@@ -206,7 +206,8 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
     content: string,
     excerpt: string,
     slug: string,
-    postType: "post" | "take"
+    postType: "post" | "take",
+    postTitle: string
   ) => {
     // If no main content, show excerpt as fallback
     const textToRender = content && content.trim() !== "" ? content : excerpt;
@@ -331,6 +332,7 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
               style={{ textDecoration: "none" }}
             >
               <span>read more</span>
+              <span className="sr-only"> about {postTitle}</span>
               <svg
                 className="w-3 h-3 opacity-60 group-hover:opacity-100 transition-opacity"
                 fill="none"
@@ -476,6 +478,7 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
                   {(tab.id === "journals" || tab.content === "post") && (
                     <button
                       onClick={(e) => closeTab(tab.id, e)}
+                      aria-label={`Close ${tab.name} tab`}
                       className="ml-1 px-1 py-1 transition-all duration-75 rounded-sm group"
                       style={{
                         color: "oklch(0.6 0.04 240)",
@@ -628,7 +631,8 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
                               post.content,
                               post.excerpt,
                               post.slug,
-                              post.postType
+                              post.postType,
+                              post.title
                             )}
                           </div>
 

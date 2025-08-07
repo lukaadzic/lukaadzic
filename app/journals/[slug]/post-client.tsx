@@ -37,11 +37,6 @@ interface PostClientProps {
 
 export default function PostClient({ post }: PostClientProps) {
   const router = useRouter();
-  
-  // Debug: Log the post content
-  console.log('PostClient Debug - Post object:', post);
-  console.log('PostClient Debug - Content length:', post.content?.length || 0);
-  console.log('PostClient Debug - Content preview:', post.content?.substring(0, 100) || 'No content');
 
   // Initialize with empty state - will be populated from sessionStorage or defaults
   const [tabs, setTabs] = useState<Tab[]>([]);
@@ -351,6 +346,7 @@ export default function PostClient({ post }: PostClientProps) {
                     {(tab.id === "journals" || tab.content === "post") && (
                       <button
                         onClick={(e) => closeTab(tab.id, e)}
+                        aria-label={`Close ${tab.name} tab`}
                         className="ml-1 px-1 py-1 transition-all duration-75 rounded-sm group"
                         style={{ color: "oklch(0.6 0.04 240)" }}
                       >
@@ -467,8 +463,8 @@ export default function PostClient({ post }: PostClientProps) {
                                 <div className="flex items-center gap-2 ml-auto">
                                   <button
                                     onClick={prevImage}
+                                    aria-label="Previous image"
                                     className="w-4 h-4 flex items-center justify-center text-foreground/50 hover:text-foreground/80 transition-colors text-xs"
-                                    title="Previous image"
                                   >
                                     ❮
                                   </button>
@@ -477,8 +473,8 @@ export default function PostClient({ post }: PostClientProps) {
                                   </span>
                                   <button
                                     onClick={nextImage}
+                                    aria-label="Next image"
                                     className="w-4 h-4 flex items-center justify-center text-foreground/50 hover:text-foreground/80 transition-colors text-xs"
-                                    title="Next image"
                                   >
                                     ❯
                                   </button>
@@ -515,12 +511,17 @@ export default function PostClient({ post }: PostClientProps) {
                                       onClick={() =>
                                         setCurrentImageIndex(index)
                                       }
-                                      className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                                        index === currentImageIndex
-                                          ? "bg-foreground/70"
-                                          : "bg-foreground/20 hover:bg-foreground/40"
-                                      }`}
-                                    />
+                                      aria-label={`Go to image ${index + 1}`}
+                                      className="inline-flex items-center justify-center min-w-[48px] min-h-[48px] rounded focus:outline-none focus-visible:ring focus-visible:ring-cyan-400/40"
+                                    >
+                                      <span
+                                        className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                                          index === currentImageIndex
+                                            ? "bg-foreground/70"
+                                            : "bg-foreground/20 hover:bg-foreground/40"
+                                        }`}
+                                      />
+                                    </button>
                                   ))}
                                 </div>
                               )}

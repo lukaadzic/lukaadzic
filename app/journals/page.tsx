@@ -189,7 +189,6 @@ async function getPosts(): Promise<Post[]> {
             } else {
               // Fallback: try to stringify and extract meaningful content
               const contentStr = JSON.stringify(content);
-              console.log(`Raw content string for ${post.slug}:`, contentStr);
               contentString = extractTextFromMarkdoc(content);
             }
           }
