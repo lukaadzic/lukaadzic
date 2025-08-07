@@ -10,6 +10,34 @@ export const metadata: Metadata = {
 
 const reader = createReader(process.cwd(), keystaticConfig);
 
+// Helper function to extract text from Markdoc AST
+function extractTextFromMarkdoc(content: any): string {
+  if (typeof content === "string") {
+    return content;
+  }
+
+  if (Array.isArray(content)) {
+    return content.map(extractTextFromMarkdoc).join("");
+  }
+
+  if (content && typeof content === "object") {
+    if (content.type === "text") {
+      return content.text || "";
+    }
+
+    if (content.children) {
+      return extractTextFromMarkdoc(content.children);
+    }
+
+    // Try to extract from common Markdoc properties
+    if (content.content) {
+      return extractTextFromMarkdoc(content.content);
+    }
+  }
+
+  return "";
+}
+
 type Post = {
   slug: string;
   title: string;
@@ -37,23 +65,29 @@ async function getPosts(): Promise<Post[]> {
     const postsWithContent = await Promise.all(
       allPosts.map(async (post) => {
         try {
+          // Get the content from the post
           const content = await post.entry.content();
 
-          // Convert content to string if needed
+          // Convert Markdoc content to a readable string
           let contentString = "";
           if (typeof content === "string") {
             contentString = content;
           } else if (content && typeof content === "object") {
-            // For Markdoc content, convert to string representation
-            contentString = JSON.stringify(content);
+            // For Markdoc AST, try to extract text content
+            contentString = extractTextFromMarkdoc(content);
           }
+
+          // Generate excerpt if not provided
+          const excerpt =
+            post.entry.excerpt ||
+            (contentString ? contentString.substring(0, 200) + "..." : "");
 
           return {
             slug: post.slug,
             title: post.entry.title || "",
             publishedDate: post.entry.publishedDate || null,
             postType: post.entry.postType || "post",
-            excerpt: post.entry.excerpt || "",
+            excerpt,
             featuredImage: post.entry.featuredImage || null,
             featuredImagePosition: post.entry.featuredImagePosition || "",
             featuredImageCrop: {
@@ -70,12 +104,16 @@ async function getPosts(): Promise<Post[]> {
           };
         } catch (contentError) {
           console.error(`Error processing post ${post.slug}:`, contentError);
+
+          // Fallback: create post without content
+          const excerpt = post.entry.excerpt || "Content unavailable";
+
           return {
             slug: post.slug,
             title: post.entry.title || "",
             publishedDate: post.entry.publishedDate || null,
             postType: post.entry.postType || "post",
-            excerpt: post.entry.excerpt || "",
+            excerpt,
             featuredImage: post.entry.featuredImage || null,
             featuredImagePosition: post.entry.featuredImagePosition || "",
             featuredImageCrop: {
