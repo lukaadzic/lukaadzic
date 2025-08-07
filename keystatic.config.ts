@@ -6,13 +6,13 @@ export default config({
     kind: "cloud",
   },
   cloud: {
-    project: "luka-adzic-portfolio/lukaadzic", // Replace with your actual team/project from Keystatic Cloud
+    project: "luka-adzic-portfolio/lukaadzic", //
   },
   collections: {
     posts: collection({
       label: "Journal Entries",
       slugField: "title",
-      path: "src/content/posts/*",
+      path: "public/content/posts/*",
       format: { contentField: "content" },
       schema: {
         title: fields.slug({ name: { label: "Title" } }),
