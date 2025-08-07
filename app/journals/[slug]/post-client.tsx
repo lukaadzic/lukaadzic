@@ -37,6 +37,11 @@ interface PostClientProps {
 
 export default function PostClient({ post }: PostClientProps) {
   const router = useRouter();
+  
+  // Debug: Log the post content
+  console.log('PostClient Debug - Post object:', post);
+  console.log('PostClient Debug - Content length:', post.content?.length || 0);
+  console.log('PostClient Debug - Content preview:', post.content?.substring(0, 100) || 'No content');
 
   // Initialize with empty state - will be populated from sessionStorage or defaults
   const [tabs, setTabs] = useState<Tab[]>([]);

@@ -8,6 +8,11 @@ export default config({
   cloud: {
     project: "luka-adzic-portfolio/lukaadzic",
   },
+  ui: {
+    brand: {
+      name: "Luka's Portfolio",
+    },
+  },
   collections: {
     posts: collection({
       label: "Journal Entries",

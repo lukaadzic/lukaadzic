@@ -5,3 +5,6 @@ import config from '../../../../keystatic.config';
 export const { POST, GET } = makeRouteHandler({
   config,
 });
+
+// Ensure proper runtime for Vercel
+export const runtime = 'nodejs';
