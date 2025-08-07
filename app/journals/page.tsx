@@ -63,8 +63,7 @@ function convertToMarkdown(content: unknown): string {
 
     // Clean up Markdoc-specific formatting
     return cleanMarkdocFormatting(markdown);
-  } catch (error) {
-    console.error("Error converting Markdoc to markdown:", error);
+  } catch {
     return "";
   }
 }
@@ -196,8 +195,8 @@ export default async function Journals() {
       const dateB = b.publishedDate ? new Date(b.publishedDate).getTime() : 0;
       return dateB - dateA;
     });
-  } catch (error) {
-    console.error("Error fetching posts:", error);
+  } catch {
+    // Silently handle error, posts will be empty array
   }
 
   return <JournalsClient posts={posts} />;

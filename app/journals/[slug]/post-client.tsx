@@ -84,8 +84,8 @@ export default function PostClient({ post }: PostClientProps) {
             },
           ];
         }
-      } catch (error) {
-        console.error("Error parsing editor tabs state:", error);
+      } catch {
+        // Silently handle parsing error
       }
     }
 

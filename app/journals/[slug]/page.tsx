@@ -34,8 +34,7 @@ async function getPost(slug: string): Promise<Post | null> {
     }
 
     return await response.json();
-  } catch (error) {
-    console.error("Error fetching post:", error);
+  } catch {
     return null;
   }
 }

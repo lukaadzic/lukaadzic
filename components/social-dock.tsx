@@ -5,13 +5,14 @@ import { useState, useEffect } from "react";
 import { Dock, DockIcon } from "@/components/magicui/dock";
 
 export function SocialDock() {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(false); // Default to desktop to prevent hydration mismatch
 
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
     };
 
+    // Set initial state after hydration
     checkMobile();
     window.addEventListener("resize", checkMobile);
 

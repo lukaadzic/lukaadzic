@@ -15,10 +15,13 @@ const LiveAge = () => {
     return ageInMs / (365.25 * 24 * 60 * 60 * 1000);
   }, [birthTimestamp]);
 
-  // Initialize with actual age immediately - no 0 flash or loading state
-  const [age, setAge] = useState(() => calculateAge());
+  // Initialize with a static age to prevent hydration mismatch
+  const [age, setAge] = useState(19.0); // Static initial value
 
   useEffect(() => {
+    // Set initial age after hydration
+    setAge(calculateAge());
+
     // High-frequency updates for ultra smooth live effect
     const interval = setInterval(() => {
       setAge(calculateAge());
@@ -242,8 +245,8 @@ export default function Home() {
         setTabs(editorTabs);
         setActiveTab("portfolio"); // Always set portfolio as active when on main page
         return;
-      } catch (error) {
-        console.error("Error parsing editor tabs state:", error);
+      } catch {
+        // Silently handle parsing error
       }
     }
 

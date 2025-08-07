@@ -77,8 +77,7 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
           // Use existing tabs as-is
           setTabs(editorTabs);
         }
-      } catch (error) {
-        console.error("Error parsing editor tabs state:", error);
+      } catch {
         // Fallback to default tabs on error
         setTabs([
           { id: "portfolio", name: "lukaadzic.tsx", content: "portfolio" },

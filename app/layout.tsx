@@ -12,6 +12,13 @@ export const metadata: Metadata = {
   title: "Luka Adzic's Portfolio",
   description:
     "Here's some stuff I've built, things I've worked on, and where to find me online.",
+  icons: {
+    icon: [
+      { url: "/icon.jpeg", sizes: "any" },
+      { url: "/icon.jpeg", type: "image/jpeg" },
+    ],
+    apple: "/icon.jpeg",
+  },
 };
 
 export default function RootLayout({

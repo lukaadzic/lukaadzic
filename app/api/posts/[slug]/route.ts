@@ -34,8 +34,7 @@ function convertMarkdocToMarkdown(content: unknown): string {
 
     // Clean up Markdoc-specific formatting
     return cleanMarkdocFormatting(markdown);
-  } catch (error) {
-    console.error("Error converting Markdoc to markdown:", error);
+  } catch {
     return "";
   }
 }
@@ -148,8 +147,7 @@ export async function GET(
     };
 
     return NextResponse.json(formattedPost);
-  } catch (error) {
-    console.error("Error fetching post:", error);
+  } catch {
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
