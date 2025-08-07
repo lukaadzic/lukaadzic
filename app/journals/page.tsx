@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 const reader = createReader(process.cwd(), keystaticConfig);
 
 // Helper function to extract text from Markdoc AST
-function extractTextFromMarkdoc(content: any): string {
+function extractTextFromMarkdoc(content: unknown): string {
   if (typeof content === "string") {
     return content;
   }
@@ -21,17 +21,19 @@ function extractTextFromMarkdoc(content: any): string {
   }
 
   if (content && typeof content === "object") {
-    if (content.type === "text") {
-      return content.text || "";
+    const obj = content as Record<string, unknown>;
+
+    if (obj.type === "text") {
+      return (obj.text as string) || "";
     }
 
-    if (content.children) {
-      return extractTextFromMarkdoc(content.children);
+    if (obj.children) {
+      return extractTextFromMarkdoc(obj.children);
     }
 
     // Try to extract from common Markdoc properties
-    if (content.content) {
-      return extractTextFromMarkdoc(content.content);
+    if (obj.content) {
+      return extractTextFromMarkdoc(obj.content);
     }
   }
 
