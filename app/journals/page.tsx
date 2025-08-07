@@ -31,20 +31,7 @@ type Post = {
 
 async function getPosts(): Promise<Post[]> {
   try {
-    // Check if we have the required environment variables for Keystatic Cloud
-    const hasKeysaticAuth =
-      process.env.KEYSTATIC_SECRET &&
-      process.env.KEYSTATIC_GITHUB_CLIENT_ID &&
-      process.env.KEYSTATIC_GITHUB_CLIENT_SECRET;
-
-    if (!hasKeysaticAuth) {
-      console.warn(
-        "Keystatic Cloud authentication not configured. Please set KEYSTATIC_SECRET, KEYSTATIC_GITHUB_CLIENT_ID, and KEYSTATIC_GITHUB_CLIENT_SECRET environment variables."
-      );
-      return [];
-    }
-
-    // Try using the Keystatic reader with cloud storage
+    // Use Keystatic reader with local storage (no authentication needed)
     const allPosts = await reader.collections.posts.all();
 
     const postsWithContent = await Promise.all(
