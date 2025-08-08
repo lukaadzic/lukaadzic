@@ -354,3 +354,168 @@ a[href^="#"] {
   }
 }
 }
+
+/* 404 glitch effect (scoped) */
+.nf-page {
+  position: relative;
+}
+
+.nf-relative {
+  position: relative;
+}
+
+.nf-glitch {
+  position: relative;
+  display: inline-block;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.nf-glitch::before,
+.nf-glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Subtle chromatic offsets */
+.nf-glitch::before {
+  color: oklch(0.75 0.18 250);
+  mix-blend-mode: screen;
+  transform: translate(1px, 0);
+  animation: nf-glitch-shift 2.2s infinite steps(12);
+}
+
+.nf-glitch::after {
+  color: oklch(0.75 0.18 20);
+  mix-blend-mode: screen;
+  transform: translate(-1px, 0);
+  animation: nf-glitch-shift 1.8s infinite steps(10) reverse;
+}
+
+@keyframes nf-glitch-shift {
+  0% { transform: translate(0, 0); }
+  10% { transform: translate(-1px, -0.5px); }
+  20% { transform: translate(1px, 0.5px); }
+  30% { transform: translate(-0.5px, 0.5px); }
+  40% { transform: translate(0.5px, -0.5px); }
+  50% { transform: translate(0, 0); }
+  60% { transform: translate(1px, -0.5px); }
+  70% { transform: translate(-1px, 0.5px); }
+  80% { transform: translate(0.5px, 0); }
+  90% { transform: translate(-0.5px, 0); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Soft scanlines overlay */
+.nf-scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.03) 0px,
+    rgba(255, 255, 255, 0.03) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  animation: nf-scan-flicker 6s infinite;
+}
+
+@keyframes nf-scan-flicker {
+  0%, 100% { opacity: 0.25; }
+  45% { opacity: 0.18; }
+  50% { opacity: 0.28; }
+  55% { opacity: 0.18; }
+}
+
+/* Subtle noise overlay for the page */
+.nf-noise {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  opacity: 0.05;
+  background-image:
+    repeating-linear-gradient(45deg,
+      rgba(255,255,255,0.04) 0px,
+      rgba(255,255,255,0.04) 1px,
+      transparent 1px,
+      transparent 3px);
+  animation: nf-noise-move 8s steps(12) infinite;
+}
+
+@keyframes nf-noise-move {
+  0% { background-position: 0 0; }
+  50% { background-position: 20px 15px; }
+  100% { background-position: 0 0; }
+}
+
+/* Gentle grid drift */
+.nf-grid-animate {
+  animation: nf-grid-shift 14s linear infinite;
+}
+
+@keyframes nf-grid-shift {
+  0% { background-position: 0 0, 0 0; }
+  50% { background-position: -10px 0, 0 -10px; }
+  100% { background-position: 0 0, 0 0; }
+}
+
+/* Matrix-like grid overlay */
+.nf-matrix {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.08;
+  mix-blend-mode: screen;
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0, 255, 150, 0.08) 0px,
+      rgba(0, 255, 150, 0.08) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    repeating-linear-gradient(
+      to right,
+      rgba(0, 255, 150, 0.06) 0px,
+      rgba(0, 255, 150, 0.06) 1px,
+      transparent 1px,
+      transparent 5px
+    );
+  animation: nf-matrix-scroll 16s linear infinite;
+}
+
+@keyframes nf-matrix-scroll {
+  0% { background-position: 0 0, 0 0; }
+  100% { background-position: 0 120px, 60px 0; }
+}
+
+/* Rare micro-jitter for the inner frame */
+.nf-jitter {
+  will-change: transform;
+  animation: nf-page-jitter 6s infinite;
+}
+
+@keyframes nf-page-jitter {
+  0%, 96%, 100% { transform: translate3d(0,0,0); }
+  97% { transform: translate3d(0.3px, 0, 0); }
+  98% { transform: translate3d(-0.3px, 0, 0); }
+  99% { transform: translate3d(0, 0, 0); }
+}
+
+/* Respect user preferences */
+@media (prefers-reduced-motion: reduce) {
+  .nf-glitch::before,
+  .nf-glitch::after,
+  .nf-scanlines,
+  .nf-noise,
+  .nf-grid-animate,
+  .nf-jitter {
+    animation: none !important;
+    transform: none !important;
+  }
+}
