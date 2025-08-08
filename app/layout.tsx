@@ -55,6 +55,7 @@ export default function RootLayout({
         className={`${jetbrainsMono.variable} antialiased font-jetbrains-mono`}
       >
         {children}
+        <Analytics />
       </body>
     </html>
   );
