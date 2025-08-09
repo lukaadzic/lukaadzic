@@ -6,7 +6,8 @@ import { Analytics } from "@vercel/analytics/next";
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800"],
+  // Load only the weights actually used to reduce critical requests
+  weight: ["400", "600"],
   fallback: [
     "ui-monospace",
     "SFMono-Regular",
@@ -18,7 +19,8 @@ const jetbrainsMono = JetBrains_Mono({
     "monospace",
   ],
   adjustFontFallback: true,
-  preload: true,
+  // Defer font loading to avoid blocking LCP
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -42,14 +44,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Preload critical routes for ultra fast navigation */}
-        <link rel="prefetch" href="/journals" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
+        {/* Keep <head> lean to avoid extra connection setup during LCP */}
       </head>
       <body
         className={`${jetbrainsMono.variable} antialiased font-jetbrains-mono`}
