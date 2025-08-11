@@ -168,8 +168,7 @@ export async function GET(
         // Keystatic might return { node: Node } format
         contentString = extractTextFromMarkdoc(contentNode.node);
       } else {
-        // Fallback: try to stringify and extract meaningful content
-        const contentStr = JSON.stringify(content);
+        // Fallback: try to extract meaningful content
         contentString = extractTextFromMarkdoc(content);
       }
     }

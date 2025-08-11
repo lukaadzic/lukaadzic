@@ -4,6 +4,38 @@
   --background: #ffffff;
   --foreground: #171717;
   --border: #e5e5e5;
+
+  /* Spacing values */
+  --mobile-min-height: 100px;
+  --mobile-padding: 1rem;
+  --mobile-padding-x: 12px;
+  --tablet-padding-x: 14px;
+  --tablet-max-width: 300px;
+
+  /* Font sizes */
+  --mobile-text-lg: 16px;
+  --mobile-text-xl: 18px;
+  --mobile-text-2xl: 20px;
+  --tablet-text-base: 14px;
+  --tablet-text-lg: 16px;
+  --tablet-text-xl: 18px;
+
+  /* Scrollbar dimensions */
+  --scrollbar-height: 3px;
+  --scrollbar-border-radius: 2px;
+
+  /* Animation durations */
+  --transition-fast: 100ms;
+  --transition-ultra-fast: 50ms;
+  --transition-mobile: 0.05s;
+
+  /* Dock dimensions */
+  --dock-icon-size: 28px;
+
+  /* Grid dimensions */
+  --contributions-grid-gap: 2px;
+  --contributions-grid-cols-desktop: 53;
+  --contributions-grid-cols-mobile: 26;
 }
 
 @theme {
@@ -42,35 +74,35 @@ body {
   /* Fix typewriter text overlapping on mobile */
   .typewriter-container {
     height: auto !important;
-    min-height: 100px;
-    padding-bottom: 1rem;
+    min-height: var(--mobile-min-height);
+    padding-bottom: var(--mobile-padding);
   }
 
   /* Responsive text sizes */
   .mobile-text-lg {
-    font-size: 16px !important;
+    font-size: var(--mobile-text-lg) !important;
     line-height: 1.5 !important;
   }
 
   .mobile-text-xl {
-    font-size: 18px !important;
+    font-size: var(--mobile-text-xl) !important;
     line-height: 1.4 !important;
   }
 
   .mobile-text-2xl {
-    font-size: 20px !important;
+    font-size: var(--mobile-text-2xl) !important;
     line-height: 1.3 !important;
   }
 
   /* Mobile padding adjustments */
   .mobile-padding {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
+    padding-left: var(--mobile-padding-x) !important;
+    padding-right: var(--mobile-padding-x) !important;
   }
 
   /* Mobile header spacing */
   .mobile-header {
-    padding-top: 1rem !important;
+    padding-top: var(--mobile-padding) !important;
     margin-bottom: 0.5rem !important;
   }
 
@@ -133,11 +165,11 @@ body {
 
 /* Ultra fast transitions for all interactive elements */
 .transition-all {
-  transition-duration: 100ms !important;
+  transition-duration: var(--transition-fast) !important;
 }
 
 .transition-colors {
-  transition-duration: 100ms !important;
+  transition-duration: var(--transition-fast) !important;
 }
 
 /* Mobile: Hide scrollbars but keep functionality */
@@ -159,7 +191,7 @@ body {
   }
 
   .tab-scroll-container::-webkit-scrollbar {
-    height: 3px !important;
+    height: var(--scrollbar-height) !important;
   }
 
   .tab-scroll-container::-webkit-scrollbar-track {
@@ -168,7 +200,7 @@ body {
 
   .tab-scroll-container::-webkit-scrollbar-thumb {
     background: oklch(0.4 0.1 240 / 0.3) !important;
-    border-radius: 2px !important;
+    border-radius: var(--scrollbar-border-radius) !important;
   }
 
   .tab-scroll-container::-webkit-scrollbar-thumb:hover {
@@ -197,6 +229,43 @@ body {
     word-break: keep-all !important;
   }
 
+  /* GitHub contributions grid */
+  .contributions-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--contributions-grid-cols-desktop), 1fr);
+    gap: var(--contributions-grid-gap);
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Responsive contributions grid */
+  @media (max-width: 768px) {
+    .contributions-grid {
+      grid-template-columns: repeat(var(--contributions-grid-cols-mobile), 1fr);
+    }
+  }
+
+  /* Hide scrollbar utility class */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
+    overflow: -moz-scrollbars-none; /* Firefox */
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;  /* Safari and Chrome */
+    width: 0;
+    height: 0;
+  }
+
+  .no-scrollbar::-webkit-scrollbar-track {
+    display: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar-thumb {
+    display: none;
+  }
+
   /* Disable dock magnification on mobile for faster interaction */
   .dock-container {
     transform: none !important;
@@ -206,8 +275,8 @@ body {
     transform: none !important;
     transition: none !important;
     scale: 1 !important;
-    width: 28px !important;
-    height: 28px !important;
+    width: var(--dock-icon-size) !important;
+    height: var(--dock-icon-size) !important;
   }
 
   /* Disable all hover effects on mobile */
@@ -242,8 +311,8 @@ body {
     transform: none !important;
     transition: none !important;
     scale: 1 !important;
-    width: 28px !important;
-    height: 28px !important;
+    width: var(--dock-icon-size) !important;
+    height: var(--dock-icon-size) !important;
   }
 
   .dock-container:hover [data-dock-icon],
@@ -262,7 +331,7 @@ a {
 /* Instant response for navigation links */
 a[href^="/"],
 a[href^="#"] {
-  transition: color 0.1s ease-out;
+  transition: color var(--transition-mobile) ease-out;
   will-change: color;
 }
 
@@ -271,7 +340,7 @@ a[href^="#"] {
   a {
     -webkit-tap-highlight-color: transparent !important;
     touch-action: manipulation !important;
-    transition: color 0.05s ease-out !important;
+    transition: color var(--transition-mobile) ease-out !important;
   }
 
   /* Fast tab switching */
@@ -317,7 +386,7 @@ a[href^="#"] {
 
   /* Instant header navigation */
   header a {
-    transition: color 0.05s ease-out !important;
+    transition: color var(--transition-mobile) ease-out !important;
   }
 }
 
@@ -325,24 +394,24 @@ a[href^="#"] {
 @media (min-width: 769px) and (max-width: 1024px) {
   /* Tablet text sizes */
   .tablet-text-base {
-    font-size: 14px !important;
+    font-size: var(--tablet-text-base) !important;
     line-height: 1.4 !important;
   }
 
   .tablet-text-lg {
-    font-size: 16px !important;
+    font-size: var(--tablet-text-lg) !important;
     line-height: 1.4 !important;
   }
 
   .tablet-text-xl {
-    font-size: 18px !important;
+    font-size: var(--tablet-text-xl) !important;
     line-height: 1.3 !important;
   }
 
   /* Tablet padding */
   .tablet-padding {
-    padding-left: 14px !important;
-    padding-right: 14px !important;
+    padding-left: var(--tablet-padding-x) !important;
+    padding-right: var(--tablet-padding-x) !important;
   }
 
   /* Prevent title wrapping on tablets */
@@ -350,7 +419,7 @@ a[href^="#"] {
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
-    max-width: 300px !important;
+    max-width: var(--tablet-max-width) !important;
   }
 }
 }

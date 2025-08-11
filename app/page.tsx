@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SocialDock } from "@/components/social-dock";
+import { GitHubContributions } from "@/components/github-contributions";
 
 // Live age component - ultra fast loading with immediate calculation
 const LiveAge = () => {
@@ -625,6 +626,24 @@ export default function Home() {
                       </div>
                     </Link>
                   </div>
+                </div>
+
+                {/* GitHub Contributions Section */}
+                <div
+                  className="mt-4 space-y-6 mobile-padding"
+                  style={{ paddingLeft: "16px", paddingRight: "16px" }}
+                >
+                  {/* Separator */}
+                  <div className="my-6">
+                    <div className="h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent"></div>
+                  </div>
+
+                  {/* GitHub Activity Header */}
+                  <div className="text-[18px] mobile-text-lg text-foreground/80 pt-4">
+                    Code I pushed:
+                  </div>
+
+                  <GitHubContributions username="lukaadzic" />
                 </div>
               </div>
             )}
