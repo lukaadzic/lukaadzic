@@ -7,12 +7,6 @@ interface ContributionDay {
   level: number;
 }
 
-interface HoveredDay extends ContributionDay {
-  dayName?: string;
-  x?: number;
-  y?: number;
-}
-
 interface GitHubContributionsProps {
   username: string;
 }
@@ -22,7 +16,8 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalContributions, setTotalContributions] = useState(0);
-  const [hoveredDay, setHoveredDay] = useState<HoveredDay | null>(null);
+  const [reposChecked, setReposChecked] = useState<number | null>(null);
+  const [hasPrivateAccess, setHasPrivateAccess] = useState(false);
 
   useEffect(() => {
     const fetchContributions = async () => {
@@ -44,6 +39,8 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
 
         setContributions(data.contributions);
         setTotalContributions(data.totalContributions);
+        setReposChecked(data.reposChecked);
+        setHasPrivateAccess(data.hasPrivateAccess);
 
       } catch (err) {
         console.error('Error fetching contributions:', err);
@@ -194,7 +191,7 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
           <div className="mb-4 relative">
             <div className="overflow-x-auto no-scrollbar">
               {/* Day labels - positioned exactly next to Mon, Wed, Fri squares */}
-              <div className="absolute left-0 text-xs text-foreground/60 font-mono" style={{ top: '4px' }}>
+              <div className="absolute left-0 text-xs text-foreground/60 font-mono hidden md:block" style={{ top: '4px' }}>
                 <div className="h-4"></div> {/* Sun - 1st square */}
                 <div className="h-4 flex items-center justify-end pr-1">Mon</div> {/* Mon - 2nd square */}
                 <div className="h-4"></div> {/* Tue - 3rd square */}
@@ -205,7 +202,7 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
               </div>
 
               {/* Grid - GitHub style with proper gaps */}
-              <div className="ml-7 inline-grid grid-flow-col gap-1" style={{
+              <div className="md:ml-7 inline-grid grid-flow-col gap-1" style={{
                 gridTemplateRows: 'repeat(7, 12px)',
                 minWidth: '700px'
               }}>
@@ -216,47 +213,18 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
                     return (
                       <div
                         key={`${weekIndex}-${dayIndex}`}
-                        className="w-3 h-3 rounded-sm transition-all duration-200 hover:ring-1 hover:ring-cyan-400/50 cursor-pointer relative"
+                        className="w-3 h-3 rounded-sm cursor-pointer relative"
                         style={{
                           backgroundColor: getContributionColor(day.level)
                         }}
-                        onMouseEnter={(e) => {
-                          if (day.date) {
-                            setHoveredDay({
-                              ...day,
-                              dayName,
-                              x: e.currentTarget.getBoundingClientRect().left + window.scrollX,
-                              y: e.currentTarget.getBoundingClientRect().top + window.scrollY
-                            });
-                          }
-                        }}
-                        onMouseLeave={() => setHoveredDay(null)}
                       />
                     );
                   })
                 )}
               </div>
             </div>
-
-            {/* Portal-style tooltip that renders outside component bounds */}
-            {hoveredDay && hoveredDay.x && hoveredDay.y && (
-              <div
-                className="fixed bg-gray-900 text-white text-xs rounded-md px-3 py-2 shadow-lg pointer-events-none whitespace-nowrap z-[9999]"
-                style={{
-                  left: hoveredDay.x - 50,
-                  top: hoveredDay.y - 60
-                }}
-              >
-                <div className="font-medium text-center">{hoveredDay.count} contribution{hoveredDay.count !== 1 ? 's' : ''}</div>
-                <div className="text-gray-300 text-center mt-1">
-                  {hoveredDay.dayName}, {new Date(hoveredDay.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                </div>
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-900"></div>
-              </div>
-            )}
-          </div>
-
-          {/* Legend */}
+            
+          </div>          {/* Legend */}
           <div className="flex items-center gap-2 text-xs text-foreground/60 mb-3">
             <span>Less</span>
             <div className="flex gap-1">

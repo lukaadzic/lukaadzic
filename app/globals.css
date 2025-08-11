@@ -212,7 +212,8 @@ body {
   .typewriter-container {
     word-break: keep-all !important;
     overflow-wrap: break-word !important;
-  contain: layout paint style;
+    position: relative !important;
+    z-index: 1 !important;
   }
 
   .typewriter-container a {

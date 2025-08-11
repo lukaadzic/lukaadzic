@@ -515,10 +515,9 @@ export default function Home() {
                 <div
                   className="typewriter-container mobile-padding"
                   style={{
-                    height: "80px",
                     paddingLeft: "16px",
                     paddingRight: "16px",
-                  }} // Fixed height to prevent layout shift
+                  }}
                 >
                   {/* Description */}
                   <DescriptionTypewriter speed={50} />

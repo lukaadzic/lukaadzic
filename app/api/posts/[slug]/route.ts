@@ -151,7 +151,7 @@ export async function GET(
     // Get the content
     const content = await post.content();
 
-    
+
     let contentString = "";
     if (typeof content === "string") {
       contentString = content;
