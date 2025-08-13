@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-	--background: #ffffff;
-	--foreground: #171717;
-	--border: #e5e5e5;
+	--background: #0a0a0a;
+	--foreground: #ededed;
+	--border: #262626;
 
 	/* Spacing values */
 	--mobile-min-height: 100px;
