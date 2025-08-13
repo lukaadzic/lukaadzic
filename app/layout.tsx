@@ -126,12 +126,6 @@ export default function RootLayout({
 						background: #0a0a0a !important;
 						color: #ededed !important;
 					}
-					@media (prefers-color-scheme: light) {
-						body {
-							background: #ffffff !important;
-							color: #171717 !important;
-						}
-					}
 				`}</style>
 				<script type="application/ld+json">
 					{`{
