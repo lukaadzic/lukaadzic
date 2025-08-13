@@ -62,7 +62,7 @@ const DescriptionTypewriter = ({ speed = 1 }: { speed?: number }) => {
 				text: "Studying finance ",
 				links: [
 					{ text: "@\u00A0Wharton", href: "https://www.wharton.upenn.edu/" },
-					{ text: " & running a web agency ", href: null },
+					{ text: " & running an AI/SaaS agency ", href: null },
 					{ text: "@\u00A0Pingless", href: "https://pingless.dev" },
 				],
 				suffix: ".",
