@@ -16,8 +16,6 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [totalContributions, setTotalContributions] = useState(0);
-	const [_reposChecked, setReposChecked] = useState<number | null>(null);
-	const [_hasPrivateAccess, setHasPrivateAccess] = useState(false);
 
 	const generateRealisticContributions = useCallback((): ContributionDay[] => {
 		const contributions: ContributionDay[] = [];
@@ -79,8 +77,6 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
 
 				setContributions(data.contributions);
 				setTotalContributions(data.totalContributions);
-				setReposChecked(data.reposChecked);
-				setHasPrivateAccess(data.hasPrivateAccess);
 			} catch (err) {
 				console.error("Error fetching contributions:", err);
 				setError("Failed to load contributions");
@@ -262,7 +258,6 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
 											"Fri",
 											"Sat",
 										];
-										const _dayName = dayNames[dayIndex];
 										return (
 											<div
 												key={day.date}

@@ -89,18 +89,6 @@ export default function RootLayout({
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
 				<meta name="theme-color" content="#181a23" />
 				<link rel="prefetch" href="/journals" />
-				<link
-					rel="preconnect"
-					href="https://fonts.googleapis.com"
-					crossOrigin="anonymous"
-				/>
-				<link
-					rel="preconnect"
-					href="https://fonts.gstatic.com"
-					crossOrigin="anonymous"
-				/>
-				<link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-				<link rel="dns-prefetch" href="https://fonts.gstatic.com" />
 				<style>{`
 					html, body {
 						margin: 0 !important;
