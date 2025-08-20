@@ -64,6 +64,7 @@ html {
 	font-family: var(--font-jetbrains-mono) !important;
 	font-display: block !important;
 	line-height: 1.5 !important;
+	overflow-x: hidden !important;
 }
 
 /* Add font-display rule for all text to prevent layout shifts */
@@ -110,6 +111,7 @@ body {
 	letter-spacing: 0 !important;
 	margin: 0 !important;
 	padding: 0 !important;
+	overflow-x: hidden !important;
 }
 
 /* CSS mask for fading content */
@@ -172,7 +174,6 @@ body {
 
 	/* Mobile: Ensure main containers don't overflow */
 	.main-container {
-		max-width: 100vw !important;
 		overflow-x: hidden !important;
 	}
 

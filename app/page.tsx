@@ -663,8 +663,9 @@ export default function Home() {
 														<span className="text-green-400 text-xs">●</span>
 													</div>
 													<p className="text-xs mobile-text-lg text-foreground/60 mb-2 leading-relaxed">
-														Cracking EAFC/FIFA&apos;s dynamic difficulty algorithms
-														through OpenCV and ML-driven pattern recognition.
+														Cracking EAFC/FIFA&apos;s dynamic difficulty
+														algorithms through OpenCV and ML-driven pattern
+														recognition.
 													</p>
 												</div>
 												<div className="text-foreground/70 group-hover:text-foreground transition-colors p-1">

@@ -119,6 +119,7 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
 	): ContributionDay[][] => {
 		const weeks: ContributionDay[][] = [];
 		let currentWeek: ContributionDay[] = [];
+		let placeholderIndex = 0;
 
 		contributions.forEach((day, index) => {
 			const dayOfWeek = new Date(day.date).getDay();
@@ -127,7 +128,7 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
 				// Fill empty days at the start of the first week
 				for (let i = 0; i < dayOfWeek; i++) {
 					currentWeek.push({
-						date: "",
+						date: `placeholder-start-${placeholderIndex++}`,
 						count: 0,
 						level: 0,
 					});
@@ -140,7 +141,7 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
 				// End of week (Saturday) or end of data
 				while (currentWeek.length < 7) {
 					currentWeek.push({
-						date: "",
+						date: `placeholder-end-${placeholderIndex++}`,
 						count: 0,
 						level: 0,
 					});
@@ -248,16 +249,7 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
 								}}
 							>
 								{weeks.map((week) =>
-									week.map((day, dayIndex) => {
-										const dayNames = [
-											"Sun",
-											"Mon",
-											"Tue",
-											"Wed",
-											"Thu",
-											"Fri",
-											"Sat",
-										];
+									week.map((day) => {
 										return (
 											<div
 												key={day.date}
