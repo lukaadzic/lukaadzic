@@ -13,9 +13,9 @@
 	--tablet-max-width: 300px;
 
 	/* Font sizes */
-	--mobile-text-lg: 16px;
-	--mobile-text-xl: 18px;
-	--mobile-text-2xl: 20px;
+	--mobile-text-lg: 18px;
+	--mobile-text-xl: 20px;
+	--mobile-text-2xl: 24px;
 	--tablet-text-base: 14px;
 	--tablet-text-lg: 16px;
 	--tablet-text-xl: 18px;

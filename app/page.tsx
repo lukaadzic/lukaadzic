@@ -2,8 +2,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+
 import { GitHubContributions } from "@/components/github-contributions";
-import { SocialDock } from "@/components/social-dock";
+import { SocialsSection } from "@/components/socials-section";
 
 // Live age component - ultra fast loading with immediate calculation
 const LiveAge = () => {
@@ -178,7 +179,7 @@ const DescriptionTypewriter = ({ speed = 1 }: { speed?: number }) => {
 			{lines.map((line, lineIndex) => (
 				<div
 					key={`line-${lineIndex}-${line.text.slice(0, 10)}`}
-					className={`text-[18px] mobile-text-lg text-foreground/80 leading-7 ${
+					className={`text-[18px] text-foreground/80 leading-7 ${
 						lineIndex === 0 ? "pt-1" : "pt-4"
 					}`}
 				>
@@ -375,21 +376,21 @@ export default function Home() {
 	return (
 		<>
 			{/*
-        Hey!
+		Hey!
 
-        If you're reading this, you're either very bored or very curious.
+		If you're reading this, you're either very bored or very curious.
 
-        Let's build something together: lukaadz@wharton.upenn.edu
+		Let's build something together: lukaadz@wharton.upenn.edu
 
-      */}
+	  */}
 			<div
 				className="min-h-screen text-foreground"
 				style={{
 					backgroundColor: "oklch(0.15 0.08 240)",
 					backgroundImage: `
-            linear-gradient(90deg, oklch(0.18 0.06 240) 1px, transparent 1px),
-            linear-gradient(oklch(0.18 0.06 240) 1px, transparent 1px)
-          `,
+			linear-gradient(90deg, oklch(0.18 0.06 240) 1px, transparent 1px),
+			linear-gradient(oklch(0.18 0.06 240) 1px, transparent 1px)
+		  `,
 					backgroundSize: "20px 20px",
 				}}
 			>
@@ -570,7 +571,7 @@ export default function Home() {
 								</div>
 								{/* Projects Section */}
 								<div className="mt-4 space-y-6 dynamic-content-container project-section-spacing px-4 mobile-padding">
-									<p className="text-[18px] mobile-text-lg text-foreground/80 leading-7">
+									<p className="text-[18px] text-foreground/80 leading-7">
 										Stuff I shipped:
 									</p>
 
@@ -583,20 +584,20 @@ export default function Home() {
 											className="group font-mono block"
 										>
 											<div className="flex items-start gap-3 py-3 transition-opacity duration-200 hover:opacity-70 cursor-pointer">
-												<span className="text-green-400 text-sm mt-0.5 select-none font-bold">
+												<span className="text-green-400 text-base mt-0.5 select-none font-bold">
 													❯
 												</span>
 												<div className="flex-1 min-w-0">
 													<div className="flex items-center gap-2 mb-1">
-														<span className="text-cyan-400 text-sm font-medium">
+														<span className="text-cyan-400 text-base font-medium">
 															~/projects/
 														</span>
-														<h3 className="font-medium text-foreground text-sm mobile-text-lg tablet-text-base truncate">
+														<h3 className="font-medium text-foreground text-base tablet-text-base truncate">
 															financial-bubble-detection-dashboard
 														</h3>
 														<span className="text-green-400 text-xs">●</span>
 													</div>
-													<p className="text-xs mobile-text-lg text-foreground/60 mb-2 leading-relaxed">
+													<p className="text-sm text-foreground/60 mb-2 leading-relaxed">
 														Real-time financial bubble detection using options
 														data
 													</p>
@@ -634,20 +635,20 @@ export default function Home() {
 											className="group font-mono block"
 										>
 											<div className="flex items-start gap-3 py-3 transition-opacity duration-200 hover:opacity-70 cursor-pointer">
-												<span className="text-green-400 text-sm mt-0.5 select-none font-bold">
+												<span className="text-green-400 text-base mt-0.5 select-none font-bold">
 													❯
 												</span>
 												<div className="flex-1 min-w-0">
 													<div className="flex items-center gap-2 mb-1">
-														<span className="text-cyan-400 text-sm font-medium">
+														<span className="text-cyan-400 text-base font-medium">
 															~/projects/
 														</span>
-														<h3 className="font-medium text-foreground text-sm mobile-text-lg tablet-text-base truncate">
+														<h3 className="font-medium text-foreground text-base tablet-text-base truncate">
 															maritime-penn-web-app
 														</h3>
 														<span className="text-green-400 text-xs">●</span>
 													</div>
-													<p className="text-xs mobile-text-lg text-foreground/60 mb-2 leading-relaxed">
+													<p className="text-sm text-foreground/60 mb-2 leading-relaxed">
 														Building tomorrow&apos;s maritime leaders at UPenn &
 														Wharton
 													</p>
@@ -685,20 +686,20 @@ export default function Home() {
 											className="group font-mono block"
 										>
 											<div className="flex items-start gap-3 py-3 transition-opacity duration-200 hover:opacity-70 cursor-pointer">
-												<span className="text-green-400 text-sm mt-0.5 select-none font-bold">
+												<span className="text-green-400 text-base mt-0.5 select-none font-bold">
 													❯
 												</span>
 												<div className="flex-1 min-w-0">
 													<div className="flex items-center gap-2 mb-1">
-														<span className="text-cyan-400 text-sm font-medium">
+														<span className="text-cyan-400 text-base font-medium">
 															~/projects/
 														</span>
-														<h3 className="font-medium text-foreground text-sm mobile-text-lg tablet-text-base truncate">
+														<h3 className="font-medium text-foreground text-base tablet-text-base truncate">
 															fifa-momentum-tracker
 														</h3>
 														<span className="text-green-400 text-xs">●</span>
 													</div>
-													<p className="text-xs mobile-text-lg text-foreground/60 mb-2 leading-relaxed">
+													<p className="text-sm text-foreground/60 mb-2 leading-relaxed">
 														Cracking EAFC/FIFA&apos;s dynamic difficulty
 														algorithms through OpenCV and ML-driven pattern
 														recognition.
@@ -737,11 +738,13 @@ export default function Home() {
 									</div>
 
 									{/* GitHub Activity Header */}
-									<div className="text-[18px] mobile-text-lg text-foreground/80">
+									<div className="text-[18px] text-foreground/80">
 										Code I pushed:
 									</div>
 
 									<GitHubContributions username="lukaadzic" />
+
+									<SocialsSection />
 								</div>
 							</div>
 						)}
@@ -759,8 +762,6 @@ export default function Home() {
 					</div>
 				</div>
 			</div>
-
-			<SocialDock />
 		</>
 	);
 }

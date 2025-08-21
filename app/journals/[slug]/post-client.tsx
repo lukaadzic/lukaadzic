@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { SocialDock } from "@/components/social-dock";
 
 type Tab = {
 	id: string;
@@ -224,21 +223,21 @@ export default function PostClient({ post }: PostClientProps) {
 	return (
 		<>
 			{/*
-        Hey!
+		Hey!
 
-        If you're reading this, you're either very bored or very curious.
+		If you're reading this, you're either very bored or very curious.
 
-        Let's build something together: lukaadz@wharton.upenn.edu
+		Let's build something together: lukaadz@wharton.upenn.edu
 
-      */}
+	  */}
 			<div
 				className="min-h-screen text-foreground"
 				style={{
 					backgroundColor: "oklch(0.15 0.08 240)",
 					backgroundImage: `
-            linear-gradient(90deg, oklch(0.18 0.06 240) 1px, transparent 1px),
-            linear-gradient(oklch(0.18 0.06 240) 1px, transparent 1px)
-          `,
+			linear-gradient(90deg, oklch(0.18 0.06 240) 1px, transparent 1px),
+			linear-gradient(oklch(0.18 0.06 240) 1px, transparent 1px)
+		  `,
 					backgroundSize: "20px 20px",
 				}}
 			>
@@ -625,8 +624,6 @@ export default function PostClient({ post }: PostClientProps) {
 					</div>
 				</div>
 			</div>
-
-			<SocialDock />
 		</>
 	);
 }

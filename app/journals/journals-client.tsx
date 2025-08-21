@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { SocialDock } from "@/components/social-dock";
 
 type Tab = {
 	id: string;
@@ -366,9 +365,9 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
 			style={{
 				backgroundColor: "oklch(0.15 0.08 240)",
 				backgroundImage: `
-          linear-gradient(90deg, oklch(0.18 0.06 240) 1px, transparent 1px),
-          linear-gradient(oklch(0.18 0.06 240) 1px, transparent 1px)
-        `,
+		  linear-gradient(90deg, oklch(0.18 0.06 240) 1px, transparent 1px),
+		  linear-gradient(oklch(0.18 0.06 240) 1px, transparent 1px)
+		`,
 				backgroundSize: "20px 20px",
 			}}
 		>
@@ -692,7 +691,6 @@ export default function JournalsClient({ posts }: JournalsClientProps) {
 			</div>
 
 			{/* Social Dock */}
-			<SocialDock />
 		</div>
 	);
 }
