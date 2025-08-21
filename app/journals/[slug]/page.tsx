@@ -219,9 +219,7 @@ async function getPost(slug: string): Promise<Post | null> {
 
 			// Clean up the content - replace backslashes at end of lines with proper line breaks
 			cleanContent = markdownContent.replace(/\\\s*$/gm, "  "); // Two spaces for markdown line breaks
-		} catch (fileError) {
-			console.error("Error reading markdown file:", fileError);
-
+		} catch {
 			// Fallback to Keystatic content extraction
 			try {
 				const content = await post.content();
@@ -231,9 +229,7 @@ async function getPost(slug: string): Promise<Post | null> {
 				} else if (content) {
 					cleanContent = extractTextFromMarkdoc(content);
 				}
-			} catch (keystaticError) {
-				console.error("Error with Keystatic content:", keystaticError);
-			}
+			} catch {}
 		}
 
 		// Generate excerpt if not provided
@@ -261,8 +257,7 @@ async function getPost(slug: string): Promise<Post | null> {
 			),
 			content: cleanContent,
 		};
-	} catch (error) {
-		console.error("Error fetching post from Keystatic:", error);
+	} catch {
 		return null;
 	}
 }
@@ -289,8 +284,7 @@ export async function generateStaticParams() {
 		return allPosts.map((post) => ({
 			slug: post.slug,
 		}));
-	} catch (error) {
-		console.error("Error generating static params:", error);
+	} catch {
 		return [];
 	}
 }

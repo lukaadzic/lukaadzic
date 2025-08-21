@@ -45,6 +45,21 @@
 	--font-sans: var(--font-jetbrains-mono);
 	--font-mono: var(--font-jetbrains-mono);
 }
+
+/* Add font-display rule for all text to prevent layout shifts - placed first for proper specificity */
+*,
+*::before,
+*::after {
+	font-display: block !important;
+	font-family: inherit !important;
+	font-synthesis: none !important;
+	-webkit-font-smoothing: antialiased !important;
+	-moz-osx-font-smoothing: grayscale !important;
+	box-sizing: border-box !important;
+	/* Prevent micro layout shifts during rendering */
+	contain: layout style !important;
+}
+
 /* Font loading optimization - ZERO layout shifts */
 .font-jetbrains-mono {
 	font-family: var(--font-jetbrains-mono) !important;
@@ -52,6 +67,40 @@
 	/* Ensure consistent metrics */
 	font-optical-sizing: auto;
 	font-variant-numeric: tabular-nums;
+}
+
+/* Layout shift prevention classes - ordered by specificity (low to high) */
+
+/* Prevent layout shifts during content loading */
+.dynamic-content-container {
+	min-height: 200px !important;
+	contain: layout !important;
+	will-change: auto !important;
+}
+
+/* Fixed spacing for project sections to prevent shifts */
+.project-section-spacing {
+	margin-top: 1rem !important;
+	contain: layout !important;
+}
+
+/* GitHub contributions stable container */
+.github-contributions-container {
+	min-height: 180px !important;
+	contain: layout !important;
+	overflow-x: auto !important;
+}
+
+/* Dock container pointer events */
+.dock-container,
+.dock-container * {
+	pointer-events: auto;
+}
+
+/* Optimize space-y-6 to prevent cumulative shifts - higher specificity selector */
+.space-y-6 > * + * {
+	margin-top: 1.5rem !important;
+	contain: layout !important;
 }
 
 /* Prevent layout shifts during font loading */
@@ -65,18 +114,6 @@ html {
 	font-display: block !important;
 	line-height: 1.5 !important;
 	overflow-x: hidden !important;
-}
-
-/* Add font-display rule for all text to prevent layout shifts */
-*,
-*::before,
-*::after {
-	font-display: block !important;
-	font-family: inherit !important;
-	font-synthesis: none !important;
-	-webkit-font-smoothing: antialiased !important;
-	-moz-osx-font-smoothing: grayscale !important;
-	box-sizing: border-box !important;
 }
 
 /* Prevent content jumping */
@@ -127,33 +164,38 @@ body {
 
 /* Mobile responsive fixes */
 @media (max-width: 768px) {
-	/* Fix typewriter text overlapping on mobile */
+	/* Fix typewriter text overlapping on mobile - set height for full wrapped content */
 	.typewriter-container {
-		height: auto !important;
-		min-height: var(--mobile-min-height);
-		padding-bottom: var(--mobile-padding);
+		height: 10rem !important; /* Increased height to ensure all content is visible */
+		word-break: keep-all !important;
+		overflow-wrap: break-word !important;
+		position: relative !important;
+		z-index: 1 !important;
+		contain: layout !important;
+		overflow: hidden !important;
 	}
 
-	/* Responsive text sizes */
+	/* Stable dimensions for project text elements */
 	.mobile-text-lg {
 		font-size: var(--mobile-text-lg) !important;
 		line-height: 1.5 !important;
+		contain: layout !important;
 	}
 
 	.mobile-text-xl {
 		font-size: var(--mobile-text-xl) !important;
 		line-height: 1.4 !important;
+		contain: layout !important;
 	}
 
 	.mobile-text-2xl {
 		font-size: var(--mobile-text-2xl) !important;
 		line-height: 1.3 !important;
-	}
-
-	/* Mobile padding adjustments */
+		contain: layout !important;
+	} /* Mobile padding adjustments - use Tailwind classes */
 	.mobile-padding {
-		padding-left: var(--mobile-padding-x) !important;
-		padding-right: var(--mobile-padding-x) !important;
+		/* Use proper Tailwind padding instead of hardcoded values */
+		contain: layout !important;
 	}
 
 	/* Mobile header spacing */
@@ -313,13 +355,22 @@ body {
 		word-break: keep-all !important;
 	}
 
-	/* GitHub contributions grid */
+	/* GitHub contributions grid - stable dimensions */
 	.contributions-grid {
 		display: grid;
 		grid-template-columns: repeat(var(--contributions-grid-cols-desktop), 1fr);
 		gap: var(--contributions-grid-gap);
 		max-width: 100%;
 		overflow-x: auto;
+		min-height: 140px !important; /* Reserve space to prevent shifts */
+		contain: layout size !important;
+	}
+
+	/* Contributions scroll container - prevent shifts */
+	.contributions-scroll {
+		min-height: 140px !important;
+		contain: layout !important;
+		will-change: auto !important;
 	}
 
 	/* Responsive contributions grid */
@@ -378,15 +429,6 @@ body {
 	.dock-container a {
 		-webkit-tap-highlight-color: transparent !important;
 		touch-action: manipulation !important;
-	}
-
-	/* Disable pointer events that trigger magnification */
-	.dock-container {
-		pointer-events: auto;
-	}
-
-	.dock-container * {
-		pointer-events: auto;
 	}
 
 	/* Disable dock hover effects on touch devices */

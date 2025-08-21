@@ -77,8 +77,7 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
 
 				setContributions(data.contributions);
 				setTotalContributions(data.totalContributions);
-			} catch (err) {
-				console.error("Error fetching contributions:", err);
+			} catch {
 				setError("Failed to load contributions");
 
 				// Fallback to mock data if API fails

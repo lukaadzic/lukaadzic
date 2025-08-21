@@ -67,7 +67,6 @@ export async function GET(request: NextRequest) {
 		const data = await response.json();
 
 		if (data.errors) {
-			console.error("GraphQL errors:", data.errors);
 			throw new Error(
 				`GraphQL error: ${data.errors[0]?.message || "Unknown error"}`,
 			);
@@ -124,8 +123,6 @@ export async function GET(request: NextRequest) {
 			hasPrivateAccess: true,
 		});
 	} catch (error) {
-		console.error("Error fetching GitHub contributions:", error);
-
 		// Fallback to generating realistic mock data
 		const mockData = generateFallbackContributions();
 		return NextResponse.json({

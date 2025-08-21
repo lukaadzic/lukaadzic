@@ -16,8 +16,12 @@ const LiveAge = () => {
 		return ageInMs / (365.25 * 24 * 60 * 60 * 1000);
 	}, [birthTimestamp]);
 
-	// Initialize with a static age to prevent hydration mismatch
-	const [age, setAge] = useState(19.0); // Static initial value
+	// Initialize with null to prevent hydration mismatch, calculate on client
+	const [age, setAge] = useState<number | null>(null);
+
+	useEffect(() => {
+		setAge(calculateAge());
+	}, [calculateAge]);
 
 	useEffect(() => {
 		// Set initial age after hydration
@@ -32,7 +36,7 @@ const LiveAge = () => {
 	}, [calculateAge]);
 
 	// Memoize the formatted age string to avoid unnecessary re-renders
-	const formattedAge = useMemo(() => age.toFixed(8), [age]);
+	const formattedAge = useMemo(() => age?.toFixed(8) ?? "19.00000000", [age]);
 
 	return (
 		<div className="text-[14px] text-foreground/60 mb-4">
@@ -43,9 +47,6 @@ const LiveAge = () => {
 
 // Typewriter component for description
 const DescriptionTypewriter = ({ speed = 1 }: { speed?: number }) => {
-	const [displayedLines, setDisplayedLines] = useState<React.ReactElement[]>(
-		[],
-	);
 	const [currentLineIndex, setCurrentLineIndex] = useState(0);
 	const [currentCharIndex, setCurrentCharIndex] = useState(0);
 	const [showCursor, setShowCursor] = useState(true);
@@ -88,34 +89,6 @@ const DescriptionTypewriter = ({ speed = 1 }: { speed?: number }) => {
 				setCurrentCharIndex((prev) => prev + 1);
 			} else {
 				// Line complete, move to next line
-				const lineElement = (
-					<div
-						key={currentLineIndex}
-						className={`text-[18px] mobile-text-lg text-foreground/80 ${
-							currentLineIndex === 0 ? "pt-1" : "pt-4"
-						}`}
-					>
-						{currentLine.text}
-						{currentLine.links.map((link, linkIndex) =>
-							link.href ? (
-								<Link
-									key={`${link.href}-${link.text}-${linkIndex}`}
-									href={link.href}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="text-foreground hover:text-foreground/80 transition-colors"
-								>
-									{link.text}
-								</Link>
-							) : (
-								<span key={`${link.text}-${linkIndex}`}>{link.text}</span>
-							),
-						)}
-						{currentLine.suffix}
-					</div>
-				);
-
-				setDisplayedLines((prev) => [...prev, lineElement]);
 				setCurrentLineIndex((prev) => prev + 1);
 				setCurrentCharIndex(0);
 			}
@@ -201,23 +174,95 @@ const DescriptionTypewriter = ({ speed = 1 }: { speed?: number }) => {
 
 	return (
 		<div>
-			{displayedLines}
-			{!isComplete && (
+			{/* Pre-render all lines with original spacing to preserve look but prevent shifts */}
+			{lines.map((line, lineIndex) => (
 				<div
-					className={`text-[18px] mobile-text-lg text-foreground/80 ${
-						currentLineIndex === 0 ? "pt-1" : "pt-4"
+					key={`line-${lineIndex}-${line.text.slice(0, 10)}`}
+					className={`text-[18px] mobile-text-lg text-foreground/80 leading-7 ${
+						lineIndex === 0 ? "pt-1" : "pt-4"
 					}`}
 				>
-					{getCurrentDisplayText()}
-					<span
-						className={`${
-							showCursor ? "opacity-100" : "opacity-0"
-						} transition-opacity inline-block w-[1ch]`}
-					>
-						|
-					</span>
+					{lineIndex < currentLineIndex ? (
+						// Completed line - show full content with invisible cursor for consistent height
+						<>
+							{line.text}
+							{line.links.map((link, linkIndex) =>
+								link.href ? (
+									<Link
+										key={`${link.href}-${link.text}-${linkIndex}`}
+										href={link.href}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="text-foreground hover:text-foreground/80 transition-colors"
+									>
+										{link.text}
+									</Link>
+								) : (
+									<span key={`${link.text}-${linkIndex}`}>{link.text}</span>
+								),
+							)}
+							{line.suffix}
+							<span className="opacity-0 inline-block w-[1ch]">|</span>
+						</>
+					) : lineIndex === currentLineIndex && !isComplete ? (
+						// Currently typing line
+						<>
+							{getCurrentDisplayText()}
+							<span
+								className={`${
+									showCursor ? "opacity-100" : "opacity-0"
+								} transition-opacity inline-block w-[1ch]`}
+							>
+								|
+							</span>
+						</>
+					) : lineIndex === currentLineIndex && isComplete ? (
+						// Just completed line
+						<>
+							{line.text}
+							{line.links.map((link, linkIndex) =>
+								link.href ? (
+									<Link
+										key={`${link.href}-${link.text}-${linkIndex}`}
+										href={link.href}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="text-foreground hover:text-foreground/80 transition-colors"
+									>
+										{link.text}
+									</Link>
+								) : (
+									<span key={`${link.text}-${linkIndex}`}>{link.text}</span>
+								),
+							)}
+							{line.suffix}
+							<span className="opacity-0 inline-block w-[1ch]">|</span>
+						</>
+					) : (
+						// Future line - show full invisible content to reserve proper space
+						<div className="opacity-0">
+							{line.text}
+							{line.links.map((link, linkIndex) =>
+								link.href ? (
+									<Link
+										key={`${link.href}-${link.text}-${linkIndex}`}
+										href={link.href}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="text-foreground hover:text-foreground/80 transition-colors"
+									>
+										{link.text}
+									</Link>
+								) : (
+									<span key={`${link.text}-${linkIndex}`}>{link.text}</span>
+								),
+							)}
+							{line.suffix}
+							<span className="inline-block w-[1ch]">|</span>
+						</div>
+					)}
 				</div>
-			)}
+			))}
 		</div>
 	);
 };
@@ -519,21 +564,12 @@ export default function Home() {
 						{activeTab === "portfolio" && (
 							<div>
 								{/* Profile Section */}
-								<div
-									className="typewriter-container mobile-padding"
-									style={{
-										paddingLeft: "16px",
-										paddingRight: "16px",
-									}}
-								>
+								<div className="typewriter-container px-4 mobile-padding">
 									{/* Description */}
 									<DescriptionTypewriter speed={50} />
 								</div>
 								{/* Projects Section */}
-								<div
-									className="mt-4 space-y-6 mobile-padding"
-									style={{ paddingLeft: "16px", paddingRight: "16px" }}
-								>
+								<div className="mt-4 space-y-6 dynamic-content-container project-section-spacing px-4 mobile-padding">
 									<p className="text-[18px] mobile-text-lg text-foreground/80 leading-7">
 										Stuff I shipped:
 									</p>
@@ -692,7 +728,7 @@ export default function Home() {
 
 								{/* GitHub Contributions Section */}
 								<div
-									className="mt-4 space-y-6 mobile-padding"
+									className="mt-4 space-y-6 github-contributions-container"
 									style={{ paddingLeft: "16px", paddingRight: "16px" }}
 								>
 									{/* Separator */}
@@ -701,7 +737,7 @@ export default function Home() {
 									</div>
 
 									{/* GitHub Activity Header */}
-									<div className="text-[18px] mobile-text-lg text-foreground/80 pt-4">
+									<div className="text-[18px] mobile-text-lg text-foreground/80">
 										Code I pushed:
 									</div>
 

@@ -220,8 +220,7 @@ async function getPosts(): Promise<Post[]> {
 						),
 						content: cleanContent,
 					};
-				} catch (contentError) {
-					console.error(`Error processing post ${post.slug}:`, contentError);
+				} catch {
 					return {
 						slug: post.slug,
 						title: post.entry.title || "",
@@ -252,8 +251,7 @@ async function getPosts(): Promise<Post[]> {
 			const dateB = b.publishedDate ? new Date(b.publishedDate).getTime() : 0;
 			return dateB - dateA;
 		});
-	} catch (error) {
-		console.error("Error fetching posts from Keystatic:", error);
+	} catch {
 		return [];
 	}
 }

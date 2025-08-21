@@ -190,8 +190,7 @@ export async function GET(
 		};
 
 		return NextResponse.json(formattedPost);
-	} catch (error) {
-		console.error("Error fetching post from Keystatic:", error);
+	} catch {
 		return NextResponse.json(
 			{ error: "Internal server error" },
 			{ status: 500 },
