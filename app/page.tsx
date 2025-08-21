@@ -565,7 +565,10 @@ export default function Home() {
 						{activeTab === "portfolio" && (
 							<div>
 								{/* Profile Section */}
-								<div className="typewriter-container px-4 mobile-padding min-h-[90px] sm:min-h-0">
+								<div
+									className="typewriter-container px-4 mobile-padding min-h-[220px] sm:min-h-0 break-words"
+									style={{ wordBreak: "break-word" }}
+								>
 									{/* Description */}
 									<DescriptionTypewriter speed={50} />
 								</div>
