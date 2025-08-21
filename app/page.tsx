@@ -565,7 +565,7 @@ export default function Home() {
 						{activeTab === "portfolio" && (
 							<div>
 								{/* Profile Section */}
-								<div className="typewriter-container px-4 mobile-padding">
+								<div className="typewriter-container px-4 mobile-padding min-h-[90px] sm:min-h-0">
 									{/* Description */}
 									<DescriptionTypewriter speed={50} />
 								</div>
