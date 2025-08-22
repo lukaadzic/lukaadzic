@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import LukaImage from "@/components/luka-image";
+import { SocialsSection } from "@/components/socials-section";
 
 const GitHubContributions = dynamic(
 	() =>
@@ -12,11 +13,6 @@ const GitHubContributions = dynamic(
 			(mod) => mod.GitHubContributions,
 		),
 	{ ssr: false, loading: () => <div>Loading GitHub activity...</div> },
-);
-const SocialsSection = dynamic(
-	() =>
-		import("@/components/socials-section").then((mod) => mod.SocialsSection),
-	{ ssr: false, loading: () => <div>Loading socials...</div> },
 );
 
 // Live age component - ultra fast loading with immediate calculation
