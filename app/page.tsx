@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import LukaImage from "@/components/luka-image";
 
 const GitHubContributions = dynamic(
 	() =>
@@ -593,7 +594,7 @@ export default function Home() {
 									<div className="space-y-3">
 										{/* Project 1 - Financial Bubble Detection Dashboard */}
 										<Link
-											href="https://financial-bubble.vercel.app/"
+											href="https://github.com/lukaadzic/financial-bubble-detection-dashboard"
 											target="_blank"
 											rel="noopener noreferrer"
 											className="group font-mono block"
@@ -758,6 +759,11 @@ export default function Home() {
 									</div>
 
 									<GitHubContributions username="lukaadzic" />
+
+									{/* Luka Image - full width under 'Code I pushed:' */}
+									<div className="w-full flex justify-center">
+										<LukaImage />
+									</div>
 
 									<SocialsSection />
 								</div>
