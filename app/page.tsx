@@ -66,7 +66,7 @@ const DescriptionTypewriter = ({ speed = 1 }: { speed?: number }) => {
 		() => [
 			{
 				text: "Replacing your chief of staff with ",
-				links: [{ text: "@\u00A0PennyOne", href: "https://penny-one.com" }],
+				links: [{ text: "@\u00A0Penny-One", href: "https://penny-one.com" }],
 				suffix: ".",
 			},
 			{
