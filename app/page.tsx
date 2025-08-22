@@ -1,10 +1,22 @@
 "use client";
+
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { GitHubContributions } from "@/components/github-contributions";
-import { SocialsSection } from "@/components/socials-section";
+const GitHubContributions = dynamic(
+	() =>
+		import("@/components/github-contributions").then(
+			(mod) => mod.GitHubContributions,
+		),
+	{ ssr: false, loading: () => <div>Loading GitHub activity...</div> },
+);
+const SocialsSection = dynamic(
+	() =>
+		import("@/components/socials-section").then((mod) => mod.SocialsSection),
+	{ ssr: false, loading: () => <div>Loading socials...</div> },
+);
 
 // Live age component - ultra fast loading with immediate calculation
 const LiveAge = () => {
