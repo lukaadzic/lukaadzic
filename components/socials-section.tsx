@@ -5,7 +5,7 @@ export function SocialsSection() {
 		<div className="mt-8">
 			{/* Heading aligned with section headers */}
 			<div className="mt-6 text-[18px] text-foreground/80 mb-6">
-				Where to find me:
+				You’ll find me here:
 			</div>
 			<div className="w-full mx-auto text-[18px]">
 				<div className="space-y-0">
