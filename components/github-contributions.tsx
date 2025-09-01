@@ -172,11 +172,8 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
 						</div>
 						<div className="contributions-scroll overflow-x-auto">
 							<div
-								className="inline-grid grid-flow-col gap-1"
-								style={{
-									gridTemplateRows: "repeat(7, 1fr)",
-									minWidth: "700px",
-								}}
+								className="inline-grid grid-flow-col gap-1 w-full max-w-[700px] min-w-0"
+								style={{ gridTemplateRows: "repeat(7, 12px)" }}
 							>
 								{Array.from({ length: 371 }).map((_, i) => {
 									const week = Math.floor(i / 7);
@@ -215,7 +212,7 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
 					{error && <p className="text-yellow-400 text-xs mb-3">{error}</p>}
 					{/* Contributions Grid */}
 					<div className="mb-4 relative">
-						<div className="overflow-x-auto no-scrollbar">
+						<div className="contributions-scroll overflow-x-auto overflow-y-hidden no-scrollbar">
 							{/* Day labels - positioned exactly next to Mon, Wed, Fri squares */}
 							<div
 								className="absolute left-0 text-xs text-foreground/60 font-mono hidden md:block"
@@ -241,10 +238,11 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
 
 							{/* Grid - GitHub style with proper gaps */}
 							<div
-								className="md:ml-7 inline-grid grid-flow-col gap-1"
+								className="md:ml-7 inline-grid grid-flow-col gap-1 min-w-max"
 								style={{
 									gridTemplateRows: "repeat(7, 12px)",
-									minWidth: "700px",
+									maxWidth: 700,
+									minWidth: 0,
 								}}
 							>
 								{weeks.map((week) =>
