@@ -66,7 +66,12 @@ const DescriptionTypewriter = ({ speed = 1 }: { speed?: number }) => {
 		() => [
 			{
 				text: "Replacing your chief of staff with ",
-				links: [{ text: "@\u00A0PennyOne", href: "https:/https://pennyone.vercel.app/" }],
+				links: [
+					{
+						text: "@\u00A0PennyOne",
+						href: "https://pennyone.vercel.app/",
+					},
+				],
 				suffix: ".",
 			},
 			{
