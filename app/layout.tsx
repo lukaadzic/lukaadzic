@@ -21,6 +21,7 @@ export const metadata: Metadata = {
 		"Luka Adzic",
 		"Luka Adzic Portfolio",
 		"Luka Adzic Projects",
+		"Luka Adzic Startup",
 		"Startup founder Luka Adzic",
 		"Portfolio",
 		"Programmer Luka Adzic",
@@ -37,10 +38,10 @@ export const metadata: Metadata = {
 	],
 	icons: {
 		icon: [
-			{ url: "/icon.jpeg", sizes: "any" },
-			{ url: "/icon.jpeg", type: "image/jpeg" },
+			{ url: "/icon.ico", sizes: "any" },
+			{ url: "/icon.ico", type: "image/x-icon" },
 		],
-		apple: "/icon.jpeg",
+		apple: "/icon.ico",
 	},
 	openGraph: {
 		title: "Luka Adzic's Portfolio",
@@ -50,10 +51,10 @@ export const metadata: Metadata = {
 		siteName: "Luka Adzic Portfolio",
 		images: [
 			{
-				url: "/icon.jpeg",
+				url: "/icon.ico",
 				width: 800,
 				height: 800,
-				alt: "Luka Adzic Portfolio Icon",
+				alt: "Luka Adzic",
 			},
 		],
 		locale: "en_US",
@@ -64,7 +65,7 @@ export const metadata: Metadata = {
 		title: "Luka Adzic's Portfolio",
 		description:
 			"Here's some stuff I've built, things I've worked on, and where to find me online.",
-		images: ["/icon.jpeg"],
+		images: ["/icon.ico"],
 	},
 	alternates: {
 		canonical: "https://lukaadzic.dev",
@@ -89,6 +90,7 @@ export default function RootLayout({
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
 				<meta name="theme-color" content="#181a23" />
 				<link rel="prefetch" href="/journals" />
+				<link rel="apple-touch-icon" href="/icon.ico" />
 				<style>{`
 					html, body {
 						margin: 0 !important;
