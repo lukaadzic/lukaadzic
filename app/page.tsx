@@ -565,14 +565,24 @@ export default function Home() {
 								</Link>
 								<LiveAge />
 							</div>
-							<Link
-								href="/journals"
-								onClick={handleJournalsClick}
-								prefetch={true}
-								className="text-[16px] text-foreground hover:text-foreground/80 transition-colors duration-75 cursor-pointer"
-							>
-								Journals
-							</Link>
+							<div className="flex items-center gap-6">
+								<Link
+									href="/journals"
+									onClick={handleJournalsClick}
+									prefetch={true}
+									className="text-[16px] text-foreground hover:text-foreground/80 transition-colors duration-75 cursor-pointer"
+								>
+									Journals
+								</Link>
+								<Link
+									href="/Luka Adzic CV.pdf"
+									target="_blank"
+									rel="noopener noreferrer"
+									className="text-[16px] text-foreground hover:text-foreground/80 transition-colors duration-75 cursor-pointer"
+								>
+									CV
+								</Link>
+							</div>
 						</header>
 
 						{/* Conditional Content Based on Active Tab */}
