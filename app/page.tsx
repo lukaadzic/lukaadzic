@@ -65,21 +65,9 @@ const DescriptionTypewriter = ({ speed = 1 }: { speed?: number }) => {
 	const lines = useMemo(
 		() => [
 			{
-				text: "Replacing your chief of staff with ",
-				links: [
-					{
-						text: "@\u00A0PennyOne",
-						href: "https://pennyone.vercel.app/",
-					},
-				],
-				suffix: ".",
-			},
-			{
 				text: "Studying finance ",
 				links: [
 					{ text: "@\u00A0Wharton", href: "https://www.wharton.upenn.edu/" },
-					{ text: " & running an AI/SaaS agency ", href: null },
-					{ text: "@\u00A0Pingless", href: "https://pingless.dev" },
 				],
 				suffix: ".",
 			},
