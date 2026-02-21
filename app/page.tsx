@@ -575,7 +575,7 @@ export default function Home() {
 									Journals
 								</Link>
 								<Link
-									href="/Luka Adzic CV.pdf"
+									href="/ADZIC_LUKA_RESUME.pdf"
 									target="_blank"
 									rel="noopener noreferrer"
 									className="text-[16px] text-foreground hover:text-foreground/80 transition-colors duration-75 cursor-pointer"
