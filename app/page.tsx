@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import LukaImage from "@/components/luka-image";
 import { SocialsSection } from "@/components/socials-section";
@@ -270,110 +269,10 @@ const DescriptionTypewriter = ({ speed = 1 }: { speed?: number }) => {
 	);
 };
 
-type Tab = {
-	id: string;
-	name: string;
-	content: "portfolio" | "journals" | "post";
-};
-
 export default function Home() {
-	const router = useRouter();
-	const [tabs, setTabs] = useState<Tab[]>([
-		{ id: "portfolio", name: "lukaadzic.tsx", content: "portfolio" },
-	]);
-	const [activeTab, setActiveTab] = useState("portfolio");
-
-	// Load tabs from sessionStorage on mount - prevent flickering
-	useEffect(() => {
-		const editorTabsState = sessionStorage.getItem("editorTabs");
-
-		// Only check sessionStorage for editor tabs (from navigation)
-		// This preserves tabs when navigating between pages
-		if (editorTabsState) {
-			try {
-				const { tabs: editorTabs } = JSON.parse(editorTabsState);
-				if (editorTabs && editorTabs.length > 0) {
-					setTabs(editorTabs);
-				}
-				setActiveTab("portfolio"); // Always set portfolio as active when on main page
-			} catch {
-				// Silently handle parsing error - keep initial state
-			}
-		}
-	}, []);
-
-	// Save tabs to sessionStorage whenever tabs change (for navigation persistence)
-	useEffect(() => {
-		if (tabs.length > 0) {
-			const tabsState = {
-				tabs,
-				activeTab,
-			};
-			sessionStorage.setItem("editorTabs", JSON.stringify(tabsState));
-		}
-	}, [tabs, activeTab]);
-
-	// Helper function to truncate long tab names
-	const truncateTabName = (name: string) => {
-		if (name.length <= 50) return name;
-
-		// Remove .tsx extension, truncate, then add ...tsx
-		const nameWithoutExt = name.replace(".tsx", "");
-		if (nameWithoutExt.length <= 47) return name; // 47 + 3 chars for .tsx = 50
-
-		return `${nameWithoutExt.substring(0, 44)}...tsx`;
-	};
-
-	const switchTab = (tabId: string, e?: React.MouseEvent) => {
-		if (e) {
-			e.preventDefault();
-			e.stopPropagation();
-		}
-
-		// Store current tabs state in sessionStorage BEFORE navigation to prevent layout shifts
-		const tabsState = {
-			tabs,
-			activeTab: tabId,
-		};
-		sessionStorage.setItem("editorTabs", JSON.stringify(tabsState));
-
-		// Navigate using Next.js router (no page reload)
-		if (tabId === "journals") {
-			router.push("/journals");
-		} else if (tabId !== "portfolio") {
-			// It's a post tab
-			router.push(`/journals/${tabId}`);
-		} else {
-			// If it's portfolio tab, just update the active state
-			setActiveTab(tabId);
-		}
-	};
-
-	const closeTab = (tabId: string, e: React.MouseEvent) => {
-		e.preventDefault();
-		e.stopPropagation();
-
-		// Don't allow closing the portfolio tab
-		if (tabId === "portfolio") {
-			return;
-		}
-
-		const newTabs = tabs.filter((tab) => tab.id !== tabId);
-		setTabs(newTabs);
-
-		// If we're closing the journals tab and we're currently on it, go to portfolio
-		if (activeTab === tabId && tabId === "journals") {
-			// Stay on current page (portfolio) since we're closing journals tab
-			setActiveTab("portfolio");
-		}
-	};
-
-	const handleJournalsClick = (e: React.MouseEvent) => {
-		e.preventDefault();
-
-		// Ultra fast navigation with immediate transition
-		router.push("/journals");
-	};
+	const tabs = [
+		{ id: "portfolio", name: "lukaadzic.tsx", content: "portfolio" as const },
+	];
 
 	return (
 		<>
@@ -421,117 +320,34 @@ export default function Home() {
 							{tabs.map((tab) => (
 								<div
 									key={tab.id}
-									className="tab-item flex items-center gap-2 rounded-t-md text-sm border-t border-l border-r border-dashed mr-1 hover:bg-foreground/5 transition-all duration-75"
+									className="tab-item flex items-center gap-2 rounded-t-md text-sm border-t border-l border-r border-dashed mr-1"
 									style={{
-										backgroundColor:
-											activeTab === tab.id
-												? "oklch(0.2 0.08 240)"
-												: "oklch(0.16 0.06 240)",
+										backgroundColor: "oklch(0.2 0.08 240)",
 										borderColor: "oklch(0.4 0.1 240 / 0.3)",
 										marginBottom: "-1px",
-										opacity: activeTab === tab.id ? 1 : 0.8,
+										opacity: 1,
 										minWidth: "140px",
 									}}
 								>
 									<div className="flex items-center justify-between w-full">
-										{tab.content === "portfolio" ? (
-											<div
-												className="flex items-center gap-2 px-3 py-2 flex-1"
-												style={{
-													color:
-														activeTab === tab.id
-															? "oklch(0.9 0.02 240)"
-															: "oklch(0.7 0.04 240)",
-												}}
+										<div
+											className="flex items-center gap-2 px-3 py-2 flex-1"
+											style={{
+												color: "oklch(0.9 0.02 240)",
+											}}
+										>
+											<svg
+												className="w-4 h-4"
+												viewBox="0 0 24 24"
+												fill="currentColor"
+												aria-label="Home"
 											>
-												<svg
-													className="w-4 h-4"
-													viewBox="0 0 24 24"
-													fill="currentColor"
-													aria-label="Home"
-												>
-													<title>Home</title>
-													<path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" />
-													<path d="m12 5.432 8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z" />
-												</svg>
-												<span>{tab.name}</span>
-											</div>
-										) : tab.content === "journals" ? (
-											<Link
-												href="/journals"
-												onClick={(e) => switchTab(tab.id, e)}
-												className="flex items-center gap-2 px-3 py-2 flex-1 tab-link"
-												style={{
-													color:
-														activeTab === tab.id
-															? "oklch(0.9 0.02 240)"
-															: "oklch(0.7 0.04 240)",
-												}}
-											>
-												<svg
-													className="w-4 h-4"
-													viewBox="0 0 24 24"
-													fill="currentColor"
-													aria-label="Journals"
-												>
-													<title>Journals</title>
-													<path d="M1.5 6.375c0-1.036.84-1.875 1.875-1.875h17.25c1.035 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875H3.375A1.875 1.875 0 0 1 1.5 17.625V6.375zM21 9.375A.375.375 0 0 0 20.625 9h-7.5a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5zm0 3.75a.375.375 0 0 0-.375-.375h-7.5a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5zm0 3.75a.375.375 0 0 0-.375-.375h-7.5a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5zM10.875 18.75a.375.375 0 0 0 .375-.375v-1.5a.375.375 0 0 0-.375-.375h-7.5a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5zM3.375 15.375a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5a.375.375 0 0 0-.375-.375h-7.5zm0-3.75a.375.375 0 0 0-.375.375v1.5c0 .207.168.375.375.375h7.5a.375.375 0 0 0 .375-.375v-1.5a.375.375 0 0 0-.375-.375h-7.5z" />
-												</svg>
-												<span>{tab.name}</span>
-											</Link>
-										) : (
-											<Link
-												href={`/journals/${tab.id}`}
-												onClick={(e) => switchTab(tab.id, e)}
-												prefetch={true}
-												className="flex items-center gap-2 px-3 py-2 flex-1 tab-link"
-												style={{
-													color:
-														activeTab === tab.id
-															? "oklch(0.9 0.02 240)"
-															: "oklch(0.7 0.04 240)",
-												}}
-											>
-												<svg
-													className="w-4 h-4"
-													viewBox="0 0 24 24"
-													fill="currentColor"
-													aria-label="Document"
-												>
-													<title>Document</title>
-													<path d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0016.5 9h-1.875a1.875 1.875 0 01-1.875-1.875V5.25A3.75 3.75 0 009 1.5H5.625z" />
-													<path d="M12.971 1.816A5.23 5.23 0 0114.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 013.434 1.279 9.768 9.768 0 00-6.963-6.963z" />
-												</svg>
-												<span>{truncateTabName(tab.name)}</span>
-											</Link>
-										)}
-										{(tab.id === "journals" || tab.content === "post") && (
-											<button
-												type="button"
-												onClick={(e) => closeTab(tab.id, e)}
-												aria-label={`Close ${tab.name} tab`}
-												className="ml-1 px-1 py-1 transition-all duration-75 rounded-sm group"
-												style={{
-													color: "oklch(0.6 0.04 240)",
-												}}
-											>
-												<svg
-													className="w-3 h-3 opacity-60 group-hover:opacity-100 transition-opacity"
-													fill="none"
-													stroke="currentColor"
-													viewBox="0 0 24 24"
-													aria-label="Close"
-												>
-													<title>Close</title>
-													<path
-														strokeLinecap="round"
-														strokeLinejoin="round"
-														strokeWidth={2}
-														d="M6 18L18 6M6 6l12 12"
-													/>
-												</svg>
-											</button>
-										)}
+												<title>Home</title>
+												<path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" />
+												<path d="m12 5.432 8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z" />
+											</svg>
+											<span>{tab.name}</span>
+										</div>
 									</div>
 								</div>
 							))}
@@ -555,14 +371,6 @@ export default function Home() {
 							</div>
 							<div className="flex items-center gap-6">
 								<Link
-									href="/journals"
-									onClick={handleJournalsClick}
-									prefetch={true}
-									className="text-[16px] text-foreground hover:text-foreground/80 transition-colors duration-75 cursor-pointer"
-								>
-									Journals
-								</Link>
-								<Link
 									href="/ADZIC_LUKA_RESUME.pdf"
 									target="_blank"
 									rel="noopener noreferrer"
@@ -574,8 +382,7 @@ export default function Home() {
 						</header>
 
 						{/* Conditional Content Based on Active Tab */}
-						{activeTab === "portfolio" && (
-							<div>
+						<div>
 								{/* Profile Section */}
 								<div
 									className="typewriter-container px-4 mobile-padding min-h-[220px] sm:min-h-0 break-words"
@@ -767,7 +574,6 @@ export default function Home() {
 									<SocialsSection />
 								</div>
 							</div>
-						)}
 					</div>
 
 					{/* CLI Footer */}
