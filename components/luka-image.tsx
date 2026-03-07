@@ -6,8 +6,8 @@ export default function LukaImage() {
 			<Image
 				src="/Luka Adzic.jpg"
 				alt="Luka Adzic"
-				width={892}
-				height={595.33}
+				width={1080}
+				height={1616}
 				className="rounded-[30px] object-cover shadow-lg border border-foreground/10"
 				style={{ maxWidth: "100%", height: "auto" }}
 				priority
