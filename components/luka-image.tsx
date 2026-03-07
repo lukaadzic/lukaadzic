@@ -4,7 +4,7 @@ export default function LukaImage() {
 	return (
 		<div className="relative flex justify-center w-full mb-8">
 			<Image
-				src="/Luka.jpeg"
+				src="/Luka Adzic.png"
 				alt="Luka Adzic"
 				width={892}
 				height={595.33}

@@ -20,6 +20,8 @@ export const metadata: Metadata = {
 	keywords: [
 		"Luka Adzic",
 		"Luka Adzic Portfolio",
+		"Luka Adzic Investment banking",
+		"Luka Adzic Quant Trading",
 		"Luka Adzic Projects",
 		"Luka Adzic Startup",
 		"Startup founder Luka Adzic",
