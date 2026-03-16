@@ -500,7 +500,55 @@ export default function Home() {
 											<div className="h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent"></div>
 										</div>
 
-										{/* Project 3 - FIFA Momentum Tracker */}
+										{/* Project 3 - Algorithmic Trading System */}
+										<Link
+											href="https://github.com/lukaadzic/Live-Algorithmic-Trading-System"
+											className="group font-mono block"
+										>
+											<div className="flex items-start gap-3 py-3 transition-opacity duration-200 hover:opacity-70 cursor-pointer">
+												<span className="text-green-400 text-base mt-0.5 select-none font-bold">
+													❯
+												</span>
+												<div className="flex-1 min-w-0">
+													<div className="flex items-center gap-2 mb-1">
+														<span className="text-cyan-400 text-base font-medium">
+															~/projects/
+														</span>
+														<h3 className="font-medium text-foreground text-base tablet-text-base truncate">
+															algorithmic-trading-system-live-pnl
+														</h3>
+														<span className="text-green-400 text-xs">●</span>
+													</div>
+													<p className="text-sm text-foreground/60 mb-2 leading-relaxed">
+														A live systematic trading system combining quantitative trend signals and NLP-driven sentiment analysis to execute and manage a real equity portfolio.
+													</p>
+												</div>
+												<div className="text-foreground/70 group-hover:text-foreground transition-colors p-1">
+													<svg
+														className="w-4 h-4"
+														fill="none"
+														stroke="currentColor"
+														viewBox="0 0 24 24"
+														aria-label="External link"
+													>
+														<title>External link</title>
+														<path
+															strokeLinecap="round"
+															strokeLinejoin="round"
+															strokeWidth={2}
+															d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+														/>
+													</svg>
+												</div>
+											</div>
+										</Link>
+
+										{/* Separator */}
+										<div className="my-4">
+											<div className="h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent"></div>
+										</div>
+
+										{/* Project 4 - FIFA Momentum Tracker */}
 										<Link
 											href="https://github.com/lukaadzic/fifa-momentum-tracker"
 											target="_blank"
