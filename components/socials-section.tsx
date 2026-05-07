@@ -34,18 +34,6 @@ export function SocialsSection() {
 					</Link>
 					<div className="h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent my-0.5" />
 					<Link
-						href="https://github.com/lukaadzic/"
-						target="_blank"
-						rel="noopener noreferrer"
-						className="flex items-center justify-between py-4 transition-opacity duration-200 hover:opacity-70 cursor-pointer group"
-					>
-						<span className="pr-4">GitHub</span>
-						<span className="font-mono group-hover:text-foreground transition-colors">
-							@lukaadzic
-						</span>
-					</Link>
-					<div className="h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent my-0.5" />
-					<Link
 						href="https://www.instagram.com/lukaadzic7/"
 						target="_blank"
 						rel="noopener noreferrer"
