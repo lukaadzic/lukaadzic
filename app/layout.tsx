@@ -1,19 +1,25 @@
-import type { Metadata } from "next";
-import { JetBrains_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Geist, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { SITE } from "@/lib/site";
 import { SOCIALS } from "@/lib/socials";
 
+const geistSans = Geist({
+	subsets: ["latin"],
+	weight: "variable",
+	display: "swap",
+	variable: "--font-geist-sans",
+});
+
 const jetbrainsMono = JetBrains_Mono({
 	subsets: ["latin"],
 	weight: ["400", "500", "600", "700"],
 	style: ["normal", "italic"],
-	display: "block",
-	preload: true,
-	adjustFontFallback: false,
+	display: "swap",
 	variable: "--font-jetbrains-mono",
 });
+
 export const metadata: Metadata = {
 	metadataBase: new URL(SITE.url),
 	title: SITE.title,
@@ -59,6 +65,10 @@ export const metadata: Metadata = {
 	},
 };
 
+export const viewport: Viewport = {
+	themeColor: "#0a0a0a",
+};
+
 const personSchema = {
 	"@context": "https://schema.org",
 	"@type": "Person",
@@ -78,42 +88,16 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<head>
-				<meta charSet="utf-8" />
-				<meta name="viewport" content="width=device-width, initial-scale=1" />
-				<meta name="theme-color" content="#181a23" />
-				<link rel="apple-touch-icon" href="/icon.ico" />
-				<style>{`
-					html, body {
-						margin: 0 !important;
-						padding: 0 !important;
-						font-family: var(--font-jetbrains-mono) !important;
-						font-display: block !important;
-						line-height: 1.5 !important;
-						-webkit-font-smoothing: antialiased !important;
-						-moz-osx-font-smoothing: grayscale !important;
-						text-rendering: optimizeLegibility !important;
-						font-synthesis: none !important;
-						font-kerning: normal !important;
-						text-size-adjust: 100% !important;
-						box-sizing: border-box !important;
-					}
-					*, *::before, *::after {
-						box-sizing: border-box !important;
-						font-synthesis: none !important;
-						font-display: block !important;
-						font-family: inherit !important;
-					}
-					body {
-						background: #0a0a0a !important;
-						color: #ededed !important;
-					}
-				`}</style>
-				<script type="application/ld+json">
-					{JSON.stringify(personSchema)}
-				</script>
+				<script
+					type="application/ld+json"
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD requires raw script content.
+					dangerouslySetInnerHTML={{
+						__html: JSON.stringify(personSchema).replace(/</g, "\\u003c"),
+					}}
+				/>
 			</head>
 			<body
-				className={`${jetbrainsMono.variable} antialiased font-jetbrains-mono`}
+				className={`${geistSans.variable} ${jetbrainsMono.variable} font-sans bg-background text-foreground antialiased`}
 			>
 				{children}
 				<Analytics />
