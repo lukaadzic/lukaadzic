@@ -64,47 +64,7 @@ body {
 	display: none;
 }
 
-/* Staggered fade-in entrance for page sections. */
-@keyframes fade-in {
-	from {
-		opacity: 0;
-		transform: translateY(8px);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
-}
-
-.fade-in {
-	opacity: 0;
-	animation: fade-in 500ms cubic-bezier(0.21, 0.47, 0.32, 0.98) forwards;
-	animation-delay: var(--delay, 0s);
-}
-
-/* Typewriter cursor */
-@keyframes cursor-blink {
-	0%,
-	49% {
-		opacity: 1;
-	}
-	50%,
-	100% {
-		opacity: 0;
-	}
-}
-
-.typewriter-cursor {
-	animation: cursor-blink 1s step-end infinite;
-	color: var(--color-foreground);
-}
-
-.typewriter-cursor-done {
-	opacity: 0;
-	transition: opacity 400ms ease;
-}
-
-/* Signature reveal — a left-to-right wipe once the portrait scrolls into view. */
+/* Signature reveal — a left-to-right wipe once the portrait mounts. */
 .signature-reveal {
 	clip-path: inset(0 100% 0 0);
 	opacity: 0.85;
@@ -115,25 +75,184 @@ body {
 	clip-path: inset(0 0 0 0);
 }
 
+/* Full-viewport stage behind the terminal window — a soft vignette so the
+   window reads as floating above the desktop rather than sitting flat. */
+.terminal-stage {
+	background:
+		radial-gradient(
+			ellipse 80% 60% at 50% 15%,
+			rgba(255, 255, 255, 0.05),
+			transparent 60%
+		), var(--color-background);
+}
+
+/* Window opening — a quick scale + fade, like macOS spawning a window. */
+@keyframes terminal-window-in {
+	from {
+		opacity: 0;
+		transform: scale(0.96);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+.terminal-window-in {
+	animation: terminal-window-in 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Red traffic light — "nice try", a firm little shake. */
+@keyframes terminal-shake {
+	10%,
+	90% {
+		transform: translateX(-1px);
+	}
+	20%,
+	80% {
+		transform: translateX(2px);
+	}
+	30%,
+	50%,
+	70% {
+		transform: translateX(-4px);
+	}
+	40%,
+	60% {
+		transform: translateX(4px);
+	}
+}
+
+.terminal-shake {
+	animation: terminal-shake 400ms ease-in-out;
+}
+
+@keyframes terminal-toast-fade {
+	0% {
+		opacity: 0;
+		transform: translateY(-2px);
+	}
+	15%,
+	80% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+	100% {
+		opacity: 0;
+		transform: translateY(-2px);
+	}
+}
+
+.terminal-toast {
+	animation: terminal-toast-fade 1.4s ease both;
+}
+
+/* Yellow traffic light — a dock-style minimize that bounces back. */
+@keyframes terminal-minimize {
+	0% {
+		transform: scale(1) translateY(0);
+		opacity: 1;
+	}
+	50% {
+		transform: scale(0.5) translateY(40%);
+		opacity: 0.6;
+	}
+	100% {
+		transform: scale(1) translateY(0);
+		opacity: 1;
+	}
+}
+
+.terminal-minimize {
+	animation: terminal-minimize 650ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* Terminal command output — a quick fade + rise as each block appears. */
+@keyframes terminal-output-in {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.terminal-output-in {
+	animation: terminal-output-in 320ms cubic-bezier(0.21, 0.47, 0.32, 0.98) both;
+}
+
+/* Authentic Terminal.app block cursor. */
+@keyframes terminal-cursor-blink {
+	0%,
+	49% {
+		opacity: 1;
+	}
+	50%,
+	100% {
+		opacity: 0;
+	}
+}
+
+.terminal-cursor-blink {
+	animation: terminal-cursor-blink 1s step-end infinite;
+}
+
+/* Suggested-command chips — faint mono buttons for mobile taps. */
+.terminal-chip {
+	border-radius: 6px;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	padding: 4px 10px;
+	font-family: var(--font-mono);
+	font-size: 12px;
+	color: var(--color-muted);
+	background: rgba(255, 255, 255, 0.03);
+	transition:
+		color 200ms ease,
+		background-color 200ms ease,
+		border-color 200ms ease;
+}
+
+.terminal-chip:hover {
+	color: var(--color-foreground);
+	background: rgba(255, 255, 255, 0.06);
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
 @media (prefers-reduced-motion: reduce) {
-	.fade-in {
+	.signature-reveal {
+		transition: none;
+		clip-path: inset(0 0 0 0);
+	}
+
+	.terminal-window-in {
 		animation: none;
 		opacity: 1;
 		transform: none;
 	}
 
-	.typewriter-cursor {
+	.terminal-shake {
+		animation: none;
+	}
+
+	.terminal-toast {
 		animation: none;
 		opacity: 1;
 	}
 
-	.typewriter-cursor-done {
-		transition: none;
-		opacity: 0;
+	.terminal-minimize {
+		animation: none;
 	}
 
-	.signature-reveal {
-		transition: none;
-		clip-path: inset(0 0 0 0);
+	.terminal-output-in {
+		animation: none;
+		opacity: 1;
+		transform: none;
+	}
+
+	.terminal-cursor-blink {
+		animation: none;
+		opacity: 1;
 	}
 }
