@@ -3,14 +3,14 @@
 import {
 	type KeyboardEvent,
 	type ReactNode,
+	useCallback,
 	useEffect,
-	useLayoutEffect,
-	useMemo,
 	useRef,
 	useState,
 } from "react";
 import {
-	BOOT_STEPS,
+	EVERYTHING_COMMAND,
+	EVERYTHING_STEPS,
 	resolveCommand,
 	SUGGESTED_COMMANDS,
 } from "@/components/terminal/commands";
@@ -20,11 +20,11 @@ import { PromptLine } from "@/components/terminal/prompt-line";
 // server and client always agree and there's no hydration mismatch.
 const LAST_LOGIN = "Last login: Thu Nov 14 09:32:07 on ttys003";
 
-const SKIP_KEY = "terminal-booted";
-const CHAR_DELAY_MS = 35;
-const STEP_PAUSE_MS = 380;
+const CHIP_CHAR_DELAY_MS = 20;
+const WELCOME_CHAR_DELAY_MS = 55;
+const SEQUENCE_PAUSE_MS = 320;
 
-type HistoryEntry = {
+type Entry = {
 	id: number;
 	command: string;
 	output: ReactNode;
@@ -34,131 +34,153 @@ function sleep(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// useLayoutEffect is a no-op (with a warning) during SSR. This component only
-// ever runs the effect on the client, so fall back to useEffect on the server
-// purely to keep React quiet — the effect body never executes there anyway.
-const useIsomorphicLayoutEffect =
-	typeof window !== "undefined" ? useLayoutEffect : useEffect;
-
 export function TerminalSession() {
-	// Default state renders the ENTIRE boot sequence, fully typed, with no
-	// animation — this is what gets sent as server-rendered HTML (and what a
-	// no-JS browser keeps forever). On mount, a layout effect decides whether
-	// to rewind to the start and replay the intro, before the browser ever
-	// paints the "fully booted" frame — so JS users see no flash.
-	const [bootIndex, setBootIndex] = useState(BOOT_STEPS.length);
-	const [currentTyped, setCurrentTyped] = useState("");
-	const [booting, setBooting] = useState(false);
-	const [cursorBlink, setCursorBlink] = useState(true);
-	const [cleared, setCleared] = useState(false);
-	const [history, setHistory] = useState<HistoryEntry[]>([]);
+	const [entries, setEntries] = useState<Entry[]>([]);
 	const [inputValue, setInputValue] = useState("");
+	const [animating, setAnimating] = useState(false);
+	const [cursorBlink, setCursorBlink] = useState(true);
+	const [ranCommands, setRanCommands] = useState<ReadonlySet<string>>(
+		() => new Set(),
+	);
 
 	const genRef = useRef(0);
 	const idRef = useRef(0);
+	const reducedRef = useRef(false);
+	const startedRef = useRef(false);
 	const commandHistoryRef = useRef<string[]>([]);
 	const historyPointerRef = useRef<number | null>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
 
-	// Each boot step's output is generated once — reused verbatim whether it's
-	// mid-typing-animation or shown instantly, so a component like LiveAge
-	// never remounts (and therefore never restarts) mid-session.
-	const bootOutputs = useMemo(
-		() => BOOT_STEPS.map((step) => step.run().output),
+	const appendEntry = useCallback((command: string, output: ReactNode) => {
+		idRef.current += 1;
+		setEntries((prev) => [...prev, { id: idRef.current, command, output }]);
+	}, []);
+
+	// Keyboard focus pops the on-screen keyboard on touch devices, so only
+	// grab focus programmatically when a fine pointer (mouse/trackpad) exists.
+	const focusInput = useCallback((force = false) => {
+		if (force || window.matchMedia("(pointer: fine)").matches) {
+			inputRef.current?.focus();
+		}
+	}, []);
+
+	/** Types `text` char-by-char at the active prompt. Bumping gen fast-forwards. */
+	const typeAtPrompt = useCallback(
+		async (text: string, gen: number, delay: number) => {
+			if (reducedRef.current) return;
+			for (let i = 1; i <= text.length; i++) {
+				if (genRef.current !== gen) return;
+				setInputValue(text.slice(0, i));
+				await sleep(delay);
+			}
+		},
 		[],
 	);
 
-	useIsomorphicLayoutEffect(() => {
-		const prefersReduced = window.matchMedia(
+	const runSingle = useCallback(
+		(raw: string) => {
+			const result = resolveCommand(raw);
+			if (result === "clear") {
+				setEntries([]);
+				return;
+			}
+			result.sideEffect?.();
+			appendEntry(raw, result.output);
+		},
+		[appendEntry],
+	);
+
+	const runEverything = useCallback(
+		async (gen: number) => {
+			for (const step of EVERYTHING_STEPS) {
+				await typeAtPrompt(step.command, gen, CHIP_CHAR_DELAY_MS);
+				setInputValue("");
+				appendEntry(step.command, step.run().output);
+				if (genRef.current === gen && !reducedRef.current) {
+					await sleep(SEQUENCE_PAUSE_MS);
+				}
+			}
+		},
+		[appendEntry, typeAtPrompt],
+	);
+
+	/**
+	 * Central command entry point. `typeIt` animates the command at the
+	 * prompt first (chip clicks); manual Enter passes false since the text
+	 * is already sitting at the prompt.
+	 */
+	const submit = useCallback(
+		async (raw: string, typeIt: boolean) => {
+			const trimmed = raw.trim();
+			setAnimating(true);
+			const gen = ++genRef.current;
+
+			if (typeIt) {
+				await typeAtPrompt(raw, gen, CHIP_CHAR_DELAY_MS);
+			}
+			setInputValue("");
+
+			if (trimmed !== "") {
+				commandHistoryRef.current.push(raw);
+				setRanCommands((prev) => {
+					const next = new Set(prev);
+					next.add(trimmed.toLowerCase());
+					return next;
+				});
+			}
+			historyPointerRef.current = null;
+
+			if (trimmed === EVERYTHING_COMMAND) {
+				appendEntry(raw, null);
+				await runEverything(gen);
+			} else {
+				runSingle(raw);
+			}
+
+			setAnimating(false);
+			focusInput();
+		},
+		[appendEntry, focusInput, runEverything, runSingle, typeAtPrompt],
+	);
+
+	// Opening beat: auto-type one short `welcome` command (~1s), then hand
+	// the prompt over. With prefers-reduced-motion the output appears
+	// instantly and the cursor holds steady.
+	useEffect(() => {
+		if (startedRef.current) return;
+		startedRef.current = true;
+
+		reducedRef.current = window.matchMedia(
 			"(prefers-reduced-motion: reduce)",
 		).matches;
-		const alreadyBooted = sessionStorage.getItem(SKIP_KEY) === "1";
-
-		if (prefersReduced) {
+		if (reducedRef.current) {
 			setCursorBlink(false);
 		}
 
-		if (prefersReduced || alreadyBooted) {
-			return; // keep the fully-booted default state — nothing to animate
-		}
+		(async () => {
+			setAnimating(true);
+			const gen = ++genRef.current;
+			if (!reducedRef.current) {
+				await sleep(250);
+			}
+			await typeAtPrompt("welcome", gen, WELCOME_CHAR_DELAY_MS);
+			setInputValue("");
+			runSingle("welcome");
+			setAnimating(false);
+			focusInput();
+		})();
+	}, [focusInput, runSingle, typeAtPrompt]);
 
-		setBootIndex(0);
-		setCurrentTyped("");
-		setBooting(true);
+	const fastForward = useCallback(() => {
+		genRef.current++;
 	}, []);
 
-	useEffect(() => {
-		if (!booting) return;
-
-		const myGen = ++genRef.current;
-
-		(async () => {
-			for (let i = 0; i < BOOT_STEPS.length; i++) {
-				const { command } = BOOT_STEPS[i];
-
-				for (let charCount = 1; charCount <= command.length; charCount++) {
-					if (genRef.current !== myGen) return;
-					setCurrentTyped(command.slice(0, charCount));
-					await sleep(CHAR_DELAY_MS);
-				}
-
-				if (genRef.current !== myGen) return;
-				setBootIndex(i + 1);
-				setCurrentTyped("");
-				await sleep(STEP_PAUSE_MS);
-			}
-
-			if (genRef.current === myGen) {
-				setBooting(false);
-				sessionStorage.setItem(SKIP_KEY, "1");
-			}
-		})();
-	}, [booting]);
-
-	function skipBoot() {
-		if (!booting) return;
-		genRef.current++;
-		setBootIndex(BOOT_STEPS.length);
-		setCurrentTyped("");
-		setBooting(false);
-		sessionStorage.setItem(SKIP_KEY, "1");
-	}
-
-	function focusInput() {
-		inputRef.current?.focus();
-	}
-
 	function handleContainerClick() {
-		if (booting) {
-			skipBoot();
+		if (animating) {
+			fastForward();
 			return;
 		}
-		focusInput();
-	}
-
-	function runCommand(raw: string) {
-		const trimmed = raw.trim();
-
-		if (trimmed !== "") {
-			commandHistoryRef.current.push(raw);
-		}
-		historyPointerRef.current = null;
-		setInputValue("");
-
-		const result = resolveCommand(raw);
-
-		if (result === "clear") {
-			setCleared(true);
-			setHistory([]);
-			return;
-		}
-
-		result.sideEffect?.();
-		idRef.current += 1;
-		setHistory((prev) => [
-			...prev,
-			{ id: idRef.current, command: raw, output: result.output },
-		]);
+		focusInput(true);
 	}
 
 	function navigateHistory(direction: 1 | -1) {
@@ -188,17 +210,17 @@ export function TerminalSession() {
 	}
 
 	function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-		if (booting) {
+		if (animating) {
 			if (event.key === "Enter") {
 				event.preventDefault();
-				skipBoot();
+				fastForward();
 			}
 			return;
 		}
 
 		if (event.key === "Enter") {
 			event.preventDefault();
-			runCommand(inputValue);
+			submit(inputValue, false);
 		} else if (event.key === "ArrowUp") {
 			event.preventDefault();
 			navigateHistory(-1);
@@ -206,6 +228,13 @@ export function TerminalSession() {
 			event.preventDefault();
 			navigateHistory(1);
 		}
+	}
+
+	function chipClass(command: string, accent: boolean): string {
+		const base = accent
+			? "terminal-chip terminal-chip-accent"
+			: "terminal-chip";
+		return ranCommands.has(command) ? `${base} terminal-chip-dim` : base;
 	}
 
 	return (
@@ -216,78 +245,55 @@ export function TerminalSession() {
 			className="relative font-mono text-[13px] leading-relaxed sm:text-[14px]"
 			onClick={handleContainerClick}
 		>
-			{booting && (
+			<p className="text-faint">{LAST_LOGIN}</p>
+
+			{entries.map((entry) => (
+				<div key={entry.id} className="mt-5">
+					<PromptLine input={entry.command} />
+					{entry.output && (
+						<div className="terminal-output-in mt-1.5">{entry.output}</div>
+					)}
+				</div>
+			))}
+
+			<div className="mt-5">
+				<PromptLine input={inputValue} cursor cursorBlink={cursorBlink} />
+			</div>
+
+			<div className="mt-5 flex flex-wrap gap-2">
+				{SUGGESTED_COMMANDS.map((command) => (
+					<button
+						key={command}
+						type="button"
+						disabled={animating}
+						onClick={(event) => {
+							event.stopPropagation();
+							submit(command, true);
+						}}
+						className={chipClass(command, false)}
+					>
+						{command}
+					</button>
+				))}
 				<button
 					type="button"
+					disabled={animating}
 					onClick={(event) => {
 						event.stopPropagation();
-						skipBoot();
+						submit(EVERYTHING_COMMAND, true);
 					}}
-					className="absolute right-0 top-0 text-[11px] text-faint transition-colors duration-200 hover:text-muted"
+					className={chipClass(EVERYTHING_COMMAND, true)}
 				>
-					⏎ skip
+					{EVERYTHING_COMMAND}
 				</button>
-			)}
-
-			{!cleared && (
-				<>
-					<p className="text-faint">{LAST_LOGIN}</p>
-
-					{BOOT_STEPS.slice(0, bootIndex).map((step, index) => (
-						<div key={step.command} className="mt-3">
-							<PromptLine input={step.command} />
-							<div className="terminal-output-in mt-1">
-								{bootOutputs[index]}
-							</div>
-						</div>
-					))}
-
-					{booting && bootIndex < BOOT_STEPS.length && (
-						<div className="mt-3">
-							<PromptLine input={currentTyped} />
-						</div>
-					)}
-				</>
-			)}
-
-			{!booting && (
-				<>
-					{history.map((entry) => (
-						<div key={entry.id} className="mt-3">
-							<PromptLine input={entry.command} />
-							{entry.output && (
-								<div className="terminal-output-in mt-1">{entry.output}</div>
-							)}
-						</div>
-					))}
-
-					<div className="mt-3">
-						<PromptLine input={inputValue} cursor cursorBlink={cursorBlink} />
-					</div>
-
-					<div className="mt-4 flex flex-wrap gap-2 sm:hidden">
-						{SUGGESTED_COMMANDS.map((command) => (
-							<button
-								key={command}
-								type="button"
-								onClick={(event) => {
-									event.stopPropagation();
-									runCommand(command);
-								}}
-								className="terminal-chip"
-							>
-								{command}
-							</button>
-						))}
-					</div>
-				</>
-			)}
+			</div>
 
 			{/* Visually hidden, but focusable — captures real keystrokes so the
 			 	prompt above can render the echoed text. */}
 			<input
 				ref={inputRef}
 				value={inputValue}
+				readOnly={animating}
 				onChange={(event) => setInputValue(event.target.value)}
 				onKeyDown={handleKeyDown}
 				className="sr-only"

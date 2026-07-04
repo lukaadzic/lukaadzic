@@ -1,4 +1,5 @@
 const COMMANDS: Array<[string, string]> = [
+	["./everything.sh", "run the whole tour"],
 	["whoami", "who am I"],
 	["about", "a couple lines about me"],
 	["projects", "things I've built"],

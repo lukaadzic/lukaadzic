@@ -3,13 +3,18 @@
 ## What this is
 
 Luka Adzic's personal portfolio. One page (`/`) plus a `/404`. The UI is a
-faithful, interactive macOS Terminal window — a boot sequence auto-types
-`whoami`, `cat about.txt`, `ls ~/projects`, `open ~/projects --verbose`,
-`imgcat lukaadzic.jpg`, `github --contributions`, and `open socials/`, then
-drops into a real prompt supporting commands (`help`, `projects`, `cv`,
-`email`, `age`, `pwd`, a `sudo` easter egg, `clear`, command history via
-arrow keys). The terminal aesthetic IS the product — preserve it in every
-change; don't "improve" it into a generic component library look.
+faithful, interactive macOS Terminal window built around **prompt-driven
+discovery**: on load only a short `welcome` greeting types out, then the
+visitor reveals content by prompting — typing commands or clicking the
+suggestion chips under the prompt (`about`, `projects`, `github`, `socials`,
+`cv`, and an accented `./everything.sh` that replays the full tour).
+Supported commands include `help`, `whoami`, `email`, `age`, `pwd`, a `sudo`
+easter egg, `clear`, and command history via arrow keys. There is
+deliberately no photo, and the GitHub graph renders as a terminal-native
+block sparkline. The terminal aesthetic and the reveal-by-prompting
+interaction ARE the product — preserve them in every change; don't
+"improve" it into a generic component library look or an auto-playing
+content dump.
 
 ## Stack & commands
 
@@ -49,40 +54,38 @@ lib/                   single source of truth for all content
   github-contributions.ts   contribution-level + fallback-data helpers
 ```
 
-**Data flow:** `lib/*.ts` -> server-rendered `page.tsx` -> client
-`TerminalSession`, which drives the boot animation and interactive prompt.
+**Data flow:** `lib/*.ts` -> server-rendered `page.tsx` (window chrome + an
+`sr-only` SEO content block) -> client `TerminalSession`, which drives the
+welcome animation, suggestion chips, and interactive prompt.
 `app/layout.tsx`'s metadata and JSON-LD are derived from `lib/site.ts` and
 `lib/socials.ts`, never hand-duplicated.
 
 **Key invariant:** all content (identity, projects, socials, GitHub logic)
 lives in `lib/`. Components and UI code never hardcode copy — they import
 it. The command registry in `commands.tsx` maps each command to a
-`Renderer`, and `BOOT_STEPS` reuses the *same* renderers as the interactive
-`REGISTRY`, so the boot sequence and typed commands always render identical
-output.
+`Renderer`; the chips and `./everything.sh` tour reuse the *same* renderers
+as typed commands, so every path renders identical output.
 
 ## Principles
 
 - **Server-first.** `"use client"` only where state or browser APIs are
   required. Actual client components today: `terminal-session.tsx` (typing
-  state machine, input handling), `terminal-window.tsx` (window chrome
-  interactions), `not-found-terminal.tsx` (reads `usePathname`),
-  `live-age.tsx` (ticking age display), `imgcat-portrait.tsx`,
-  `github-contributions.tsx` + `github-contributions-lazy.tsx` (client fetch,
-  lazy-loaded with `next/dynamic` and `ssr: false`).
-- **DRY outputs.** Anything rendered more than once (boot sequence vs.
-  interactive command) becomes a shared renderer/component — never copy a
-  block just to tweak it.
+  state machine, input handling, chips), `terminal-window.tsx` (window
+  chrome interactions), `not-found-terminal.tsx` (reads `usePathname`),
+  `live-age.tsx` (ticking age display), `github-contributions.tsx` +
+  `github-contributions-lazy.tsx` (client fetch, lazy-loaded with
+  `next/dynamic` and `ssr: false`).
+- **DRY outputs.** Anything rendered more than once (chip vs. typed command
+  vs. `./everything.sh` tour) becomes a shared renderer/component — never
+  copy a block just to tweak it.
 - **Motion.** CSS-only, and gated behind `prefers-reduced-motion`. No JS
   animation libraries.
 - **No `!important`.**
-- **SSR-first SEO.** `TerminalSession`'s default state renders the *entire*
-  boot sequence fully typed — that's what's sent as server HTML and what a
-  no-JS browser keeps. On mount, a `useLayoutEffect` "rewinds" state to the
-  start and replays the typing animation *before the browser paints*, so a
-  JS-enabled visitor never sees a flash of the finished state. The
-  `sessionStorage` flag (`terminal-booted`) and `prefers-reduced-motion`
-  check both skip the replay.
+- **SSR-first SEO.** The visible terminal starts nearly empty, so
+  `page.tsx` also renders `components/terminal/seo-content.tsx` — an
+  `sr-only` server-rendered block with the full content (name, about,
+  project links, social links, email, resume) derived from `lib/`. Keep it
+  in sync when adding content sections.
 - **No new dependencies without a strong reason.** Currently 4 runtime deps
   (`next`, `react`, `react-dom`, `@vercel/analytics`). Justify any addition.
 
@@ -107,9 +110,11 @@ output.
 ## Verification checklist
 
 - `bun run lint`, `bun run typecheck`, `bun run build` all clean.
-- Manual pass of `/`: boot sequence plays and can be skipped with Enter,
-  interactive commands work, mobile suggestion chips render at ~390px width,
-  `prefers-reduced-motion` disables the typing animation and cursor blink.
+- Manual pass of `/`: welcome types out, suggestion chips execute their
+  commands (and dim once run), `./everything.sh` replays the full tour,
+  typed commands + history work, the github sparkline spans the full content
+  width at desktop and ~390px with no horizontal scroll,
+  `prefers-reduced-motion` disables typing animation and cursor blink.
 - Manual pass of `/404`.
 - `curl` the API route: a valid username returns 200 with `Cache-Control`
   set; an invalid/mismatched username returns 400.

@@ -1,9 +1,9 @@
 # lukaadzic.dev
 
 An interactive terminal portfolio — a faithful macOS Terminal window that
-boots into `whoami`, `about`, `projects`, a portrait, live GitHub
-contributions, and socials, then drops into a real prompt you can type
-commands into.
+greets you and waits. You reveal the rest by prompting it: type commands
+(or click them) like `about`, `projects`, `github`, and `cv` — or run
+`./everything.sh` to see it all at once.
 
 Live at **[lukaadzic.dev](https://lukaadzic.dev)**.
 
