@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 
 const GitHubContributions = dynamic(
 	() =>
-		import("@/components/home/github-contributions").then(
+		import("@/components/terminal/github-contributions").then(
 			(mod) => mod.GitHubContributions,
 		),
 	{

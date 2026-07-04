@@ -1,10 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
-export function Portrait() {
-	const containerRef = useRef<HTMLDivElement | null>(null);
+export function ImgcatPortrait() {
 	const [revealed, setRevealed] = useState(false);
 
 	useEffect(() => {
@@ -17,45 +16,31 @@ export function Portrait() {
 			return;
 		}
 
-		const node = containerRef.current;
-		if (!node) return;
-
-		const observer = new IntersectionObserver(
-			([entry]) => {
-				if (entry.isIntersecting) {
-					setRevealed(true);
-					observer.disconnect();
-				}
-			},
-			{ threshold: 0.4 },
-		);
-
-		observer.observe(node);
-		return () => observer.disconnect();
+		// Flip on the next frame so the wipe transitions from its initial state
+		// instead of skipping straight to revealed.
+		const frame = requestAnimationFrame(() => setRevealed(true));
+		return () => cancelAnimationFrame(frame);
 	}, []);
 
 	return (
-		<div
-			ref={containerRef}
-			className="group relative h-24 w-24 shrink-0 sm:h-28 sm:w-28"
-		>
-			<div className="relative h-full w-full overflow-hidden rounded-xl">
+		<div className="group relative h-[180px] w-[180px]">
+			<div className="relative h-full w-full overflow-hidden rounded-sm">
 				<Image
 					src="/Lukaadzic.jpg"
 					alt="Portrait of Luka Adzic"
 					fill
-					quality={90}
 					priority
-					sizes="112px"
+					quality={90}
+					sizes="180px"
 					className="object-cover grayscale brightness-[0.85] transition-[filter,transform] duration-[400ms] ease-out group-hover:scale-[1.02] group-hover:grayscale-0 group-hover:brightness-100"
 				/>
 			</div>
 
-			{/* Signature, revealed with a left-to-right wipe once in view. */}
+			{/* Signature, revealed with a left-to-right wipe once mounted. */}
 			<svg
 				viewBox="0 0 126 57"
 				aria-hidden="true"
-				className={`signature-reveal pointer-events-none absolute -bottom-2 -right-3 w-16 text-foreground sm:w-20 ${
+				className={`signature-reveal pointer-events-none absolute -bottom-3 -right-4 w-24 text-foreground ${
 					revealed ? "is-revealed" : ""
 				}`}
 			>
