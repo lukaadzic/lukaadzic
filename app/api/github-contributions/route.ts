@@ -3,15 +3,40 @@ import {
 	generateFallbackContributions,
 	getContributionLevel,
 } from "@/lib/github-contributions";
+import { SITE } from "@/lib/site";
+
+const GITHUB_USERNAME_REGEX =
+	/^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$/;
+
+const SUCCESS_CACHE_CONTROL =
+	"public, s-maxage=3600, stale-while-revalidate=86400";
+
+function fallbackResponse() {
+	const fallbackData = generateFallbackContributions();
+	return NextResponse.json(
+		{
+			...fallbackData,
+			isFallback: true,
+		},
+		{
+			status: 200,
+			headers: { "Cache-Control": SUCCESS_CACHE_CONTROL },
+		},
+	);
+}
 
 export async function GET(request: NextRequest) {
 	const { searchParams } = new URL(request.url);
 	const username = searchParams.get("username");
 
-	if (!username) {
+	if (
+		!username ||
+		!GITHUB_USERNAME_REGEX.test(username) ||
+		username !== SITE.githubUsername
+	) {
 		return NextResponse.json(
-			{ error: "Username is required" },
-			{ status: 400 },
+			{ error: "Invalid username" },
+			{ status: 400, headers: { "Cache-Control": "no-store" } },
 		);
 	}
 
@@ -19,14 +44,8 @@ export async function GET(request: NextRequest) {
 		const token = process.env.GITHUB_TOKEN;
 
 		if (!token) {
-			// Without token, return fallback data
-			const fallbackData = generateFallbackContributions();
-			return NextResponse.json({
-				...fallbackData,
-				hasPrivateAccess: false,
-				reposChecked: 0,
-				error: "No GitHub token provided - showing sample data",
-			});
+			console.error("github-contributions: GITHUB_TOKEN is not configured");
+			return fallbackResponse();
 		}
 
 		// Use GitHub GraphQL API for accurate contribution data
@@ -44,9 +63,6 @@ export async function GET(request: NextRequest) {
               }
             }
           }
-          repositories(first: 100) {
-            totalCount
-          }
         }
       }
     `;
@@ -62,18 +78,24 @@ export async function GET(request: NextRequest) {
 				query,
 				variables: { username },
 			}),
+			next: { revalidate: 3600 },
 		});
 
 		if (!response.ok) {
-			throw new Error(`GitHub GraphQL API error: ${response.status}`);
+			console.error(
+				`github-contributions: GitHub GraphQL API error: ${response.status}`,
+			);
+			return fallbackResponse();
 		}
 
 		const data = await response.json();
 
 		if (data.errors) {
-			throw new Error(
-				`GraphQL error: ${data.errors[0]?.message || "Unknown error"}`,
+			console.error(
+				"github-contributions: GraphQL error",
+				data.errors[0]?.message || "Unknown error",
 			);
+			return fallbackResponse();
 		}
 
 		// Define proper types for the GraphQL response
@@ -94,9 +116,6 @@ export async function GET(request: NextRequest) {
 		interface User {
 			contributionsCollection: {
 				contributionCalendar: ContributionCalendar;
-			};
-			repositories: {
-				totalCount: number;
 			};
 		}
 
@@ -120,20 +139,18 @@ export async function GET(request: NextRequest) {
 				level: getContributionLevel(day.contributionCount),
 			}));
 
-		return NextResponse.json({
-			contributions,
-			totalContributions: contributionCalendar.totalContributions,
-			reposChecked: user.repositories.totalCount,
-			hasPrivateAccess: true,
-		});
+		return NextResponse.json(
+			{
+				contributions,
+				totalContributions: contributionCalendar.totalContributions,
+			},
+			{ headers: { "Cache-Control": SUCCESS_CACHE_CONTROL } },
+		);
 	} catch (error) {
-		// Fallback to generating realistic mock data
-		const mockData = generateFallbackContributions();
-		return NextResponse.json({
-			...mockData,
-			hasPrivateAccess: false,
-			reposChecked: 0,
-			error: `API Error: ${error instanceof Error ? error.message : "Unknown error"}`,
-		});
+		console.error(
+			"github-contributions: unexpected error",
+			error instanceof Error ? error.message : error,
+		);
+		return fallbackResponse();
 	}
 }

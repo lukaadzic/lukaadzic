@@ -10,6 +10,12 @@ interface GitHubContributionsProps {
 	username: string;
 }
 
+interface GitHubContributionsResponse {
+	contributions: ContributionDay[];
+	totalContributions: number;
+	isFallback?: boolean;
+}
+
 const LEVEL_COLORS = [
 	"rgba(255, 255, 255, 0.06)",
 	"rgba(255, 255, 255, 0.2)",
@@ -80,7 +86,7 @@ function ContributionsSkeleton() {
 export function GitHubContributions({ username }: GitHubContributionsProps) {
 	const [contributions, setContributions] = useState<ContributionDay[]>([]);
 	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
+	const [isFallback, setIsFallback] = useState(false);
 	const [totalContributions, setTotalContributions] = useState(0);
 
 	useEffect(() => {
@@ -89,7 +95,7 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
 		async function fetchContributions() {
 			try {
 				setLoading(true);
-				setError(null);
+				setIsFallback(false);
 
 				const response = await fetch(
 					`/api/github-contributions?username=${encodeURIComponent(username)}`,
@@ -99,11 +105,11 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
 					throw new Error(`Failed to fetch contributions: ${response.status}`);
 				}
 
-				const data = await response.json();
+				const data: GitHubContributionsResponse = await response.json();
 				if (cancelled) return;
 
-				if (data.error) {
-					setError(data.error);
+				if (data.isFallback) {
+					setIsFallback(true);
 				}
 
 				setContributions(data.contributions);
@@ -111,7 +117,7 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
 			} catch {
 				if (cancelled) return;
 
-				setError("Failed to load contributions");
+				setIsFallback(true);
 				const fallback = generateFallbackContributions();
 				setContributions(fallback.contributions);
 				setTotalContributions(fallback.totalContributions);
@@ -162,7 +168,7 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
 			<div className="mt-4 flex items-center justify-between text-[12px] text-faint">
 				<span>
 					{totalContributions} contribution{totalContributions === 1 ? "" : "s"}
-					{error ? " · sample data" : ""}
+					{isFallback ? " · sample data" : ""}
 				</span>
 				<span className="flex items-center gap-1.5">
 					Less
