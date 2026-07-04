@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
+import { SITE } from "@/lib/site";
+import { SOCIALS } from "@/lib/socials";
 
 const jetbrainsMono = JetBrains_Mono({
 	subsets: ["latin"],
@@ -13,31 +15,10 @@ const jetbrainsMono = JetBrains_Mono({
 	variable: "--font-jetbrains-mono",
 });
 export const metadata: Metadata = {
-	metadataBase: new URL("https://lukaadzic.dev"),
-	title: "Luka Adzic's Portfolio",
-	description:
-		"Here's some stuff I've built, things I've worked on, and where to find me online.",
-	keywords: [
-		"Luka Adzic",
-		"Luka Adzic Portfolio",
-		"Luka Adzic Investment banking",
-		"Luka Adzic Quant Trading",
-		"Luka Adzic Projects",
-		"Luka Adzic Startup",
-		"Startup founder Luka Adzic",
-		"Portfolio",
-		"Programmer Luka Adzic",
-		"Software Engineer Luka Adzic",
-		"University of Pennsylvania Luka Adzic",
-		"Luka Adzic GitHub",
-		"Luka Adzic Twitter",
-		"Luka Adzic Instagram",
-		"Luka Adzic Facebook",
-		"Luka Adzic Wharton",
-		"Luka Adzic LinkedIn",
-		"Personal Website",
-		"Contact Luka Adzic",
-	],
+	metadataBase: new URL(SITE.url),
+	title: SITE.title,
+	description: SITE.description,
+	keywords: [...SITE.keywords],
 	icons: {
 		icon: [
 			{ url: "/icon.ico", sizes: "any" },
@@ -46,17 +27,16 @@ export const metadata: Metadata = {
 		apple: "/icon.ico",
 	},
 	openGraph: {
-		title: "Luka Adzic's Portfolio",
-		description:
-			"Here's some stuff I've built, things I've worked on, and where to find me online.",
-		url: "https://lukaadzic.dev",
+		title: SITE.title,
+		description: SITE.description,
+		url: SITE.url,
 		siteName: "Luka Adzic Portfolio",
 		images: [
 			{
 				url: "/icon.ico",
 				width: 800,
 				height: 800,
-				alt: "Luka Adzic",
+				alt: SITE.name,
 			},
 		],
 		locale: "en_US",
@@ -64,20 +44,30 @@ export const metadata: Metadata = {
 	},
 	twitter: {
 		card: "summary_large_image",
-		title: "Luka Adzic's Portfolio",
-		description:
-			"Here's some stuff I've built, things I've worked on, and where to find me online.",
+		title: SITE.title,
+		description: SITE.description,
 		images: ["/icon.ico"],
 	},
 	alternates: {
-		canonical: "https://lukaadzic.dev",
+		canonical: SITE.url,
 	},
-	authors: [{ name: "Luka Adzic", url: "https://lukaadzic.dev" }],
+	authors: [{ name: SITE.name, url: SITE.url }],
 	robots: {
 		index: true,
 		follow: true,
 		nocache: false,
 	},
+};
+
+const personSchema = {
+	"@context": "https://schema.org",
+	"@type": "Person",
+	name: SITE.name,
+	url: SITE.url,
+	sameAs: [
+		`https://github.com/${SITE.githubUsername}`,
+		...SOCIALS.map((social) => social.url),
+	],
 };
 
 export default function RootLayout({
@@ -119,18 +109,7 @@ export default function RootLayout({
 					}
 				`}</style>
 				<script type="application/ld+json">
-					{`{
-            "@context": "https://schema.org",
-            "@type": "Person",
-            "name": "Luka Adzic",
-            "url": "https://lukaadzic.dev",
-            "sameAs": [
-              "https://github.com/lukaadzic",
-              "https://twitter.com/lukaadzic7",
-              "https://linkedin.com/in/lukaadzic",
-              "https://instagram.com/lukaadzic7"
-            ]
-          }`}
+					{JSON.stringify(personSchema)}
 				</script>
 			</head>
 			<body

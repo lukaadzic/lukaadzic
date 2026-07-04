@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import LukaImage from "@/components/luka-image";
 import { SocialsSection } from "@/components/socials-section";
+import { PROJECTS } from "@/lib/projects";
+import { SITE } from "@/lib/site";
 
 const GitHubContributions = dynamic(
 	() =>
@@ -17,7 +19,15 @@ const GitHubContributions = dynamic(
 // Live age component - ultra fast loading with immediate calculation
 const LiveAge = () => {
 	// Pre-calculate birth timestamp once for maximum performance
-	const birthTimestamp = useMemo(() => new Date(2005, 11, 7).getTime(), []);
+	const birthTimestamp = useMemo(
+		() =>
+			new Date(
+				SITE.birthDate.year,
+				SITE.birthDate.month,
+				SITE.birthDate.day,
+			).getTime(),
+		[],
+	);
 
 	const calculateAge = useCallback(() => {
 		const now = Date.now(); // Faster than new Date().getTime()
@@ -371,7 +381,7 @@ export default function Home() {
 							</div>
 							<div className="flex items-center gap-6">
 								<Link
-									href="/ADZIC_LUKA_RESUME.pdf"
+									href={SITE.resumePath}
 									target="_blank"
 									rel="noopener noreferrer"
 									className="text-[16px] text-foreground hover:text-foreground/80 transition-colors duration-75 cursor-pointer"
@@ -383,245 +393,101 @@ export default function Home() {
 
 						{/* Conditional Content Based on Active Tab */}
 						<div>
-								{/* Profile Section */}
-								<div
-									className="typewriter-container px-4 mobile-padding min-h-[220px] sm:min-h-0 break-words"
-									style={{ wordBreak: "break-word" }}
-								>
-									{/* Description */}
-									<DescriptionTypewriter speed={50} />
-								</div>
-								{/* Projects Section */}
-								<div className="mt-4 space-y-6 dynamic-content-container project-section-spacing px-4 mobile-padding">
-									<p className="text-[18px] text-foreground/80 leading-7">
-										Stuff I shipped:
-									</p>
+							{/* Profile Section */}
+							<div
+								className="typewriter-container px-4 mobile-padding min-h-[220px] sm:min-h-0 break-words"
+								style={{ wordBreak: "break-word" }}
+							>
+								{/* Description */}
+								<DescriptionTypewriter speed={50} />
+							</div>
+							{/* Projects Section */}
+							<div className="mt-4 space-y-6 dynamic-content-container project-section-spacing px-4 mobile-padding">
+								<p className="text-[18px] text-foreground/80 leading-7">
+									Stuff I shipped:
+								</p>
 
-									<div className="space-y-3">
-										{/* Project 1 - Financial Bubble Detection Dashboard */}
-										<Link
-											href="https://github.com/lukaadzic/financial-bubble-detection-dashboard"
-											target="_blank"
-											rel="noopener noreferrer"
-											className="group font-mono block"
-										>
-											<div className="flex items-start gap-3 py-3 transition-opacity duration-200 hover:opacity-70 cursor-pointer">
-												<span className="text-green-400 text-base mt-0.5 select-none font-bold">
-													❯
-												</span>
-												<div className="flex-1 min-w-0">
-													<div className="flex items-center gap-2 mb-1">
-														<span className="text-cyan-400 text-base font-medium">
-															~/projects/
-														</span>
-														<h3 className="font-medium text-foreground text-base tablet-text-base truncate">
-															financial-bubble-detection-dashboard
-														</h3>
-														<span className="text-green-400 text-xs">●</span>
+								<div className="space-y-3">
+									{PROJECTS.map((project, index) => (
+										<div key={project.slug}>
+											{index > 0 && (
+												<div className="my-4">
+													<div className="h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent"></div>
+												</div>
+											)}
+											<Link
+												href={project.href}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="group font-mono block"
+											>
+												<div className="flex items-start gap-3 py-3 transition-opacity duration-200 hover:opacity-70 cursor-pointer">
+													<span className="text-green-400 text-base mt-0.5 select-none font-bold">
+														❯
+													</span>
+													<div className="flex-1 min-w-0">
+														<div className="flex items-center gap-2 mb-1">
+															<span className="text-cyan-400 text-base font-medium">
+																~/projects/
+															</span>
+															<h3 className="font-medium text-foreground text-base tablet-text-base truncate">
+																{project.slug}
+															</h3>
+															<span className="text-green-400 text-xs">●</span>
+														</div>
+														<p className="text-sm text-foreground/60 mb-2 leading-relaxed">
+															{project.description}
+														</p>
 													</div>
-													<p className="text-sm text-foreground/60 mb-2 leading-relaxed">
-														Real-time financial bubble detection using options
-														data
-													</p>
+													<div className="text-foreground/70 group-hover:text-foreground transition-colors p-1">
+														<svg
+															className="w-4 h-4"
+															fill="none"
+															stroke="currentColor"
+															viewBox="0 0 24 24"
+															aria-label="External link"
+														>
+															<title>External link</title>
+															<path
+																strokeLinecap="round"
+																strokeLinejoin="round"
+																strokeWidth={2}
+																d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+															/>
+														</svg>
+													</div>
 												</div>
-												<div className="text-foreground/70 group-hover:text-foreground transition-colors p-1">
-													<svg
-														className="w-4 h-4"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-														aria-label="External link"
-													>
-														<title>External link</title>
-														<path
-															strokeLinecap="round"
-															strokeLinejoin="round"
-															strokeWidth={2}
-															d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-														/>
-													</svg>
-												</div>
-											</div>
-										</Link>
-
-										{/* Separator */}
-										<div className="my-4">
-											<div className="h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent"></div>
+											</Link>
 										</div>
-
-										{/* Project 2 - Maritime@Penn Web App */}
-										<Link
-											href="https://pennmaritime.club/"
-											target="_blank"
-											rel="noopener noreferrer"
-											className="group font-mono block"
-										>
-											<div className="flex items-start gap-3 py-3 transition-opacity duration-200 hover:opacity-70 cursor-pointer">
-												<span className="text-green-400 text-base mt-0.5 select-none font-bold">
-													❯
-												</span>
-												<div className="flex-1 min-w-0">
-													<div className="flex items-center gap-2 mb-1">
-														<span className="text-cyan-400 text-base font-medium">
-															~/projects/
-														</span>
-														<h3 className="font-medium text-foreground text-base tablet-text-base truncate">
-															maritime-penn-web-app
-														</h3>
-														<span className="text-green-400 text-xs">●</span>
-													</div>
-													<p className="text-sm text-foreground/60 mb-2 leading-relaxed">
-														Building tomorrow&apos;s maritime leaders at UPenn &
-														Wharton
-													</p>
-												</div>
-												<div className="text-foreground/70 group-hover:text-foreground transition-colors p-1">
-													<svg
-														className="w-4 h-4"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-														aria-label="External link"
-													>
-														<title>External link</title>
-														<path
-															strokeLinecap="round"
-															strokeLinejoin="round"
-															strokeWidth={2}
-															d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-														/>
-													</svg>
-												</div>
-											</div>
-										</Link>
-
-										{/* Separator */}
-										<div className="my-4">
-											<div className="h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent"></div>
-										</div>
-
-										{/* Project 3 - Algorithmic Trading System */}
-										<Link
-											href="https://github.com/lukaadzic/Live-Algorithmic-Trading-System"
-											className="group font-mono block"
-										>
-											<div className="flex items-start gap-3 py-3 transition-opacity duration-200 hover:opacity-70 cursor-pointer">
-												<span className="text-green-400 text-base mt-0.5 select-none font-bold">
-													❯
-												</span>
-												<div className="flex-1 min-w-0">
-													<div className="flex items-center gap-2 mb-1">
-														<span className="text-cyan-400 text-base font-medium">
-															~/projects/
-														</span>
-														<h3 className="font-medium text-foreground text-base tablet-text-base truncate">
-															algorithmic-trading-system-live-pnl
-														</h3>
-														<span className="text-green-400 text-xs">●</span>
-													</div>
-													<p className="text-sm text-foreground/60 mb-2 leading-relaxed">
-														A live systematic trading system combining quantitative trend signals and NLP-driven sentiment analysis to execute and manage a real equity portfolio.
-													</p>
-												</div>
-												<div className="text-foreground/70 group-hover:text-foreground transition-colors p-1">
-													<svg
-														className="w-4 h-4"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-														aria-label="External link"
-													>
-														<title>External link</title>
-														<path
-															strokeLinecap="round"
-															strokeLinejoin="round"
-															strokeWidth={2}
-															d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-														/>
-													</svg>
-												</div>
-											</div>
-										</Link>
-
-										{/* Separator */}
-										<div className="my-4">
-											<div className="h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent"></div>
-										</div>
-
-										{/* Project 4 - FIFA Momentum Tracker */}
-										<Link
-											href="https://github.com/lukaadzic/fifa-momentum-tracker"
-											target="_blank"
-											rel="noopener noreferrer"
-											className="group font-mono block"
-										>
-											<div className="flex items-start gap-3 py-3 transition-opacity duration-200 hover:opacity-70 cursor-pointer">
-												<span className="text-green-400 text-base mt-0.5 select-none font-bold">
-													❯
-												</span>
-												<div className="flex-1 min-w-0">
-													<div className="flex items-center gap-2 mb-1">
-														<span className="text-cyan-400 text-base font-medium">
-															~/projects/
-														</span>
-														<h3 className="font-medium text-foreground text-base tablet-text-base truncate">
-															fifa-momentum-tracker
-														</h3>
-														<span className="text-green-400 text-xs">●</span>
-													</div>
-													<p className="text-sm text-foreground/60 mb-2 leading-relaxed">
-														Cracking EAFC/FIFA&apos;s dynamic difficulty
-														algorithms through OpenCV and ML-driven pattern
-														recognition.
-													</p>
-												</div>
-												<div className="text-foreground/70 group-hover:text-foreground transition-colors p-1">
-													<svg
-														className="w-4 h-4"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-														aria-label="External link"
-													>
-														<title>External link</title>
-														<path
-															strokeLinecap="round"
-															strokeLinejoin="round"
-															strokeWidth={2}
-															d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-														/>
-													</svg>
-												</div>
-											</div>
-										</Link>
-									</div>
-								</div>
-
-								{/* GitHub Contributions Section */}
-								<div
-									className="mt-4 space-y-6 github-contributions-container"
-									style={{ paddingLeft: "16px", paddingRight: "16px" }}
-								>
-									{/* Separator */}
-									<div className="my-6">
-										<div className="h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent"></div>
-									</div>
-
-									{/* GitHub Activity Header */}
-									<div className="text-[18px] text-foreground/80">
-										Code I pushed:
-									</div>
-
-									<GitHubContributions username="lukaadzic" />
-
-									{/* Luka Image - full width under 'Code I pushed:' */}
-									<div className="w-full flex justify-center">
-										<LukaImage />
-									</div>
-
-									<SocialsSection />
+									))}
 								</div>
 							</div>
+
+							{/* GitHub Contributions Section */}
+							<div
+								className="mt-4 space-y-6 github-contributions-container"
+								style={{ paddingLeft: "16px", paddingRight: "16px" }}
+							>
+								{/* Separator */}
+								<div className="my-6">
+									<div className="h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent"></div>
+								</div>
+
+								{/* GitHub Activity Header */}
+								<div className="text-[18px] text-foreground/80">
+									Code I pushed:
+								</div>
+
+								<GitHubContributions username={SITE.githubUsername} />
+
+								{/* Luka Image - full width under 'Code I pushed:' */}
+								<div className="w-full flex justify-center">
+									<LukaImage />
+								</div>
+
+								<SocialsSection />
+							</div>
+						</div>
 					</div>
 
 					{/* CLI Footer */}
