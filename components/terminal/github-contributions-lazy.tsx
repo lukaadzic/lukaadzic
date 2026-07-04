@@ -15,20 +15,9 @@ const GitHubContributions = dynamic(
 
 function ContributionsSkeleton() {
 	return (
-		<div className="overflow-x-auto" aria-hidden="true">
-			<div
-				className="inline-grid grid-flow-col gap-[3px]"
-				style={{ gridTemplateRows: "repeat(7, 10px)" }}
-			>
-				{Array.from({ length: 371 }, (_, i) => (
-					<div
-						// biome-ignore lint/suspicious/noArrayIndexKey: static placeholder grid, order never changes
-						key={`skeleton-cell-${i}`}
-						className="h-[10px] w-[10px] animate-pulse rounded-[2px] bg-white/[0.06]"
-						style={{ animationDelay: `${(i % 53) * 15}ms` }}
-					/>
-				))}
-			</div>
+		<div aria-hidden="true">
+			<div className="h-[1.25em] w-full max-w-[420px] animate-pulse rounded-[2px] bg-white/[0.06] motion-reduce:animate-none" />
+			<div className="mt-2 h-[1em] w-56 animate-pulse rounded-[2px] bg-white/[0.04] motion-reduce:animate-none" />
 		</div>
 	);
 }

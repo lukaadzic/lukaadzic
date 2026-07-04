@@ -101,7 +101,7 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 					)}
 				</div>
 
-				<div className="px-4 py-4 sm:px-5 sm:py-5">{children}</div>
+				<div className="p-5 sm:p-6">{children}</div>
 			</div>
 		</div>
 	);

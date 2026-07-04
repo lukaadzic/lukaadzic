@@ -2,11 +2,11 @@ import type { ReactNode } from "react";
 import { AboutOutput } from "@/components/terminal/about-output";
 import { GithubOutput } from "@/components/terminal/github-output";
 import { HelpOutput } from "@/components/terminal/help-output";
-import { ImgcatPortrait } from "@/components/terminal/imgcat-portrait";
 import { LiveAge } from "@/components/terminal/live-age";
 import { LsProjectsOutput } from "@/components/terminal/ls-projects-output";
 import { ProjectsOutput } from "@/components/terminal/projects-output";
 import { SocialsOutput } from "@/components/terminal/socials-output";
+import { WelcomeOutput } from "@/components/terminal/welcome-output";
 import { WhoamiOutput } from "@/components/terminal/whoami-output";
 import { SITE } from "@/lib/site";
 
@@ -18,11 +18,11 @@ export type CommandResult = {
 
 type Renderer = () => CommandResult;
 
+const welcome: Renderer = () => ({ output: <WelcomeOutput /> });
 const whoami: Renderer = () => ({ output: <WhoamiOutput /> });
 const about: Renderer = () => ({ output: <AboutOutput /> });
 const lsProjects: Renderer = () => ({ output: <LsProjectsOutput /> });
 const projects: Renderer = () => ({ output: <ProjectsOutput /> });
-const imgcat: Renderer = () => ({ output: <ImgcatPortrait /> });
 const github: Renderer = () => ({ output: <GithubOutput /> });
 const socials: Renderer = () => ({ output: <SocialsOutput /> });
 
@@ -54,19 +54,21 @@ const email: Renderer = () => ({
 	},
 });
 
-/** Boot sequence — the commands that auto-type on load, in order. */
-export const BOOT_STEPS: Array<{ command: string; run: Renderer }> = [
+/** The "show me everything" script — runs command-by-command, user-initiated. */
+export const EVERYTHING_COMMAND = "./everything.sh";
+
+export const EVERYTHING_STEPS: Array<{ command: string; run: Renderer }> = [
 	{ command: "whoami", run: whoami },
 	{ command: "cat about.txt", run: about },
 	{ command: "ls ~/projects", run: lsProjects },
 	{ command: "open ~/projects --verbose", run: projects },
-	{ command: "imgcat lukaadzic.jpg", run: imgcat },
 	{ command: "github --contributions", run: github },
 	{ command: "open socials/", run: socials },
 ];
 
-/** Interactive command registry — same renderers as the boot sequence. */
+/** Interactive command registry — same renderers as the scripted sequence. */
 const REGISTRY: Record<string, Renderer> = {
+	welcome,
 	whoami,
 	"cat about.txt": about,
 	about,
@@ -74,8 +76,6 @@ const REGISTRY: Record<string, Renderer> = {
 	ls: lsProjects,
 	"open ~/projects --verbose": projects,
 	projects,
-	"imgcat lukaadzic.jpg": imgcat,
-	imgcat,
 	"github --contributions": github,
 	github,
 	"open socials/": socials,
@@ -87,7 +87,13 @@ const REGISTRY: Record<string, Renderer> = {
 	email,
 };
 
-export const SUGGESTED_COMMANDS = ["help", "projects", "cv", "socials"];
+export const SUGGESTED_COMMANDS = [
+	"about",
+	"projects",
+	"github",
+	"socials",
+	"cv",
+];
 
 const NOT_SUDOERS =
 	"luka is not in the sudoers file.  This incident will be reported.";
