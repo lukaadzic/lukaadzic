@@ -34,6 +34,12 @@ function sleep(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/** ±40% random jitter around a base delay, so auto-typing feels human. */
+function jitter(baseMs: number): number {
+	const factor = 1 + (Math.random() * 2 - 1) * 0.4;
+	return Math.max(1, Math.round(baseMs * factor));
+}
+
 export function TerminalSession() {
 	const [entries, setEntries] = useState<Entry[]>([]);
 	const [inputValue, setInputValue] = useState("");
@@ -50,10 +56,23 @@ export function TerminalSession() {
 	const commandHistoryRef = useRef<string[]>([]);
 	const historyPointerRef = useRef<number | null>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
+	const activePromptRef = useRef<HTMLDivElement>(null);
 
+	// Re-running a command that's already in the session replaces its previous
+	// block rather than stacking a duplicate — keyed by the exact command text
+	// (chip and typed invocations of the same command collide; aliases like
+	// `about` vs `cat about.txt` don't, since they're different command text).
 	const appendEntry = useCallback((command: string, output: ReactNode) => {
 		idRef.current += 1;
-		setEntries((prev) => [...prev, { id: idRef.current, command, output }]);
+		const newEntry: Entry = { id: idRef.current, command, output };
+		const key = command.trim().toLowerCase();
+		setEntries((prev) => {
+			const deduped =
+				key === ""
+					? prev
+					: prev.filter((entry) => entry.command.trim().toLowerCase() !== key);
+			return [...deduped, newEntry];
+		});
 	}, []);
 
 	// Keyboard focus pops the on-screen keyboard on touch devices, so only
@@ -71,7 +90,7 @@ export function TerminalSession() {
 			for (let i = 1; i <= text.length; i++) {
 				if (genRef.current !== gen) return;
 				setInputValue(text.slice(0, i));
-				await sleep(delay);
+				await sleep(jitter(delay));
 			}
 		},
 		[],
@@ -171,6 +190,17 @@ export function TerminalSession() {
 		})();
 	}, [focusInput, runSingle, typeAtPrompt]);
 
+	// After a new command group renders, keep the live prompt in view rather
+	// than letting the page jump — "nearest" only scrolls if it isn't already
+	// visible, and reduced motion drops the smooth scroll animation.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentionally re-runs whenever entries changes, even though the effect body only reads refs.
+	useEffect(() => {
+		activePromptRef.current?.scrollIntoView({
+			behavior: reducedRef.current ? "auto" : "smooth",
+			block: "nearest",
+		});
+	}, [entries]);
+
 	const fastForward = useCallback(() => {
 		genRef.current++;
 	}, []);
@@ -248,15 +278,13 @@ export function TerminalSession() {
 			<p className="text-faint">{LAST_LOGIN}</p>
 
 			{entries.map((entry) => (
-				<div key={entry.id} className="mt-5">
-					<PromptLine input={entry.command} />
-					{entry.output && (
-						<div className="terminal-output-in mt-1.5">{entry.output}</div>
-					)}
+				<div key={entry.id} className="terminal-output-in mt-5">
+					<PromptLine input={entry.command} active={false} />
+					{entry.output && <div className="mt-1.5">{entry.output}</div>}
 				</div>
 			))}
 
-			<div className="mt-5">
+			<div ref={activePromptRef} className="mt-5">
 				<PromptLine input={inputValue} cursor cursorBlink={cursorBlink} />
 			</div>
 

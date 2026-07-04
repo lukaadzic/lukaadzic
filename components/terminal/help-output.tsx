@@ -1,7 +1,7 @@
 const COMMANDS: Array<[string, string]> = [
 	["./everything.sh", "run the whole tour"],
 	["whoami", "who am I"],
-	["about", "a couple lines about me"],
+	["about", "neofetch-style info card"],
 	["projects", "things I've built"],
 	["socials", "where to find me online"],
 	["github", "recent GitHub activity"],

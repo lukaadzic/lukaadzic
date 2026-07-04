@@ -1,24 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { SITE } from "@/lib/site";
 import { SOCIALS } from "@/lib/socials";
-
-const geistSans = Geist({
-	subsets: ["latin"],
-	weight: "variable",
-	display: "swap",
-	variable: "--font-geist-sans",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-	subsets: ["latin"],
-	weight: ["400", "500", "600", "700"],
-	style: ["normal", "italic"],
-	display: "swap",
-	variable: "--font-jetbrains-mono",
-});
 
 export const metadata: Metadata = {
 	metadataBase: new URL(SITE.url),
@@ -96,9 +80,7 @@ export default function RootLayout({
 					}}
 				/>
 			</head>
-			<body
-				className={`${geistSans.variable} ${jetbrainsMono.variable} font-sans bg-background text-foreground antialiased`}
-			>
+			<body className="font-sans bg-background text-foreground antialiased">
 				{children}
 				<Analytics />
 			</body>

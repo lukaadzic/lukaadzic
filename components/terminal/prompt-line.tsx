@@ -2,19 +2,22 @@ type PromptLineProps = {
 	input: string;
 	cursor?: boolean;
 	cursorBlink?: boolean;
+	/** False for past (non-active) history lines — dims the user slightly so the live prompt stays the visual anchor. */
+	active?: boolean;
 };
 
 export function PromptLine({
 	input,
 	cursor = false,
 	cursorBlink = true,
+	active = true,
 }: PromptLineProps) {
 	return (
 		<div className="flex flex-wrap items-baseline gap-x-2">
 			<span className="shrink-0 whitespace-pre">
-				<span className="text-[#5fd75f]">luka</span>
-				<span className="text-muted">@</span>
-				<span className="text-[#5fd75f]">wharton</span>
+				<span className={active ? "text-[#5fd75f]" : "text-[#5fd75f]/60"}>
+					lukaadzic
+				</span>
 				<span className="text-muted"> ~ % </span>
 			</span>
 			<span className="whitespace-pre-wrap break-all text-foreground">

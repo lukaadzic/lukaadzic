@@ -9,10 +9,13 @@
 	--color-hairline: rgba(255, 255, 255, 0.08);
 	--color-accent: #a9b8c4;
 
-	/* Type */
-	--font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+	/* Type — no webfonts. On Apple devices these resolve to the real
+	   Terminal.app font (SF Mono / Menlo), which is the whole point. */
 	--font-mono:
-		var(--font-jetbrains-mono), ui-monospace, "SFMono-Regular", monospace;
+		ui-monospace, "SF Mono", Menlo, Monaco, "Cascadia Mono", "Roboto Mono",
+		monospace;
+	--font-sans:
+		-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 body {
@@ -156,11 +159,13 @@ body {
 	animation: terminal-minimize 650ms cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-/* Terminal command output — a quick fade + rise as each block appears. */
+/* Terminal command group (prompt + output) — a quick fade + rise as each
+   block appears. Opacity/transform only, so inserting a new group never
+   causes layout jank. */
 @keyframes terminal-output-in {
 	from {
 		opacity: 0;
-		transform: translateY(4px);
+		transform: translateY(6px);
 	}
 	to {
 		opacity: 1;
@@ -169,7 +174,7 @@ body {
 }
 
 .terminal-output-in {
-	animation: terminal-output-in 320ms cubic-bezier(0.21, 0.47, 0.32, 0.98) both;
+	animation: terminal-output-in 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* Authentic Terminal.app block cursor. */
