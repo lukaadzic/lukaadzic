@@ -7,14 +7,19 @@ faithful, interactive macOS Terminal window built around **prompt-driven
 discovery**: on load only a short `welcome` greeting types out, then the
 visitor reveals content by prompting — typing commands or clicking the
 suggestion chips under the prompt (`about`, `projects`, `github`, `socials`,
-`cv`, and an accented `./everything.sh` that replays the full tour).
-Supported commands include `help`, `whoami`, `email`, `age`, `pwd`, a `sudo`
-easter egg, `clear`, and command history via arrow keys. There is
-deliberately no photo, and the GitHub graph renders as a terminal-native
-block sparkline. The terminal aesthetic and the reveal-by-prompting
-interaction ARE the product — preserve them in every change; don't
-"improve" it into a generic component library look or an auto-playing
-content dump.
+`cv`, and an accented `./everything.sh` that replays the full tour). The
+prompt is `lukaadzic ~ %`. `about` renders as a neofetch-style key/value info
+card (name, school, location, live age, focus, project count, contact,
+socials — all sourced from `lib/site.ts` / `lib/projects.ts`), and `cv` opens
+the résumé in a new tab. Supported commands include `help`, `whoami`,
+`email`, `age`, `pwd`, a `sudo` easter egg, `clear`, and command history via
+arrow keys. Re-running a command already in the session replaces its
+previous prompt+output block in place rather than stacking a duplicate
+(`clear` still wipes everything). There is deliberately no photo, and the
+GitHub graph renders as a terminal-native block sparkline. The terminal
+aesthetic and the reveal-by-prompting interaction ARE the product — preserve
+them in every change; don't "improve" it into a generic component library
+look or an auto-playing content dump.
 
 ## Stack & commands
 
@@ -48,7 +53,8 @@ components/
   shared/              components reused across terminal outputs (e.g.
                        external-link.tsx)
 lib/                   single source of truth for all content
-  site.ts              identity, metadata, email, GitHub username, birth date
+  site.ts              identity, metadata, email, GitHub username, birth date,
+                       school/location/focus
   projects.ts          project list
   socials.ts           social links
   github-contributions.ts   contribution-level + fallback-data helpers
@@ -79,7 +85,13 @@ as typed commands, so every path renders identical output.
   vs. `./everything.sh` tour) becomes a shared renderer/component — never
   copy a block just to tweak it.
 - **Motion.** CSS-only, and gated behind `prefers-reduced-motion`. No JS
-  animation libraries.
+  animation libraries. Command groups animate in as a single opacity+transform
+  block (no layout-affecting properties), and re-running a command replaces
+  its existing block instead of appending a duplicate.
+- **System font, no webfonts.** `--font-mono` / `--font-sans` in
+  `app/globals.css` are OS font stacks (`ui-monospace`, `SF Mono`, etc.) —
+  no `next/font`, no bundled font files. On Apple devices this renders the
+  actual Terminal.app font.
 - **No `!important`.**
 - **SSR-first SEO.** The visible terminal starts nearly empty, so
   `page.tsx` also renders `components/terminal/seo-content.tsx` — an

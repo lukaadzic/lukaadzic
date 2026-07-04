@@ -2,29 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { PromptLine } from "@/components/terminal/prompt-line";
 
 export function NotFoundTerminal() {
 	const pathname = usePathname();
 
 	return (
 		<div className="font-mono text-[13px] leading-relaxed sm:text-[14px]">
-			<div className="flex flex-wrap items-baseline gap-x-2">
-				<span className="shrink-0 whitespace-pre">
-					<span className="text-[#5fd75f]">luka</span>
-					<span className="text-muted">@</span>
-					<span className="text-[#5fd75f]">wharton</span>
-					<span className="text-muted"> ~ % </span>
-				</span>
-				<span className="text-foreground">cd {pathname}</span>
-			</div>
+			<PromptLine input={`cd ${pathname}`} />
 			<p className="mt-2 text-muted">
 				zsh: no such file or directory: {pathname}
 			</p>
 			<div className="mt-4 flex flex-wrap items-baseline gap-x-2">
 				<span className="shrink-0 whitespace-pre">
-					<span className="text-[#5fd75f]">luka</span>
-					<span className="text-muted">@</span>
-					<span className="text-[#5fd75f]">wharton</span>
+					<span className="text-[#5fd75f]">lukaadzic</span>
 					<span className="text-muted"> ~ % </span>
 				</span>
 				<Link

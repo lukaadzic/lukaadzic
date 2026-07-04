@@ -35,13 +35,18 @@ const age: Renderer = () => ({
 });
 
 const pwd: Renderer = () => ({
-	output: <p className="text-muted">/Users/luka/wharton</p>,
+	output: <p className="text-muted">/Users/lukaadzic</p>,
 });
 
 const help: Renderer = () => ({ output: <HelpOutput /> });
 
 const cv: Renderer = () => ({
-	output: <p className="text-muted">Opening {SITE.resumePath} in a new tab…</p>,
+	output: (
+		<p className="text-muted">
+			opening {SITE.resumePath.replace(/^\//, "")}{" "}
+			<span aria-hidden="true">↗</span>
+		</p>
+	),
 	sideEffect: () => {
 		window.open(SITE.resumePath, "_blank", "noopener,noreferrer");
 	},
@@ -96,7 +101,7 @@ export const SUGGESTED_COMMANDS = [
 ];
 
 const NOT_SUDOERS =
-	"luka is not in the sudoers file.  This incident will be reported.";
+	"lukaadzic is not in the sudoers file.  This incident will be reported.";
 const NO_ESCAPE = "there is no escape. try `cv` instead.";
 
 /** Resolves raw user input into a command result, or "clear" for the special case. */

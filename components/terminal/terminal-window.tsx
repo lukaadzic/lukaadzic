@@ -6,7 +6,7 @@ type TerminalWindowProps = {
 	children: ReactNode;
 };
 
-const TITLE = "luka@wharton — -zsh — 80×24";
+const TITLE = "lukaadzic — -zsh — 80×24";
 
 export function TerminalWindow({ children }: TerminalWindowProps) {
 	const [maximized, setMaximized] = useState(false);
