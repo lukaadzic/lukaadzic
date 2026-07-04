@@ -1,11 +1,9 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
-
-interface ContributionDay {
-	date: string;
-	count: number;
-	level: number;
-}
+import { useEffect, useState } from "react";
+import {
+	type ContributionDay,
+	generateFallbackContributions,
+} from "@/lib/github-contributions";
 
 interface GitHubContributionsProps {
 	username: string;
@@ -16,44 +14,6 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [totalContributions, setTotalContributions] = useState(0);
-
-	const generateRealisticContributions = useCallback((): ContributionDay[] => {
-		const contributions: ContributionDay[] = [];
-		const today = new Date();
-		const yearAgo = new Date(today);
-		yearAgo.setFullYear(today.getFullYear() - 1);
-
-		for (let d = new Date(yearAgo); d <= today; d.setDate(d.getDate() + 1)) {
-			const dayOfWeek = d.getDay();
-			let count = 0;
-
-			// More realistic pattern: less on weekends, more during work days
-			if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-				// Weekdays: higher chance of contributions
-				count = Math.random() < 0.8 ? Math.floor(Math.random() * 8) + 1 : 0;
-			} else {
-				// Weekends: lower chance
-				count = Math.random() < 0.3 ? Math.floor(Math.random() * 3) + 1 : 0;
-			}
-
-			contributions.push({
-				date: d.toISOString().split("T")[0],
-				count,
-				level:
-					count === 0
-						? 0
-						: count <= 2
-							? 1
-							: count <= 4
-								? 2
-								: count <= 7
-									? 3
-									: 4,
-			});
-		}
-
-		return contributions;
-	}, []);
 
 	useEffect(() => {
 		const fetchContributions = async () => {
@@ -81,11 +41,9 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
 				setError("Failed to load contributions");
 
 				// Fallback to mock data if API fails
-				const mockContributions = generateRealisticContributions();
-				setContributions(mockContributions);
-				setTotalContributions(
-					mockContributions.reduce((sum, day) => sum + day.count, 0),
-				);
+				const mockData = generateFallbackContributions();
+				setContributions(mockData.contributions);
+				setTotalContributions(mockData.totalContributions);
 			} finally {
 				setLoading(false);
 			}
@@ -94,7 +52,7 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
 		if (username) {
 			fetchContributions();
 		}
-	}, [username, generateRealisticContributions]);
+	}, [username]);
 
 	const getContributionColor = (level: number): string => {
 		switch (level) {

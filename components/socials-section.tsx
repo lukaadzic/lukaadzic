@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Fragment } from "react";
+import { SOCIALS } from "@/lib/socials";
 
 export function SocialsSection() {
 	return (
@@ -9,54 +11,25 @@ export function SocialsSection() {
 			</div>
 			<div className="w-full mx-auto text-[18px]">
 				<div className="space-y-0">
-					<Link
-						href="https://twitter.com/lukaadzic7/"
-						target="_blank"
-						rel="noopener noreferrer"
-						className="flex items-center justify-between py-4 transition-opacity duration-200 hover:opacity-70 cursor-pointer group"
-					>
-						<span className="pr-4">Twitter</span>
-						<span className="font-mono group-hover:text-foreground transition-colors">
-							@lukaadzic7
-						</span>
-					</Link>
-					<div className="h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent my-0.5" />
-					<Link
-						href="https://linkedin.com/in/lukaadzic/"
-						target="_blank"
-						rel="noopener noreferrer"
-						className="flex items-center justify-between py-4 transition-opacity duration-200 hover:opacity-70 cursor-pointer group"
-					>
-						<span className="pr-4">LinkedIn</span>
-						<span className="font-mono group-hover:text-foreground transition-colors">
-							@lukaadzic
-						</span>
-					</Link>
-					<div className="h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent my-0.5" />
-					<Link
-						href="https://www.instagram.com/lukaadzic7/"
-						target="_blank"
-						rel="noopener noreferrer"
-						className="flex items-center justify-between py-4 transition-opacity duration-200 hover:opacity-70 cursor-pointer group"
-					>
-						<span className="pr-4">Instagram</span>
-						<span className="font-mono group-hover:text-foreground transition-colors">
-							@lukaadzic7
-						</span>
-					</Link>
+					{SOCIALS.map((social, index) => (
+						<Fragment key={social.url}>
+							{index > 0 && (
+								<div className="h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent my-0.5" />
+							)}
+							<Link
+								href={social.url}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center justify-between py-4 transition-opacity duration-200 hover:opacity-70 cursor-pointer group"
+							>
+								<span className="pr-4">{social.label}</span>
+								<span className="font-mono group-hover:text-foreground transition-colors">
+									{social.handle}
+								</span>
+							</Link>
+						</Fragment>
+					))}
 				</div>
-				<div className="h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent my-0.5" />
-				<Link
-					href="https://www.facebook.com/adzicluka"
-					target="_blank"
-					rel="noopener noreferrer"
-					className="flex items-center justify-between py-4 transition-opacity duration-200 hover:opacity-70 cursor-pointer group"
-				>
-					<span className="pr-4">Facebook</span>
-					<span className="font-mono group-hover:text-foreground transition-colors">
-						@adzicluka
-					</span>
-				</Link>
 			</div>
 		</div>
 	);
