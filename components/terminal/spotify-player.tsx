@@ -43,7 +43,18 @@ export function SpotifyPlayer({ trackId, height = 152 }: SpotifyPlayerProps) {
 							return;
 						}
 						controllerRef.current = controller;
-						controller.addListener("ready", () => controller.play());
+						// Autoplay: play on ready, and retry once shortly after —
+						// some embeds swallow the first play() while still booting.
+						let started = false;
+						controller.addListener("playback_started", () => {
+							started = true;
+						});
+						controller.addListener("ready", () => {
+							controller.play();
+							setTimeout(() => {
+								if (!started && !cancelled) controller.play();
+							}, 700);
+						});
 					},
 				);
 			})
