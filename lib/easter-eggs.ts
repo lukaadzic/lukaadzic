@@ -102,3 +102,74 @@ export const PENALTY_END_MESSAGES = {
 	win: "you out-shot the shootout GOATs. screenshot this, nobody will believe you.",
 	loss: "Livaković remains a wall. Subašić owned 2018, Livaković owned 2022 — you're in good company.",
 } as const;
+
+/**
+ * `cat /etc/loved-ones`, `git log --oneline`, and the konami code — a
+ * hidden easter egg for Destiny. Same rule as the rest of this file:
+ * content lives here, single source of truth, never invented facts.
+ * `#f0a6ca` (a soft pink) is Destiny's color across every reveal style in
+ * `destiny-easter-egg.tsx` — the one deliberate named-color exception in
+ * the app, same idea as the green prompt.
+ */
+export const DESTINY = {
+	lovedOnes: {
+		intro: "reading /etc/loved-ones...",
+		lines: [
+			{
+				text: "❤  destiny       — my sweet angel girl. the one.",
+				pink: true,
+			},
+			{ text: "🐶  baby          — best beagle alive", pink: false },
+			{
+				text: "🐱  modro + vida  — kittens (born apr 13, 2026)",
+				pink: false,
+			},
+		],
+		note: "// destiny entry is read-only. cannot be edited or deleted.",
+	},
+	gitLog: [
+		{
+			hash: "f3a9d1e",
+			message: "fix: finally got my life together",
+			pink: false,
+		},
+		{
+			hash: "c7b2a04",
+			message: "add: destiny ♡  (best commit, no regrets)",
+			pink: true,
+		},
+		{ hash: "91e3f7c", message: "feat: adopt modro + vida", pink: false },
+		{
+			hash: "b04d22a",
+			message: "init: wharton + c4r + purm2026",
+			pink: false,
+		},
+		{
+			hash: "a1b2c3d",
+			message: "chore: got baby (the beagle, not an actual baby)",
+			pink: false,
+		},
+	],
+	terminal: {
+		title: "classified — destiny.txt",
+		rows: [
+			{ key: "name", value: "destiny", tone: "pink" },
+			{ key: "status", value: "my sweet angel girl ♡", tone: "green" },
+			{ key: "clearance", value: "level ∞", tone: "amber" },
+			{ key: "note", value: "best thing in /etc/loved-ones", tone: "faint" },
+		],
+		hint: "click anywhere to close",
+	},
+	classified: {
+		header: "╔═ CLASSIFIED ═╗",
+		caption: "destiny — my angel girl",
+		footer: "// you weren't supposed to find this",
+	},
+	card: {
+		name: "Destiny",
+		caption: "my sweet angel girl. the best easter egg on this site.",
+		badge: "❤ /etc/loved-ones",
+	},
+} as const;
+
+export type DestinyRowTone = (typeof DESTINY.terminal.rows)[number]["tone"];

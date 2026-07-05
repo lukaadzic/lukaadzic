@@ -1,3 +1,4 @@
+import { DestinyEasterEgg } from "@/components/terminal/destiny-easter-egg";
 import { SeoContent } from "@/components/terminal/seo-content";
 import { TerminalSession } from "@/components/terminal/terminal-session";
 import { TerminalWindow } from "@/components/terminal/terminal-window";
@@ -11,6 +12,7 @@ export default function Home() {
 			<TerminalWindow>
 				<TerminalSession />
 			</TerminalWindow>
+			<DestinyEasterEgg photoSrc="/images/destiny.jpg" />
 		</main>
 	);
 }
