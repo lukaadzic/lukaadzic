@@ -126,6 +126,16 @@ whole rundown" as one command, not a scripted replay.
 - **No new dependencies without a strong reason.** Currently 4 runtime deps
   (`next`, `react`, `react-dom`, `@vercel/analytics`). Justify any addition.
 
+## Git & attribution
+
+- Commits are authored by Luka only. Never add `Co-Authored-By` trailers,
+  "Generated with" footers, robot emoji, or anything else that signals AI
+  involvement — in commits, PR titles/descriptions, or issue text.
+- Write commit subjects and PR descriptions in Luka's voice: short, direct,
+  lowercase-casual is fine ("fix chip highlight", "rework github graph").
+  One commit per logical change — he wants each change to count individually.
+- Merges to `main` preserve individual commits (rebase merge, never squash).
+
 ## Security practices
 
 - The `/api/github-contributions` route serves **only** the allowlisted
