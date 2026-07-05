@@ -127,32 +127,55 @@ whole rundown" as one command, not a scripted replay.
 - **Motion.** CSS transitions/keyframes plus small inline-style transitions
   driven by React state for the exact swap timings below (transform/opacity
   only, except the measured height transition described next), gated behind
-  `prefers-reduced-motion` (instant, no animation). No JS animation
-  libraries. The pinned `welcome` block is mounted (at `opacity: 0`) from
-  first paint so its final height is reserved immediately — it only fades in
-  (~320ms) once the typed `welcome` beat finishes, so there is zero layout
-  shift as the opening sequence plays out. The session then shows that
-  `welcome` block plus exactly one command group below it — never a
-  stacking log. Running a new command fades the currently displayed group
-  out (~120ms), types the new command at the prompt, then fades its output
-  up (~280ms, `cubic-bezier(0.16, 1, 0.3, 1)`); `clear` fades the current
-  group out and leaves the welcome-only state. `terminal-session.tsx` also
-  drives a measured FLIP-style height transition on
-  `.terminal-group-container` whenever the displayed group changes: it
-  measures the container's current pixel height, swaps the content,
-  measures the new height on the next frame, and transitions `height`
-  between the two (~240ms, `cubic-bezier(0.16, 1, 0.3, 1)`, `overflow:
-  hidden` only for the transition's duration, released back to `height:
-  auto` on `transitionend`) — this replaces relying on `interpolate-size`,
-  which only ships in the newest Chrome. The window itself opens with a
-  fade; in fullscreen (the
-  default, and the common mobile state) that's opacity + a small
-  `translateY` only, since scaling a full-viewport element forces a
-  whole-page repaint every frame — floating mode and the `/404` card, being
-  small elements, keep the original ~350ms scale(0.98→1) + fade
-  (`cubic-bezier(0.32, 0.72, 0, 1)`). The suggestion chips fade in with a
-  ~40ms stagger right after the welcome beat finishes, and chips get a
-  subtle `scale(0.97)` on press.
+  `prefers-reduced-motion` (instant, no animation, fully formed). No JS
+  animation libraries. One easing family — `cubic-bezier(0.16, 1, 0.3, 1)` —
+  runs through the whole opening choreography below.
+- **Opening choreography.** Page load is one deliberately staged sequence,
+  each beat starting while the previous is still finishing (~60-70% through
+  it) rather than waiting, so it reads as continuous motion, not a slideshow
+  — total time to interactive is ~1.4-1.5s:
+  1. `0-280ms` — the window fades in. In fullscreen (the default, and the
+     common mobile state) that's opacity + a small `translateY` only, since
+     scaling a full-viewport element forces a whole-page repaint every
+     frame — floating mode and the `/404` card, being small elements, keep
+     the original ~350ms scale(0.98→1) + fade (`cubic-bezier(0.32, 0.72, 0,
+     1)`).
+  2. `~200ms` — the "Last login" line reveals (`last-login.tsx`). It's
+     computed in a `useLayoutEffect` (not `useEffect`), so the real value is
+     already in place before the browser paints the hydrated tree; combined
+     with an always-on `opacity: 0` base (covering the pre-hydration SSR
+     paint too), the bare "Last login:" placeholder is never visible — the
+     line only ever reserves its own height until a fixed-delay CSS fade
+     (`terminal-last-login-in`, 240ms) reveals it fully formed.
+  3. `~350ms` — the live prompt + blinking cursor fade in
+     (`terminal-active-prompt-in`, 260ms) — plays once on mount, never
+     replays mid-session.
+  4. `~500ms` — the typed `welcome` beat begins (jittered ~55ms/char).
+  5. On typing completion — the pinned `welcome` block (banner + greeting +
+     hint) rises in as one block (opacity + small `translateY`, 300ms) into
+     its already-reserved space: it's mounted at `opacity: 0` from first
+     paint so its final height never moves, and there is zero layout shift
+     across the whole sequence (chips and prompt below it don't shift either,
+     since transform never touches layout).
+  6. `~80ms` after the welcome rise begins — the suggestion chips ripple in
+     (existing pure-CSS stagger, fixed `animation-delay`s tuned to land right
+     after the expected typing completion, no JS gate — they can never be
+     stranded invisible) with a ~40ms stagger, and chips get a subtle
+     `scale(0.97)` on press.
+- **Session/command motion.** The session shows the `welcome` block plus
+  exactly one command group below it — never a stacking log. Running a new
+  command fades the currently displayed group out (~120ms), types the new
+  command at the prompt, then fades its output up (~280ms,
+  `cubic-bezier(0.16, 1, 0.3, 1)`); `clear` fades the current group out and
+  leaves the welcome-only state. `terminal-session.tsx` also drives a
+  measured FLIP-style height transition on `.terminal-group-container`
+  whenever the displayed group changes: it measures the container's current
+  pixel height, swaps the content, measures the new height on the next
+  frame, and transitions `height` between the two (~240ms,
+  `cubic-bezier(0.16, 1, 0.3, 1)`, `overflow: hidden` only for the
+  transition's duration, released back to `height: auto` on
+  `transitionend`) — this replaces relying on `interpolate-size`, which only
+  ships in the newest Chrome.
 - **System font, no webfonts.** `--font-mono` / `--font-sans` in
   `app/globals.css` are OS font stacks (`ui-monospace`, `SF Mono`, etc.) —
   no `next/font`, no bundled font files. On Apple devices this renders the
