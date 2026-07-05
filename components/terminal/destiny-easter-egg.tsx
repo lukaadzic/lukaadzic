@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { DESTINY, type DestinyRowTone } from "@/lib/easter-eggs";
+import {
+	DESTINY,
+	DESTINY_CLASSIFIED_PHOTO,
+	type DestinyRowTone,
+} from "@/lib/easter-eggs";
 
 export type DestinyStyle = "terminal" | "classified" | "card";
 
@@ -128,8 +132,10 @@ function TerminalReveal({ photoSrc }: { photoSrc: string }) {
 }
 
 /** "classified" — a framed dossier: pink-bordered surface, a text-drawn
- * header, and a slightly desaturated photo. */
-function ClassifiedReveal({ photoSrc }: { photoSrc: string }) {
+ * header, and a slightly desaturated photo. The one reveal style with its
+ * own dedicated photo (`DESTINY_CLASSIFIED_PHOTO`) rather than the shared
+ * `photoSrc` — Destiny in the Croatia jersey, making a heart. */
+function ClassifiedReveal() {
 	return (
 		<div>
 			<p aria-hidden="true" className="text-center text-[#f0a6ca] text-[12px]">
@@ -137,7 +143,7 @@ function ClassifiedReveal({ photoSrc }: { photoSrc: string }) {
 			</p>
 			<div className="mt-2">
 				<DestinyPhoto
-					photoSrc={photoSrc}
+					photoSrc={DESTINY_CLASSIFIED_PHOTO}
 					className="h-[190px] w-full rounded-md object-cover [filter:contrast(1.05)_saturate(0.9)]"
 				/>
 			</div>
@@ -272,7 +278,7 @@ export function DestinyEasterEgg({ photoSrc }: DestinyEasterEggProps) {
 				}
 			>
 				{style === "terminal" && <TerminalReveal photoSrc={photoSrc} />}
-				{style === "classified" && <ClassifiedReveal photoSrc={photoSrc} />}
+				{style === "classified" && <ClassifiedReveal />}
 				{style === "card" && <CardReveal photoSrc={photoSrc} />}
 			</div>
 		</div>,

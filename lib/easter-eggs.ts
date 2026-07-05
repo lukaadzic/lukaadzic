@@ -112,6 +112,13 @@ export const PENALTY_END_MESSAGES = {
  * `destiny-easter-egg.tsx` — the one deliberate named-color exception in
  * the app, same idea as the green prompt.
  */
+/** Her photo, everywhere it appears — `destiny` output plus the "terminal"
+ * and "card" reveal styles. The konami/"classified" reveal is the one
+ * exception: it uses `DESTINY_CLASSIFIED_PHOTO` (her in the Croatia jersey,
+ * making a heart) instead — a distinct photo for the deepest-hidden reveal. */
+export const DESTINY_PHOTO = "/images/destiny.jpg";
+export const DESTINY_CLASSIFIED_PHOTO = "/images/destiny-classified.jpg";
+
 export const DESTINY = {
 	lovedOnes: {
 		intro: "reading /etc/loved-ones...",
