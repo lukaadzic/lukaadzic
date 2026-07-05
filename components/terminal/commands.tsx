@@ -219,21 +219,6 @@ const email: Renderer = () => ({
 	},
 });
 
-/** The "show me everything" script — a single combined output, user-initiated. */
-export const EVERYTHING_COMMAND = "./everything.sh";
-
-/** The whole rundown as one output: every section stacked, blank-line separated. */
-const everything: Renderer = () => ({
-	output: (
-		<div className="flex flex-col gap-6">
-			<AboutOutput />
-			<ProjectsOutput />
-			<GithubOutput />
-			<SocialsOutput />
-		</div>
-	),
-});
-
 /** Interactive command registry — same renderers power chips and typed input. */
 const REGISTRY: Record<string, Renderer> = {
 	welcome,
@@ -278,7 +263,6 @@ const REGISTRY: Record<string, Renderer> = {
 	love: destiny,
 	"git log --oneline": gitLog,
 	"git log": gitLog,
-	[EVERYTHING_COMMAND]: everything,
 };
 
 export const SUGGESTED_COMMANDS = [
@@ -286,9 +270,9 @@ export const SUGGESTED_COMMANDS = [
 	"projects",
 	"github",
 	"socials",
+	"cv",
 	"pets",
 	"love",
-	"cv",
 	"help",
 ];
 
@@ -297,7 +281,6 @@ export const SUGGESTED_COMMANDS = [
  * can drift from the registry. Order = how the help screen lists them.
  */
 export const COMMAND_HELP: Array<[string, string]> = [
-	[EVERYTHING_COMMAND, "run the whole tour"],
 	["whoami", "who am I"],
 	["about", "neofetch-style info card"],
 	["projects", "things I've built"],
@@ -336,7 +319,6 @@ export const KNOWN_COMMANDS = [
 	"history",
 	"pwd",
 	"clear",
-	EVERYTHING_COMMAND,
 	"giveon",
 	"beloved",
 	".beloved",
