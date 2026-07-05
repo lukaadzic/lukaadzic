@@ -13,7 +13,7 @@ export function ProjectsOutput() {
 						<span aria-hidden="true" className="shrink-0 text-faint">
 							❯
 						</span>
-						<span className="min-w-0 break-words text-[#6bc7f5] transition-colors duration-200 group-hover:text-accent">
+						<span className="min-w-0 break-words text-foreground underline decoration-white/20 underline-offset-4 transition-colors duration-200 group-hover:text-accent group-hover:decoration-white/40">
 							{project.slug}
 						</span>
 						<span
