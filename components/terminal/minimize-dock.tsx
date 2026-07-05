@@ -9,14 +9,15 @@ type MinimizeDockProps = {
 	onRestore: () => void;
 };
 
+const DOCK_LABEL = "luka_early_build.app — v0.1, still compiling";
+
 function reducedMotion(): boolean {
 	return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-/** The dock icon's photo, with a graceful fallback: a missing file (the
- * photo hasn't been dropped into `public/` yet) swaps to a plain
- * site-surface tint with a green `L` instead of a broken-image icon, same
- * pattern as `DestinyPhoto` in destiny-easter-egg.tsx. */
+/** The dock icon's photo, with a graceful fallback: a missing file swaps to
+ * a plain site-surface tint with a green `L` instead of a broken-image
+ * icon, same pattern as `DestinyPhoto` in destiny-easter-egg.tsx. */
 function DockPhoto({ src }: { src: string }) {
 	const [failed, setFailed] = useState(false);
 
@@ -24,7 +25,7 @@ function DockPhoto({ src }: { src: string }) {
 		return (
 			<div
 				aria-hidden="true"
-				className="flex h-full w-full items-center justify-center bg-gradient-to-br from-white/[0.07] to-white/[0.02] font-mono text-[26px] text-[#5fd75f]"
+				className="flex h-full w-full items-center justify-center bg-gradient-to-br from-white/[0.07] to-white/[0.02] font-mono text-[24px] text-[#5fd75f]"
 			>
 				L
 			</div>
@@ -43,13 +44,18 @@ function DockPhoto({ src }: { src: string }) {
 }
 
 /**
- * The macOS-dock-style icon the yellow light minimizes the terminal into.
- * Always mounted (portaled to `document.body`, same pattern as
- * `DestinyEasterEgg`) but renders nothing while `isMinimized` is false — the
- * terminal window itself stays mounted throughout, so no state is ever lost.
- * Clicking (or Enter/Space/Esc while this is up) plays a quick exit pop
- * before handing back to `onRestore`, which is what actually flips the
- * window visible again.
+ * The macOS-style dock the yellow light minimizes the terminal into: a
+ * translucent bottom-center shelf holding exactly one app icon, with the
+ * running-app indicator dot lit — because the terminal really is still
+ * running (its state and any playing music survive under
+ * `visibility: hidden`). Hover/focus floats the app-name pill above the
+ * shelf, macOS-style; there's no permanent caption. Always mounted
+ * (portaled to `document.body`, same pattern as `DestinyEasterEgg`) but
+ * renders nothing while `isMinimized` is false — the terminal window itself
+ * stays mounted throughout, so no state is ever lost. Clicking (or
+ * Enter/Space/Esc while the dock is up) sinks the shelf back down before
+ * handing back to `onRestore`, which is what actually flips the window
+ * visible again.
  */
 export function MinimizeDock({
 	kidPhotoSrc,
@@ -60,7 +66,7 @@ export function MinimizeDock({
 	const exitingRef = useRef(false);
 	const [exiting, setExiting] = useState(false);
 	const [bouncing, setBouncing] = useState(false);
-	const [tooltipVisible, setTooltipVisible] = useState(false);
+	const [labelVisible, setLabelVisible] = useState(false);
 
 	// Fresh appearance each time the dock comes up, and focus lands on the
 	// icon — the restore-side counterpart to the yellow light losing focus.
@@ -69,7 +75,7 @@ export function MinimizeDock({
 		exitingRef.current = false;
 		setExiting(false);
 		setBouncing(false);
-		setTooltipVisible(false);
+		setLabelVisible(false);
 		buttonRef.current?.focus();
 	}, [isMinimized]);
 
@@ -102,7 +108,7 @@ export function MinimizeDock({
 	if (!isMinimized) return null;
 
 	function handleMouseEnter() {
-		setTooltipVisible(true);
+		setLabelVisible(true);
 		if (reducedMotion()) return;
 		// Retrigger even if already mid-bounce, same reflow trick as the red
 		// light's shake (terminal-window.tsx).
@@ -110,57 +116,55 @@ export function MinimizeDock({
 		requestAnimationFrame(() => setBouncing(true));
 	}
 
-	function handleAnimationEnd(event: React.AnimationEvent<HTMLButtonElement>) {
-		if (event.animationName === "dock-icon-bounce") {
-			setBouncing(false);
-		} else if (event.animationName === "dock-icon-out") {
-			onRestore();
-		}
-	}
-
 	return createPortal(
-		<div className="fixed bottom-6 left-6 z-30 flex flex-col items-center gap-1.5">
-			<div className="relative">
+		<div className="dock-wrap">
+			<div
+				className={`dock-shelf ${exiting ? "dock-shelf-out" : "dock-shelf-in"}`}
+				onAnimationEnd={(event) => {
+					if (event.animationName === "dock-shelf-out") {
+						onRestore();
+					}
+				}}
+			>
 				<div
 					role="tooltip"
-					id="minimize-dock-tooltip"
-					className={`dock-tooltip ${tooltipVisible ? "dock-tooltip-visible" : ""}`}
+					id="minimize-dock-label"
+					className={`dock-label ${labelVisible ? "dock-label-visible" : ""}`}
 				>
-					<p className="text-foreground">luka.exe (early build)</p>
-					<p>status: minimized</p>
-					<p>version: 0.1 — still compiling</p>
+					{DOCK_LABEL}
 				</div>
-				<button
-					ref={buttonRef}
-					type="button"
-					aria-label="restore the terminal"
-					aria-describedby="minimize-dock-tooltip"
-					onClick={() => beginRestoreRef.current()}
-					onMouseEnter={handleMouseEnter}
-					onMouseLeave={() => setTooltipVisible(false)}
-					onFocus={() => setTooltipVisible(true)}
-					onBlur={() => setTooltipVisible(false)}
-					onAnimationEnd={handleAnimationEnd}
-					className={`relative flex h-[72px] w-[72px] items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] shadow-[0_10px_30px_rgba(0,0,0,0.45)] ${
-						bouncing ? "dock-icon-bounce" : ""
-					} ${exiting ? "dock-icon-out" : "dock-icon-in"}`}
-				>
-					<DockPhoto src={kidPhotoSrc} />
-				</button>
+				<div className="flex flex-col items-center gap-[5px]">
+					<button
+						ref={buttonRef}
+						type="button"
+						aria-label="restore the terminal"
+						aria-describedby="minimize-dock-label"
+						onClick={() => beginRestoreRef.current()}
+						onMouseEnter={handleMouseEnter}
+						onMouseLeave={() => setLabelVisible(false)}
+						onFocus={(event) => {
+							// Keyboard focus only — the dock auto-focuses this button on
+							// minimize, and a mouse-driven minimize shouldn't leave the
+							// name pill stranded open like a stuck tooltip.
+							if (event.target.matches(":focus-visible")) {
+								setLabelVisible(true);
+							}
+						}}
+						onBlur={() => setLabelVisible(false)}
+						onAnimationEnd={(event) => {
+							if (event.animationName === "dock-icon-bounce") {
+								setBouncing(false);
+							}
+						}}
+						className={`h-16 w-16 overflow-hidden rounded-[14px] shadow-[0_4px_12px_rgba(0,0,0,0.4)] ${
+							bouncing ? "dock-icon-bounce" : ""
+						}`}
+					>
+						<DockPhoto src={kidPhotoSrc} />
+					</button>
+					<span aria-hidden="true" className="dock-running-dot" />
+				</div>
 			</div>
-			<p
-				aria-hidden="true"
-				className="select-none font-mono text-[10px] text-faint"
-			>
-				luka_early_build.app
-			</p>
-			<p
-				aria-hidden="true"
-				className="select-none font-mono text-[9px]"
-				style={{ color: "rgba(237, 237, 237, 0.28)" }}
-			>
-				click to restore
-			</p>
 		</div>,
 		document.body,
 	);
