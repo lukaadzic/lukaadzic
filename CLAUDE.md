@@ -5,9 +5,18 @@
 Luka Adzic's personal portfolio. One page (`/`) plus a `/404`. The UI is a
 faithful, interactive macOS Terminal window built around **prompt-driven
 discovery**. The window is **fullscreen by default** (edge-to-edge, square
-corners, sticky title bar, content capped to a readable ~900px column); the
+corners, content capped to a readable ~900px column); the
 green traffic light zooms it down to the floating windowed look and back,
-remembered per tab via `sessionStorage` (the `/404` card always floats). On
+remembered per tab via `sessionStorage` (the `/404` card always floats).
+Fullscreen is app-style, not a scrolling page: the title bar is a plain flex
+row pinned to the top of a `100dvh` column and only the content area below it
+scrolls internally (`overflow-y: auto`, `overscroll-behavior: contain`) when
+output runs long (e.g. `./everything.sh`) — the page itself
+(`html`/`body`/`.terminal-stage`) is locked to `100dvh`/`overflow: hidden` so
+there's no scroll or rubber-band bounce on mobile, scoped via `:has()` so it
+only applies when `.terminal-window-frame[data-mode="fullscreen"]` is
+present. Floating mode (green light) and `/404` never set
+`data-mode="fullscreen"`, so they keep ordinary page-centered scroll. On
 load only a short `welcome` greeting types out and stays
 pinned at the top, then the visitor reveals content by prompting — typing
 commands or clicking the suggestion chips under the prompt (`about`,
