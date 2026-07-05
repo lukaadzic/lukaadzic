@@ -38,6 +38,9 @@ export function VatreniOutput() {
 			<p className="mt-2 text-foreground">{VATRENI.heading}</p>
 			<p className="text-muted">{VATRENI.summary}</p>
 			<p className="text-faint">{VATRENI.closer}</p>
+			<p className="mt-2 text-faint">
+				4 straight world cup shootout wins ('18, '22) — try `penalty`
+			</p>
 		</div>
 	);
 }

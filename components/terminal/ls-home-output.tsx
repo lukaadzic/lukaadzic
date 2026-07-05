@@ -17,6 +17,7 @@ export function LsHomeOutput({ showHidden = false }: LsHomeOutputProps) {
 			<span className="text-[#6bc7f5]">projects/</span>
 			<span className="text-[#6bc7f5]">socials/</span>
 			<span className="text-foreground">resume.pdf</span>
+			<span className="text-[#5fd75f]">penalty.sh</span>
 		</div>
 	);
 }

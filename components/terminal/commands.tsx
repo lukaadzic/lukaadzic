@@ -8,6 +8,7 @@ import { LiveAge } from "@/components/terminal/live-age";
 import { LsHomeOutput } from "@/components/terminal/ls-home-output";
 import { LsProjectsOutput } from "@/components/terminal/ls-projects-output";
 import { ModricOutput } from "@/components/terminal/modric-output";
+import { PenaltyGame } from "@/components/terminal/penalty-game";
 import { ProjectsOutput } from "@/components/terminal/projects-output";
 import { SocialsOutput } from "@/components/terminal/socials-output";
 import { VatreniOutput } from "@/components/terminal/vatreni-output";
@@ -64,6 +65,10 @@ const giveon: Renderer = () => {
 const vatreni: Renderer = () => ({ output: <VatreniOutput /> });
 
 const modric: Renderer = () => ({ output: <ModricOutput /> });
+
+/** `penalty` / `shootout` / `./penalty.sh` — the shootout minigame owns its
+ * own state; the registry just mounts it, same as any other renderer. */
+const penalty: Renderer = () => ({ output: <PenaltyGame /> });
 
 const pwd: Renderer = () => ({
 	output: <p className="text-muted">/Users/lukaadzic</p>,
@@ -137,6 +142,9 @@ const REGISTRY: Record<string, Renderer> = {
 	".vatreni": vatreni,
 	"cat .vatreni": vatreni,
 	modric,
+	penalty,
+	shootout: penalty,
+	"./penalty.sh": penalty,
 	[EVERYTHING_COMMAND]: everything,
 };
 
@@ -195,6 +203,9 @@ export const KNOWN_COMMANDS = [
 	"hrvatska",
 	"croatia",
 	"modric",
+	"penalty",
+	"shootout",
+	"./penalty.sh",
 	"ls -la",
 ];
 
