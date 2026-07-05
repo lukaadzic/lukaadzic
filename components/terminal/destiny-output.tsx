@@ -78,16 +78,6 @@ export function DestinyOutput() {
 				>
 					↑↑↓↓←→←→ba
 				</button>
-				<button
-					type="button"
-					className={TRIGGER_CHIP_CLASS}
-					onClick={(event) => {
-						event.stopPropagation();
-						runCommand("pets");
-					}}
-				>
-					pets 🐾
-				</button>
 			</div>
 		</div>
 	);
