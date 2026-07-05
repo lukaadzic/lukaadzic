@@ -17,8 +17,10 @@ there's no scroll or rubber-band bounce on mobile, scoped via `:has()` so it
 only applies when `.terminal-window-frame[data-mode="fullscreen"]` is
 present. Floating mode (green light) and `/404` never set
 `data-mode="fullscreen"`, so they keep ordinary page-centered scroll. On
-load only a short `welcome` greeting types out and stays
-pinned at the top, then the visitor reveals content by prompting — typing
+load only a short `welcome` greeting types out at a pinned prompt line, then
+that typed command line clears itself away (fade + collapse, the greeting
+shifting up smoothly into its place) before the greeting content prints and
+settles at the top, then the visitor reveals content by prompting — typing
 commands or clicking the suggestion chips under the prompt (`about`,
 `projects`, `github`, `socials`, `cv`, `pets`, `love` — the deliberately
 subtle tab into Destiny's section — and `help`). There is deliberately no
@@ -177,7 +179,7 @@ that same registry, so every path renders identical output.
   content that hasn't appeared yet above it — each beat starting while the
   previous is still finishing (~60-70% through it) rather than waiting, so
   it reads as continuous motion, not a slideshow — total time to interactive
-  is ~2.1-2.3s:
+  is ~2.3-2.6s:
   1. `0-280ms` — the window fades in. In fullscreen (the default, and the
      common mobile state) that's opacity + a small `translateY` only, since
      scaling a full-viewport element forces a whole-page repaint every
@@ -198,26 +200,38 @@ that same registry, so every path renders identical output.
      (jittered ~55ms/char) — `bootTyped` state in `terminal-session.tsx`,
      kept separate from `inputValue` (which stays reserved for real user
      input). The bottom active prompt is not visible yet.
-  5. On typing completion — the pinned block's OUTPUT (banner + greeting +
-     hint) prints line by line below it via `.welcome-line` +
-     `data-welcome-revealed` (unchanged mechanics: 90/190/280ms per-line
-     delay, 240ms fade each), while the pinned prompt line itself goes
-     static (cursor removed). Mounted at `opacity: 0` from first paint so
-     its final height never moves — zero layout shift across the whole
+  5. On typing completion — the pinned prompt line goes static (cursor
+     removed) and sits still for a brief ~250ms beat
+     (`BOOT_COMMAND_LEAVE_BEAT_MS`), like a shell pausing right after a
+     command runs.
+  6. The command line then clears itself: it fades (opacity, 180ms) and
+     collapses (`max-height`, 220ms, `.boot-command-line` /
+     `-leaving` in `globals.css`) away in place, while — concurrently — the
+     pinned block's OUTPUT (banner + greeting + hint) prints line by line
+     via `.welcome-line` + `data-welcome-revealed` (unchanged mechanics:
+     90/190/280ms per-line delay, 240ms fade each) right where the command
+     line was, so the content visibly shifts up to fill the gap as the line
+     shrinks away — an ordinary layout-reflow consequence, not a separate
+     animated step. Once `.boot-command-line`'s transition ends,
+     `terminal-session.tsx` stops rendering the line at all
+     (`commandLineGone`) — the settled session has no
+     `lukaadzic ~ % welcome` line left, as if it ran and cleared itself. The
+     welcome OUTPUT block is mounted at `opacity: 0` from first paint so its
+     final height never moves — zero layout shift across the whole
      sequence.
-  6. Once the last welcome line has settled (280ms delay + 240ms fade + a
-     100ms tail after typing completes) — the ACTIVE prompt fades in below
-     everything, with the cursor now handed to it
+  7. Once the last welcome line has settled (280ms delay + 240ms fade + a
+     100ms tail after the command line starts clearing) — the ACTIVE prompt
+     fades in below everything, with the cursor now handed to it
      (`terminal-prompt-ready-in`, 260ms). This used to be the bottom
      prompt's very first beat, with `welcome` typing there directly — that
      read as the eye jumping bottom-to-top once the pinned block later
      appeared above it; it's now deliberately last.
-  7. `~90ms` after the active prompt beat — the suggestion chips ripple in
+  8. `~90ms` after the active prompt beat — the suggestion chips ripple in
      with a ~40ms stagger, and chips get a subtle `scale(0.97)` on press.
 
-  Beats 3 and 7 are CSS `animation-delay`s off `[data-booted]` (fixed,
+  Beats 3 and 8 are CSS `animation-delay`s off `[data-booted]` (fixed,
   hydration-anchored delays — 350ms for the pinned prompt, ~1600ms+ for
-  chips). Beat 6 is different: because it depends on how long `welcome`
+  chips). Beat 7 is different: because it depends on how long `welcome`
   actually took to type plus the real welcome-line stagger, it isn't a
   guessed fixed delay — `terminal-session.tsx` sets a second attribute,
   `data-prompt-ready`, on the session root only once that has actually
@@ -233,8 +247,8 @@ that same registry, so every path renders identical output.
   an un-strandable guarantee that the pinned prompt/active prompt/chips
   still eventually appear even if JS never runs at all (this shipped broken
   once). Clicking/pressing Enter during boot fast-forwards straight to the
-  final state (full command, all lines, active prompt + cursor) — chips
-  still land on their own timing.
+  final settled state (no `welcome` command line, all welcome content,
+  active prompt + cursor) — chips still land on their own timing.
 - **Session/command motion.** The session shows the `welcome` block plus
   exactly one command group below it — never a stacking log. Running a new
   command fades the currently displayed group out (~120ms), types the new
@@ -293,7 +307,8 @@ that same registry, so every path renders identical output.
 ## Verification checklist
 
 - `bun run lint`, `bun run typecheck`, `bun run build` all clean.
-- Manual pass of `/`: welcome types out and stays pinned, suggestion chips
+- Manual pass of `/`: welcome types out, clears itself, and the greeting
+  settles pinned at the top, suggestion chips
   execute their commands and show the active one as brighter (never
   dimmed), typed commands + history work, the github sparkline spans the full content
   width at desktop and ~390px with no horizontal scroll,

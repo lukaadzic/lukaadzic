@@ -33,6 +33,10 @@ const WELCOME_LAST_LINE_DURATION_MS = 240;
  * done printing" and "shell hands you a fresh prompt" instead of them
  * landing in the same instant. */
 const PROMPT_READY_TAIL_MS = 100;
+/** How long the typed `lukaadzic ~ % welcome` line sits still, cursor gone,
+ * before it clears itself — long enough to register as "the command just
+ * ran," short enough not to stall the boot. */
+const BOOT_COMMAND_LEAVE_BEAT_MS = 250;
 /** Duration of the JS-driven FLIP height transition on the group container —
  * measured old height -> measured new height, so the window resizes as one
  * fluid motion instead of snapping (interpolate-size only lands in very new
@@ -136,6 +140,15 @@ export function TerminalSession() {
 	);
 	const [bootTyped, setBootTyped] = useState("");
 	const [promptReady, setPromptReady] = useState(false);
+	// The pinned `welcome` command line removes itself once it's had its
+	// moment: `commandCollapsing` drives the CSS fade+collapse
+	// (`.boot-command-line-leaving`), and `commandLineGone` — set once that
+	// transition ends (or instantly, for reduced motion / fast-forward) —
+	// stops rendering the line at all, so the settled session has no
+	// `lukaadzic ~ % welcome` line left in the DOM, exactly like the command
+	// ran and cleared itself.
+	const [commandCollapsing, setCommandCollapsing] = useState(false);
+	const [commandLineGone, setCommandLineGone] = useState(false);
 
 	// Exactly one command group (prompt + output) is displayed at a time.
 	// Running a new command swaps it out; `clear` empties it back to null.
@@ -322,6 +335,7 @@ export function TerminalSession() {
 
 		if (reducedRef.current) {
 			setCursorBlink(false);
+			setCommandLineGone(true);
 			setWelcomeRevealed(true);
 			bootPhaseRef.current = "done";
 			setBootPhase("done");
@@ -338,10 +352,23 @@ export function TerminalSession() {
 			await typeAtPrompt("welcome", gen, WELCOME_CHAR_DELAY_MS, setBootTyped);
 			if (genRef.current !== gen) return; // fast-forwarded mid-type; fastForward already snapped to done
 
-			setBootTyped("");
-			setWelcomeRevealed(true);
+			// Typing's done — the line goes static (cursor removed) and sits as
+			// plain "welcome" text for a brief beat, like a real shell pausing
+			// right after a command runs.
 			bootPhaseRef.current = "printing";
 			setBootPhase("printing");
+
+			await sleep(BOOT_COMMAND_LEAVE_BEAT_MS);
+			if (genRef.current !== gen) return; // fast-forwarded mid-beat; fastForward already snapped to done
+
+			// The command line fades + collapses away in place while the welcome
+			// output starts printing directly below it — the banner ends up
+			// exactly where the command line was, as an ordinary consequence of
+			// the layout reflow while the line's own height animates to zero
+			// (see `.boot-command-line` in globals.css).
+			setBootTyped("");
+			setCommandCollapsing(true);
+			setWelcomeRevealed(true);
 
 			const tailMs =
 				WELCOME_LAST_LINE_DELAY_MS +
@@ -439,6 +466,18 @@ export function TerminalSession() {
 		};
 	}, [current]);
 
+	// Only the longer of the two properties transitioning on the collapsing
+	// command line (`max-height`, 220ms vs. `opacity`'s 180ms — see
+	// `.boot-command-line` in globals.css) needs to be watched here — by the
+	// time it fires, both have finished. Stops rendering the line entirely
+	// from this point on, so the settled DOM has no `welcome` command line.
+	function handleCommandLineTransitionEnd(
+		event: TransitionEvent<HTMLDivElement>,
+	) {
+		if (event.propertyName !== "max-height") return;
+		setCommandLineGone(true);
+	}
+
 	function handleGroupTransitionEnd(event: TransitionEvent<HTMLDivElement>) {
 		if (event.target !== event.currentTarget) return;
 		if (event.propertyName !== "height") return;
@@ -464,6 +503,10 @@ export function TerminalSession() {
 				revealTimeoutRef.current = null;
 			}
 			setBootTyped("");
+			// Snap straight to the settled end state: no command line (skip the
+			// fade/collapse entirely rather than let it play out), full welcome
+			// content, prompt + cursor — chips still land on their own schedule.
+			setCommandLineGone(true);
 			setWelcomeRevealed(true);
 			finishBoot();
 		}
@@ -575,14 +618,30 @@ export function TerminalSession() {
 				    types into it directly (via `bootTyped`). Once typing finishes
 				    this becomes a static line showing the same "welcome" text
 				    (`welcomeEntry.command`), no cursor — the cursor moves down to
-				    the bottom active prompt once that beat is reached. */}
+				    the bottom active prompt once that beat is reached. After a
+				    brief static beat the line fades + collapses away in place
+				    (`commandCollapsing` / `.boot-command-line-leaving`) and, once
+				    gone (`commandLineGone`), stops rendering altogether — the
+				    settled session has no `welcome` command line left, as if it
+				    ran and cleared itself. */}
 				<div className="terminal-active-prompt-in">
-					<PromptLine
-						input={bootPhase === "typing" ? bootTyped : welcomeEntry.command}
-						cursor={bootPhase === "typing"}
-						cursorBlink={cursorBlink}
-						active={false}
-					/>
+					{!commandLineGone && (
+						<div
+							className={`boot-command-line ${
+								commandCollapsing ? "boot-command-line-leaving" : ""
+							}`}
+							onTransitionEnd={handleCommandLineTransitionEnd}
+						>
+							<PromptLine
+								input={
+									bootPhase === "typing" ? bootTyped : welcomeEntry.command
+								}
+								cursor={bootPhase === "typing"}
+								cursorBlink={cursorBlink}
+								active={false}
+							/>
+						</div>
+					)}
 				</div>
 				<div
 					style={welcomeStyle()}
