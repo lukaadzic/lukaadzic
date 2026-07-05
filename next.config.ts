@@ -12,6 +12,8 @@ const contentSecurityPolicy = [
 	"img-src 'self' data:",
 	"font-src 'self'",
 	"connect-src 'self'",
+	// The `giveon` easter egg embeds the official Spotify track player.
+	"frame-src https://open.spotify.com",
 	"object-src 'none'",
 	"base-uri 'self'",
 	"form-action 'self'",
