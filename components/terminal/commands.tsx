@@ -154,6 +154,7 @@ export const SUGGESTED_COMMANDS = [
 	"github",
 	"socials",
 	"cv",
+	"help",
 ];
 
 /**

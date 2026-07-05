@@ -548,6 +548,9 @@ body {
 .terminal-chip-row > *:nth-child(6) {
 	animation-delay: 1150ms;
 }
+.terminal-chip-row > *:nth-child(7) {
+	animation-delay: 1190ms;
+}
 
 @keyframes terminal-chip-in {
 	from {

@@ -47,7 +47,6 @@ export function AboutOutput() {
 					</div>
 				))}
 			</dl>
-			<p className="mt-2 text-faint">Stuck? try `help`.</p>
 		</div>
 	);
 }

@@ -60,9 +60,7 @@ export function WelcomeOutput() {
 			<p className="mt-2 text-foreground">
 				Hi, I&apos;m {FIRST_NAME} — {SITE.tagline}.
 			</p>
-			<p className="text-faint">
-				Type a command, or click one below. Try `./everything.sh` to see it all.
-			</p>
+			<p className="text-faint">type a command, or tap one below.</p>
 		</div>
 	);
 }
