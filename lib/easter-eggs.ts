@@ -43,6 +43,31 @@ export const FEATURED_TRACKS = [
 
 export type FeaturedTrack = (typeof FEATURED_TRACKS)[number];
 
+/**
+ * Red traffic light — the home terminal answers with a macOS-style alert
+ * instead of closing, and plays "DON'T LEAVE" (a real Beloved track; the
+ * title IS the joke). ID verified via open.spotify.com/oembed. All alert
+ * copy below is original — never verbatim Giveon lyrics.
+ */
+export const CLOSE_TRACK = {
+	title: "DON'T LEAVE",
+	spotifyTrackId: "5gXD4exv3XSwYh4BFQ0phf",
+} as const;
+
+/** Copy for the "don't leave." alert dialog. */
+export const CLOSE_ALERT = {
+	title: "don't leave.",
+	body: [
+		"this terminal doesn't do goodbyes.",
+		"giveon wrote a whole song about this. it's playing now.",
+	],
+	bodyRepeat: "still here. still playing.",
+	stay: "stay",
+	/** The `leave anyway` button loses its nerve, one click at a time. */
+	leaveLabels: ["leave anyway", "you sure?", "…really?"],
+	dismissNote: "fine. the song stays.",
+} as const;
+
 export const VATRENI = {
 	heading: "Vatreni 🔥 — Hrvatska",
 	summary: "2018 World Cup finalists · 2022 bronze",

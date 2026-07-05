@@ -27,7 +27,12 @@ commands. Unknown commands occasionally get a sassier
 `command not found` message (1-in-3). A handful of personality easter eggs
 (`giveon`/`beloved`, `vatreni`, `modric`) hide as dotfiles discoverable via
 `ls -la`; their content lives in `lib/easter-eggs.ts` and must stay verified
-fact, never invented. The pinned `welcome` block opens with
+fact, never invented. On the home page the red traffic light refuses to
+close: a macOS-style "don't leave." alert opens over the window with
+Giveon's DON'T LEAVE autoplaying inside it, and `leave anyway` loses its
+nerve twice before conceding — all alert copy is original, never verbatim
+lyrics; the `/404` card keeps the plain shake + toast. The pinned
+`welcome` block opens with
 a block-letter ASCII banner of the FULL name (built from a tiny per-letter
 glyph map in `welcome-output.tsx`, `aria-hidden` with an `sr-only` text
 alternative); below 640px the banner stays block-letter but stacks
