@@ -18,7 +18,11 @@ export function PromptLine({
 				<span className={active ? "text-[#5fd75f]" : "text-[#5fd75f]/60"}>
 					lukaadzic
 				</span>
-				<span className="text-muted"> ~ % </span>
+				<span className="text-muted"> </span>
+				<span className={active ? "text-[#6bc7f5]/80" : "text-[#6bc7f5]/50"}>
+					~
+				</span>
+				<span className="text-muted"> % </span>
 			</span>
 			<span className="whitespace-pre-wrap break-all text-foreground">
 				{input}

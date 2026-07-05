@@ -15,12 +15,20 @@ prompt is `lukaadzic ~ %`. `about` renders as a neofetch-style key/value info
 card (name, school, location, live age, focus, project count, contact,
 socials — all sourced from `lib/site.ts` / `lib/projects.ts`), and `cv` opens
 the résumé in a new tab. Supported commands include `help`, `whoami`,
-`email`, `age`, `pwd`, a `sudo` easter egg, `clear`, and command history via
-arrow keys. There is deliberately no photo, and the GitHub graph renders as
-a terminal-native block sparkline. The terminal aesthetic and the
-reveal-by-prompting interaction ARE the product — preserve them in every
-change; don't "improve" it into a generic component library look or an
-auto-playing content dump.
+`email`, `age`, `pwd`, `ls` (fake home dir; `ls ~/projects` lists project
+slugs), `echo <text>`, `date` (client-evaluated, never SSR'd), `history`
+(this session's commands), a `sudo` easter egg, `clear`, and command history
+via arrow keys — plus Tab-completion of partial input against known
+commands. Unknown commands occasionally get a sassier
+`command not found` message (1-in-3). The pinned `welcome` block opens with
+a small block-letter ASCII banner of the first name (built from a tiny
+per-letter glyph map in `welcome-output.tsx`, `aria-hidden` with an
+`sr-only` text alternative); below ~480px it collapses to styled name text
+instead so it never wraps. There is deliberately no photo, and the GitHub
+graph renders as a terminal-native block sparkline. The terminal aesthetic
+and the reveal-by-prompting interaction ARE the product — preserve them in
+every change; don't "improve" it into a generic component library look or
+an auto-playing content dump.
 
 ## Stack & commands
 
@@ -97,7 +105,10 @@ whole rundown" as one command, not a scripted replay.
   up (~280ms, `cubic-bezier(0.16, 1, 0.3, 1)`); `clear` fades the current
   group out and leaves the welcome-only state. `.terminal-group-container`
   additionally smooths the resulting height change via `interpolate-size`
-  where supported.
+  where supported. The window itself opens with a ~350ms scale(0.98→1) +
+  fade (`cubic-bezier(0.32, 0.72, 0, 1)`), the suggestion chips fade in with
+  a ~40ms stagger right after the welcome beat finishes, and chips get a
+  subtle `scale(0.97)` on press.
 - **System font, no webfonts.** `--font-mono` / `--font-sans` in
   `app/globals.css` are OS font stacks (`ui-monospace`, `SF Mono`, etc.) —
   no `next/font`, no bundled font files. On Apple devices this renders the

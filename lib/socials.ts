@@ -1,3 +1,5 @@
+import { SITE } from "@/lib/site";
+
 export type Social = {
 	label: string;
 	handle: string;
@@ -5,6 +7,11 @@ export type Social = {
 };
 
 export const SOCIALS: Social[] = [
+	{
+		label: "GitHub",
+		handle: "@lukaadzic",
+		url: `https://github.com/${SITE.githubUsername}`,
+	},
 	{
 		label: "Twitter",
 		handle: "@lukaadzic7",

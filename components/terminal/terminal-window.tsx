@@ -101,7 +101,7 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 					)}
 				</div>
 
-				<div className="p-5 sm:p-6">{children}</div>
+				<div className="p-4 sm:p-6">{children}</div>
 			</div>
 		</div>
 	);

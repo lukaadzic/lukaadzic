@@ -11,6 +11,7 @@ import {
 } from "react";
 import {
 	EVERYTHING_COMMAND,
+	KNOWN_COMMANDS,
 	resolveCommand,
 	SUGGESTED_COMMANDS,
 } from "@/components/terminal/commands";
@@ -71,6 +72,10 @@ export function TerminalSession() {
 	const [inputValue, setInputValue] = useState("");
 	const [animating, setAnimating] = useState(false);
 	const [cursorBlink, setCursorBlink] = useState(true);
+	// Flips once the opening welcome beat finishes, triggering the chips'
+	// staggered fade-in. False on both server and initial client render, so
+	// there's no hydration mismatch.
+	const [chipsRevealed, setChipsRevealed] = useState(false);
 
 	const genRef = useRef(0);
 	const idRef = useRef(0);
@@ -140,7 +145,7 @@ export function TerminalSession() {
 			}
 			historyPointerRef.current = null;
 
-			const result = resolveCommand(raw);
+			const result = resolveCommand(raw, commandHistoryRef.current);
 			if (result !== "clear") {
 				result.sideEffect?.();
 				idRef.current += 1;
@@ -189,6 +194,7 @@ export function TerminalSession() {
 				});
 			}
 			setAnimating(false);
+			setChipsRevealed(true);
 			focusInput();
 		})();
 	}, [focusInput, typeAtPrompt]);
@@ -274,6 +280,16 @@ export function TerminalSession() {
 		} else if (event.key === "ArrowDown") {
 			event.preventDefault();
 			navigateHistory(1);
+		} else if (event.key === "Tab") {
+			const partial = inputValue.trim().toLowerCase();
+			if (partial === "") return;
+			const match = KNOWN_COMMANDS.find((command) =>
+				command.toLowerCase().startsWith(partial),
+			);
+			if (match) {
+				event.preventDefault();
+				setInputValue(match);
+			}
 		}
 	}
 
@@ -301,7 +317,7 @@ export function TerminalSession() {
 		<div
 			role="log"
 			aria-label="Terminal session"
-			className="relative font-mono text-[13px] leading-relaxed sm:text-[14px]"
+			className="terminal-session relative font-mono text-[13px] leading-relaxed sm:text-[14px]"
 			onClick={handleContainerClick}
 		>
 			<p className="text-faint">{LAST_LOGIN}</p>
@@ -326,7 +342,11 @@ export function TerminalSession() {
 				<PromptLine input={inputValue} cursor cursorBlink={cursorBlink} />
 			</div>
 
-			<div className="mt-5 flex flex-wrap gap-2">
+			<div
+				className={`terminal-chip-row mt-5 flex flex-wrap gap-2 ${
+					chipsRevealed ? "terminal-chips-in" : ""
+				}`}
+			>
 				{SUGGESTED_COMMANDS.map((command) => (
 					<button
 						key={command}

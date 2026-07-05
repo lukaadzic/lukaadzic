@@ -8,7 +8,7 @@ const UNDERLINE = "─".repeat(TITLE.length);
 
 /** neofetch-style: keys in a muted green accent, values in foreground. */
 const KEY_CLASS = "text-[#5fd75f]/70";
-const VALUE_CLASS = "text-foreground";
+const VALUE_CLASS = "min-w-0 break-words text-foreground";
 
 const ROWS: Array<[string, ReactNode]> = [
 	["name", SITE.name],

@@ -21,7 +21,7 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind v4 · Biome
 
 ## Find me
 
-[LinkedIn](https://linkedin.com/in/lukaadzic/) • [Twitter](https://twitter.com/lukaadzic7/) • [Instagram](https://www.instagram.com/lukaadzic7/) • [Facebook](https://www.facebook.com/adzicluka) • [Email](mailto:lukaadz@wharton.upenn.edu)
+[GitHub](https://github.com/lukaadzic) • [LinkedIn](https://linkedin.com/in/lukaadzic/) • [Twitter](https://twitter.com/lukaadzic7/) • [Instagram](https://www.instagram.com/lukaadzic7/) • [Facebook](https://www.facebook.com/adzicluka) • [Email](mailto:lukaadz@wharton.upenn.edu)
 
 ---
 
