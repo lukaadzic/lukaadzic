@@ -152,7 +152,11 @@ that same registry, so every path renders identical output.
 - **Motion.** CSS transitions/keyframes plus small inline-style transitions
   driven by React state for the exact swap timings below (transform/opacity
   only, except the measured height transition described next), gated behind
-  `prefers-reduced-motion` (instant, no animation, fully formed). No JS
+  `prefers-reduced-motion`. IMPORTANT: reduced motion removes MOVEMENT, not
+  ORDER — the entrance pieces (login, prompt, chips) use motionless 1ms
+  opacity "appears" anchored to the same `[data-booted]` clock, never
+  instant `opacity: 1` at paint (that painted chips before the JS-revealed
+  content on slow-hydrating devices — a real reported bug). No JS
   animation libraries. One easing family — `cubic-bezier(0.16, 1, 0.3, 1)` —
   runs through the whole opening choreography below.
 - **Opening choreography.** Page load is one deliberately staged sequence,
