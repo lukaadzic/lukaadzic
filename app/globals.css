@@ -257,7 +257,7 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 }
 
 [data-mode="fullscreen"].terminal-window-in {
-	animation: terminal-window-in-flat 300ms cubic-bezier(0.32, 0.72, 0, 1) both;
+	animation: terminal-window-in-flat 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* Red traffic light — "nice try", a firm little shake. */
@@ -341,6 +341,49 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 
 .terminal-output-in {
 	animation: terminal-output-in 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* "Last login" line — its own beat in the opening choreography, right after
+   the window fade. Opacity: 0 at rest covers the pre-hydration SSR paint too
+   (see last-login.tsx), so the bare "Last login:" placeholder text is never
+   visible, only ever reserving this line's height; `terminal-last-login-in`
+   is added once the client-computed date string lands and plays a short
+   fixed-delay fade so the line always reveals fully formed. */
+.terminal-last-login {
+	opacity: 0;
+}
+
+@keyframes terminal-last-login-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+.terminal-last-login-in {
+	animation: terminal-last-login-in 240ms cubic-bezier(0.16, 1, 0.3, 1) 200ms
+		both;
+}
+
+/* The live prompt + blinking cursor — the third beat, fading in while the
+   "Last login" line is still settling. Plays once on mount; the prompt is
+   never remounted afterward, so this never replays mid-session. */
+@keyframes terminal-active-prompt-in {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.terminal-active-prompt-in {
+	animation: terminal-active-prompt-in 260ms cubic-bezier(0.16, 1, 0.3, 1) 350ms
+		both;
 }
 
 /* Authentic Terminal.app block cursor. */
@@ -562,34 +605,37 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	border-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Chips row — a gentle staggered fade-in shortly after load, timed to land
-   as the welcome beat finishes. Pure CSS (no JS trigger) so the chips can
-   never be stranded invisible; `both` keeps them hidden only during their
-   own animation delay. */
+/* Chips row — the closing beat: a gentle staggered fade-in tuned to land
+   ~80ms after the *typical* typed-"welcome" completion (500ms typing start +
+   ~385ms average typed duration), overlapping the welcome block's own rise
+   rather than waiting for it to finish, so the whole sequence reads as one
+   continuous motion. Pure CSS (no JS trigger) so the chips can never be
+   stranded invisible; `both` keeps them hidden only during their own
+   animation delay. */
 .terminal-chip-row > * {
 	animation: terminal-chip-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .terminal-chip-row > *:nth-child(1) {
-	animation-delay: 950ms;
+	animation-delay: 965ms;
 }
 .terminal-chip-row > *:nth-child(2) {
-	animation-delay: 990ms;
+	animation-delay: 1005ms;
 }
 .terminal-chip-row > *:nth-child(3) {
-	animation-delay: 1030ms;
+	animation-delay: 1045ms;
 }
 .terminal-chip-row > *:nth-child(4) {
-	animation-delay: 1070ms;
+	animation-delay: 1085ms;
 }
 .terminal-chip-row > *:nth-child(5) {
-	animation-delay: 1110ms;
+	animation-delay: 1125ms;
 }
 .terminal-chip-row > *:nth-child(6) {
-	animation-delay: 1150ms;
+	animation-delay: 1165ms;
 }
 .terminal-chip-row > *:nth-child(7) {
-	animation-delay: 1190ms;
+	animation-delay: 1205ms;
 }
 
 @keyframes terminal-chip-in {
@@ -636,6 +682,17 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	}
 
 	.terminal-output-in {
+		animation: none;
+		opacity: 1;
+		transform: none;
+	}
+
+	.terminal-last-login-in {
+		animation: none;
+		opacity: 1;
+	}
+
+	.terminal-active-prompt-in {
 		animation: none;
 		opacity: 1;
 		transform: none;
