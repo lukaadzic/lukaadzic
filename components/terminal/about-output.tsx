@@ -12,6 +12,7 @@ const VALUE_CLASS = "min-w-0 break-words text-foreground";
 
 const ROWS: Array<[string, ReactNode]> = [
 	["name", SITE.name],
+	["work", SITE.work],
 	["school", SITE.school],
 	["location", SITE.location],
 	["age", <LiveAge key="age" />],
