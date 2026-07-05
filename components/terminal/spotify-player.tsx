@@ -27,25 +27,30 @@ export function SpotifyPlayer({ trackId, height = 152 }: SpotifyPlayerProps) {
 	useEffect(() => {
 		let cancelled = false;
 
-		loadSpotifyIframeApi().then((api) => {
-			if (cancelled || !containerRef.current) return;
-			api.createController(
-				containerRef.current,
-				{
-					uri: `spotify:track:${trackId}`,
-					width: "100%",
-					height,
-				},
-				(controller) => {
-					if (cancelled) {
-						controller.destroy();
-						return;
-					}
-					controllerRef.current = controller;
-					controller.addListener("ready", () => controller.play());
-				},
-			);
-		});
+		loadSpotifyIframeApi()
+			.then((api) => {
+				if (cancelled || !containerRef.current) return;
+				api.createController(
+					containerRef.current,
+					{
+						uri: `spotify:track:${trackId}`,
+						width: "100%",
+						height,
+					},
+					(controller) => {
+						if (cancelled) {
+							controller.destroy();
+							return;
+						}
+						controllerRef.current = controller;
+						controller.addListener("ready", () => controller.play());
+					},
+				);
+			})
+			.catch(() => {
+				// Blocked/offline: the card simply stays empty — the terminal
+				// keeps working, and the next invocation retries the script.
+			});
 
 		return () => {
 			cancelled = true;
