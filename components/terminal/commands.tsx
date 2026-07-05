@@ -273,7 +273,9 @@ const REGISTRY: Record<string, Renderer> = {
 	pets,
 	"cat /etc/loved-ones": lovedOnes,
 	"loved-ones": lovedOnes,
-	love: lovedOnes,
+	// `love` is the subtle tab into her section; the loved-ones file read
+	// stays reachable via its full command and the `loved-ones` alias.
+	love: destiny,
 	"git log --oneline": gitLog,
 	"git log": gitLog,
 	[EVERYTHING_COMMAND]: everything,
@@ -284,7 +286,8 @@ export const SUGGESTED_COMMANDS = [
 	"projects",
 	"github",
 	"socials",
-	"destiny",
+	"pets",
+	"love",
 	"cv",
 	"help",
 ];
@@ -301,8 +304,8 @@ export const COMMAND_HELP: Array<[string, string]> = [
 	["ls", "list the home directory"],
 	["socials", "where to find me online"],
 	["github", "recent GitHub activity"],
-	["destiny", "my sweet angel girl"],
 	["pets", "modro, vida & baby"],
+	["love", "you'll see"],
 	["cv", "open my resume"],
 	["email", "compose an email to me"],
 	["age", "exactly how old I am, right now"],

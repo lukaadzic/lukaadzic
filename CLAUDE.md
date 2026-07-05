@@ -20,8 +20,11 @@ present. Floating mode (green light) and `/404` never set
 load only a short `welcome` greeting types out and stays
 pinned at the top, then the visitor reveals content by prompting — typing
 commands or clicking the suggestion chips under the prompt (`about`,
-`projects`, `github`, `socials`, `cv`, `help`, and an accented
-`./everything.sh`).
+`projects`, `github`, `socials`, `pets`, `love` — the deliberately subtle
+tab into Destiny's section — `cv`, `help`, and an accented
+`./everything.sh`). The kittens are named after Croatian football legends
+(Modro ← Luka Modrić, Vida ← Domagoj Vida) — real fact, referenced in
+`pets` captions and the `modric` output.
 The chips act as a segmented tab bar: the chip for whatever command is
 currently displayed reads as active/brighter, every other chip stays in a
 clearly-clickable resting state — there is no "already run" dimming. The

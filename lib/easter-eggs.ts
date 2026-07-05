@@ -81,6 +81,7 @@ export const MODRIC = {
 	moment: "captained the 2018 World Cup final run",
 	closer:
 		"the other Luka. we share a first name and that's where the comparison ends (his favor).",
+	petNote: "also: my cat is named after him. try `pets`.",
 } as const;
 
 /**
@@ -245,7 +246,8 @@ export const PETS: readonly Pet[] = [
 		id: "modro",
 		name: "modro",
 		nameColor: "#6bc7f5",
-		caption: "modro means blue in croatian. he's a brown tabby. we don't ask.",
+		caption:
+			"soft boy, loves to eat, follows his brother's mischief. named after luka modrić.",
 		bornLine: "born apr 13, 2026",
 		palette: {
 			".": "transparent",
@@ -263,7 +265,8 @@ export const PETS: readonly Pet[] = [
 		id: "vida",
 		name: "vida",
 		nameColor: "#efe6d8",
-		caption: "white paws, walks like he owns the place.",
+		caption:
+			"wild rascal — always jumping, always wrestling his brother. white paws. named after domagoj vida.",
 		bornLine: "born apr 13, 2026",
 		palette: {
 			".": "transparent",
