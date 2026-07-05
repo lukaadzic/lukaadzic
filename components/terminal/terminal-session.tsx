@@ -4,6 +4,7 @@ import {
 	type CSSProperties,
 	type KeyboardEvent,
 	type ReactNode,
+	type TransitionEvent,
 	useCallback,
 	useEffect,
 	useRef,
@@ -24,6 +25,12 @@ const LAST_LOGIN = "Last login: Thu Nov 14 09:32:07 on ttys003";
 const CHIP_CHAR_DELAY_MS = 20;
 const WELCOME_CHAR_DELAY_MS = 55;
 const GROUP_LEAVE_MS = 120;
+/** Duration of the JS-driven FLIP height transition on the group container —
+ * measured old height -> measured new height, so the window resizes as one
+ * fluid motion instead of snapping (interpolate-size only lands in very new
+ * Chrome, so this can't be CSS-only). */
+const GROUP_HEIGHT_MS = 240;
+const GROUP_HEIGHT_EASING = "cubic-bezier(0.16, 1, 0.3, 1)";
 
 type Entry = {
 	id: number;
@@ -109,6 +116,7 @@ export function TerminalSession() {
 	const historyPointerRef = useRef<number | null>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const activePromptRef = useRef<HTMLDivElement>(null);
+	const groupContainerRef = useRef<HTMLDivElement>(null);
 
 	const setCurrentEntry = useCallback((entry: Entry | null) => {
 		currentRef.current = entry;
@@ -148,8 +156,20 @@ export function TerminalSession() {
 			const trimmed = raw.trim();
 			setAnimating(true);
 			const gen = ++genRef.current;
+			const container = groupContainerRef.current;
 
 			if (currentRef.current) {
+				// FLIP setup: lock the container at its current on-screen height
+				// before the outgoing content starts fading/unmounting, so the
+				// window doesn't collapse to nothing during the leave+type gap —
+				// the height only ever animates old -> new, never through zero.
+				if (!reducedRef.current && container) {
+					const startHeight = container.getBoundingClientRect().height;
+					container.style.transition = "";
+					container.style.height = `${startHeight}px`;
+					container.style.overflow = "hidden";
+				}
+
 				setLeaving(true);
 				if (!reducedRef.current && genRef.current === gen) {
 					await sleep(GROUP_LEAVE_MS);
@@ -176,6 +196,21 @@ export function TerminalSession() {
 					id: idRef.current,
 					command: raw,
 					output: result.output,
+				});
+			} else if (!reducedRef.current && container?.style.height) {
+				// `clear` really does empty the container for good — this is the
+				// one case where the height is known, right now, to be heading to
+				// zero rather than toward a new entry's height, so the collapse is
+				// kicked off here rather than inferred from the generic effect
+				// below (which would otherwise mistake the ordinary in-between
+				// "old content gone, new content not mounted yet" gap of every
+				// other command switch for the same thing, and collapse-then
+				// -regrow instead of animating old height -> new height directly).
+				requestAnimationFrame(() => {
+					if (genRef.current !== gen) return;
+					container.style.overflow = "hidden";
+					container.style.transition = `height ${GROUP_HEIGHT_MS}ms ${GROUP_HEIGHT_EASING}`;
+					container.style.height = "0px";
 				});
 			}
 
@@ -215,30 +250,81 @@ export function TerminalSession() {
 		})();
 	}, [focusInput, typeAtPrompt]);
 
-	// Play the fade-up transition on whatever just became the displayed
-	// group — mount it hidden, then flip to visible on the next frame so the
-	// opacity/transform transition actually runs.
+	// FLIP the group container's height whenever the displayed group changes,
+	// crossfade the new content in, and only then scroll the live prompt into
+	// view — so the scroll doesn't fight the still-animating height. A plain
+	// CSS `transition: height` can't animate to/from `auto`, so this measures
+	// pixel heights on either side of the swap and drives the transition by
+	// hand; `interpolate-size` would do the same thing but only in very new
+	// Chrome.
 	useEffect(() => {
-		if (current?.id == null) return;
-		if (reducedRef.current) {
-			setEntered(true);
+		const container = groupContainerRef.current;
+
+		const scrollToPrompt = () => {
+			activePromptRef.current?.scrollIntoView({
+				behavior: reducedRef.current ? "auto" : "smooth",
+				block: "nearest",
+			});
+		};
+
+		if (!container || reducedRef.current) {
+			if (container) {
+				container.style.height = "";
+				container.style.overflow = "";
+				container.style.transition = "";
+			}
+			setEntered(current?.id != null);
+			scrollToPrompt();
 			return;
 		}
-		setEntered(false);
-		const raf = requestAnimationFrame(() => setEntered(true));
-		return () => cancelAnimationFrame(raf);
-	}, [current?.id]);
 
-	// After the displayed group changes, keep the live prompt in view rather
-	// than letting the page jump — "nearest" only scrolls if it isn't already
-	// visible, and reduced motion drops the smooth scroll animation.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: intentionally re-runs whenever the displayed group changes, even though the effect body only reads refs.
-	useEffect(() => {
-		activePromptRef.current?.scrollIntoView({
-			behavior: reducedRef.current ? "auto" : "smooth",
-			block: "nearest",
+		const hasLock = container.style.height !== "";
+
+		if (current?.id == null) {
+			// Emptied out — either the ordinary in-between gap of a command
+			// switch (old content just unmounted, its replacement hasn't
+			// mounted yet — `submit` is still holding the locked height, and
+			// the next run of this effect will grow it straight to the new
+			// content's height) or a genuine `clear`, whose collapse-to-zero
+			// `submit` already kicked off directly (see above) since it's the
+			// only place that knows for certain nothing else is coming. Either
+			// way there's nothing for this branch itself to animate.
+			const timeout = setTimeout(scrollToPrompt, hasLock ? GROUP_HEIGHT_MS : 0);
+			return () => clearTimeout(timeout);
+		}
+
+		// New content just mounted (starts at ENTERING_STYLE — invisible but
+		// already occupying its natural layout height).
+		setEntered(false);
+		const raf = requestAnimationFrame(() => {
+			if (hasLock) {
+				const newHeight = container.scrollHeight;
+				container.style.overflow = "hidden";
+				container.style.transition = `height ${GROUP_HEIGHT_MS}ms ${GROUP_HEIGHT_EASING}`;
+				container.style.height = `${newHeight}px`;
+			} else {
+				container.style.height = "";
+			}
+			setEntered(true);
 		});
+		const timeout = setTimeout(scrollToPrompt, hasLock ? GROUP_HEIGHT_MS : 0);
+		return () => {
+			cancelAnimationFrame(raf);
+			clearTimeout(timeout);
+		};
 	}, [current]);
+
+	function handleGroupTransitionEnd(event: TransitionEvent<HTMLDivElement>) {
+		if (event.target !== event.currentTarget) return;
+		if (event.propertyName !== "height") return;
+		const container = groupContainerRef.current;
+		if (!container) return;
+		// Release back to natural sizing so later content (a resize, a tick of
+		// `age`, etc.) isn't stuck at a stale locked height.
+		container.style.height = "";
+		container.style.overflow = "";
+		container.style.transition = "";
+	}
 
 	const fastForward = useCallback(() => {
 		genRef.current++;
@@ -354,7 +440,11 @@ export function TerminalSession() {
 				)}
 			</div>
 
-			<div className="terminal-group-container">
+			<div
+				ref={groupContainerRef}
+				className="terminal-group-container"
+				onTransitionEnd={handleGroupTransitionEnd}
+			>
 				{current && (
 					<div key={current.id} style={groupStyle()} className="mt-5">
 						<PromptLine input={current.command} active={false} />

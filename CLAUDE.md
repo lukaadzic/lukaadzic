@@ -114,8 +114,9 @@ whole rundown" as one command, not a scripted replay.
 - **DRY outputs.** Anything rendered more than once (chip vs. typed command
   vs. `./everything.sh` tour) becomes a shared renderer/component — never
   copy a block just to tweak it.
-- **Motion.** CSS-only (plus small inline-style transitions driven by React
-  state for the exact swap timings below), gated behind
+- **Motion.** CSS transitions/keyframes plus small inline-style transitions
+  driven by React state for the exact swap timings below (transform/opacity
+  only, except the measured height transition described next), gated behind
   `prefers-reduced-motion` (instant, no animation). No JS animation
   libraries. The pinned `welcome` block is mounted (at `opacity: 0`) from
   first paint so its final height is reserved immediately — it only fades in
@@ -125,9 +126,16 @@ whole rundown" as one command, not a scripted replay.
   stacking log. Running a new command fades the currently displayed group
   out (~120ms), types the new command at the prompt, then fades its output
   up (~280ms, `cubic-bezier(0.16, 1, 0.3, 1)`); `clear` fades the current
-  group out and leaves the welcome-only state. `.terminal-group-container`
-  additionally smooths the resulting height change via `interpolate-size`
-  where supported. The window itself opens with a fade; in fullscreen (the
+  group out and leaves the welcome-only state. `terminal-session.tsx` also
+  drives a measured FLIP-style height transition on
+  `.terminal-group-container` whenever the displayed group changes: it
+  measures the container's current pixel height, swaps the content,
+  measures the new height on the next frame, and transitions `height`
+  between the two (~240ms, `cubic-bezier(0.16, 1, 0.3, 1)`, `overflow:
+  hidden` only for the transition's duration, released back to `height:
+  auto` on `transitionend`) — this replaces relying on `interpolate-size`,
+  which only ships in the newest Chrome. The window itself opens with a
+  fade; in fullscreen (the
   default, and the common mobile state) that's opacity + a small
   `translateY` only, since scaling a full-viewport element forces a
   whole-page repaint every frame — floating mode and the `/404` card, being
