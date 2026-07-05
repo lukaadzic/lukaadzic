@@ -11,7 +11,6 @@ import {
 	useState,
 } from "react";
 import {
-	EVERYTHING_COMMAND,
 	KNOWN_COMMANDS,
 	resolveCommand,
 	SUGGESTED_COMMANDS,
@@ -430,11 +429,10 @@ export function TerminalSession() {
 		);
 	}
 
-	function chipClass(command: string, accent: boolean): string {
-		const base = accent
-			? "terminal-chip terminal-chip-accent"
+	function chipClass(command: string): string {
+		return isActive(command)
+			? "terminal-chip terminal-chip-active"
 			: "terminal-chip";
-		return isActive(command) ? `${base} terminal-chip-active` : base;
 	}
 
 	function groupStyle(): CSSProperties {
@@ -497,23 +495,11 @@ export function TerminalSession() {
 							event.stopPropagation();
 							submit(command, true);
 						}}
-						className={chipClass(command, false)}
+						className={chipClass(command)}
 					>
 						{command}
 					</button>
 				))}
-				<button
-					type="button"
-					disabled={animating}
-					aria-pressed={isActive(EVERYTHING_COMMAND)}
-					onClick={(event) => {
-						event.stopPropagation();
-						submit(EVERYTHING_COMMAND, true);
-					}}
-					className={chipClass(EVERYTHING_COMMAND, true)}
-				>
-					{EVERYTHING_COMMAND}
-				</button>
 			</div>
 
 			{/* Visually hidden, but focusable — captures real keystrokes so the

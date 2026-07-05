@@ -11,7 +11,7 @@ remembered per tab via `sessionStorage` (the `/404` card always floats).
 Fullscreen is app-style, not a scrolling page: the title bar is a plain flex
 row pinned to the top of a `100dvh` column and only the content area below it
 scrolls internally (`overflow-y: auto`, `overscroll-behavior: contain`) when
-output runs long (e.g. `./everything.sh`) — the page itself
+output runs long (e.g. the penalty game) — the page itself
 (`html`/`body`/`.terminal-stage`) is locked to `100dvh`/`overflow: hidden` so
 there's no scroll or rubber-band bounce on mobile, scoped via `:has()` so it
 only applies when `.terminal-window-frame[data-mode="fullscreen"]` is
@@ -20,9 +20,9 @@ present. Floating mode (green light) and `/404` never set
 load only a short `welcome` greeting types out and stays
 pinned at the top, then the visitor reveals content by prompting — typing
 commands or clicking the suggestion chips under the prompt (`about`,
-`projects`, `github`, `socials`, `pets`, `love` — the deliberately subtle
-tab into Destiny's section — `cv`, `help`, and an accented
-`./everything.sh`). The kittens are named after Croatian football legends
+`projects`, `github`, `socials`, `cv`, `pets`, `love` — the deliberately
+subtle tab into Destiny's section — and `help`). There is deliberately no
+"run everything" command; sections are explored one at a time. The kittens are named after Croatian football legends
 (Modro ← Luka Modrić, Vida ← Domagoj Vida) — real fact, referenced in
 `pets` captions and the `modric` output.
 The chips act as a segmented tab bar: the chip for whatever command is
@@ -44,8 +44,8 @@ fact, never invented. `pets` (visible command, in `help`) renders pixel-art
 portraits of Modro, Vida & Baby (`pets-output.tsx`) using the same colored-
 cell-grid technique as the `vatreni` šahovnica — grids, palettes, and
 captions live in `lib/easter-eggs.ts` as `PETS`. Luka's girlfriend Destiny has her own FIRST-CLASS
-section: the `destiny` command (visible chip, in `help` and
-`./everything.sh`) renders her photo + card inline (`destiny-output.tsx`).
+section: the `destiny` command (visible chip, in `help`)
+renders her photo + card inline (`destiny-output.tsx`).
 The playful triggers remain on top of that: `cat /etc/loved-ones` and
 `git log --oneline` each stagger their
 lines in, then auto-open a Destiny reveal modal (`destiny-easter-egg.tsx`,
@@ -124,11 +124,8 @@ welcome animation, suggestion chips, and interactive prompt.
 **Key invariant:** all content (identity, projects, socials, GitHub logic)
 lives in `lib/`. Components and UI code never hardcode copy — they import
 it. The command registry in `commands.tsx` maps each command to a
-`Renderer`; chips, typed input, and `./everything.sh` all resolve through
+`Renderer`; chips and typed input all resolve through
 that same registry, so every path renders identical output.
-`./everything.sh` is a single renderer that stacks every section (about
-card, projects, github sparkline, socials) into one combined output — "the
-whole rundown" as one command, not a scripted replay.
 
 ## Principles
 
@@ -140,7 +137,7 @@ whole rundown" as one command, not a scripted replay.
   `github-contributions-lazy.tsx` (client fetch, lazy-loaded with
   `next/dynamic` and `ssr: false`).
 - **DRY outputs.** Anything rendered more than once (chip vs. typed command
-  vs. `./everything.sh` tour) becomes a shared renderer/component — never
+  vs. any combined view) becomes a shared renderer/component — never
   copy a block just to tweak it.
 - **Motion.** CSS transitions/keyframes plus small inline-style transitions
   driven by React state for the exact swap timings below (transform/opacity
@@ -240,8 +237,7 @@ whole rundown" as one command, not a scripted replay.
 - `bun run lint`, `bun run typecheck`, `bun run build` all clean.
 - Manual pass of `/`: welcome types out and stays pinned, suggestion chips
   execute their commands and show the active one as brighter (never
-  dimmed), `./everything.sh` shows the combined rundown as one output,
-  typed commands + history work, the github sparkline spans the full content
+  dimmed), typed commands + history work, the github sparkline spans the full content
   width at desktop and ~390px with no horizontal scroll,
   `prefers-reduced-motion` disables typing animation and cursor blink.
 - Manual pass of `/404`.
