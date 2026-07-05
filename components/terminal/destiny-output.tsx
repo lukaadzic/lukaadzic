@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { openDestiny } from "@/components/terminal/destiny-easter-egg";
+import { DESTINY_PHOTO } from "@/lib/easter-eggs";
 
 /** Runs a command through the session, exactly like tapping a suggestion chip. */
 function runCommand(command: string) {
@@ -30,7 +31,7 @@ export function DestinyOutput() {
 		<div className="leading-relaxed">
 			<p className="text-[#f0a6ca]">❤ destiny</p>
 			<Image
-				src="/images/destiny.jpg"
+				src={DESTINY_PHOTO}
 				alt="Destiny"
 				width={180}
 				height={240}
