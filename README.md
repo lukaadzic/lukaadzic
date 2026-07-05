@@ -7,14 +7,6 @@ greets you and waits. You reveal the rest by prompting it: type commands
 
 Live at **[lukaadzic.dev](https://lukaadzic.dev)**.
 
-## Development
-
-```bash
-bun install
-cp .env.example .env   # then add your GITHUB_TOKEN
-bun dev
-```
-
 ## Stack
 
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind v4 · Biome
