@@ -11,7 +11,8 @@ remembered per tab via `sessionStorage` (the `/404` card always floats). On
 load only a short `welcome` greeting types out and stays
 pinned at the top, then the visitor reveals content by prompting — typing
 commands or clicking the suggestion chips under the prompt (`about`,
-`projects`, `github`, `socials`, `cv`, and an accented `./everything.sh`).
+`projects`, `github`, `socials`, `cv`, `help`, and an accented
+`./everything.sh`).
 The chips act as a segmented tab bar: the chip for whatever command is
 currently displayed reads as active/brighter, every other chip stays in a
 clearly-clickable resting state — there is no "already run" dimming. The
