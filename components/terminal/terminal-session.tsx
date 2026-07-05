@@ -72,11 +72,6 @@ export function TerminalSession() {
 	const [inputValue, setInputValue] = useState("");
 	const [animating, setAnimating] = useState(false);
 	const [cursorBlink, setCursorBlink] = useState(true);
-	// Flips once the opening welcome beat finishes, triggering the chips'
-	// staggered fade-in. False on both server and initial client render, so
-	// there's no hydration mismatch.
-	const [chipsRevealed, setChipsRevealed] = useState(false);
-
 	const genRef = useRef(0);
 	const idRef = useRef(0);
 	const reducedRef = useRef(false);
@@ -194,7 +189,6 @@ export function TerminalSession() {
 				});
 			}
 			setAnimating(false);
-			setChipsRevealed(true);
 			focusInput();
 		})();
 	}, [focusInput, typeAtPrompt]);
@@ -342,11 +336,7 @@ export function TerminalSession() {
 				<PromptLine input={inputValue} cursor cursorBlink={cursorBlink} />
 			</div>
 
-			<div
-				className={`terminal-chip-row mt-5 flex flex-wrap gap-2 ${
-					chipsRevealed ? "terminal-chips-in" : ""
-				}`}
-			>
+			<div className="terminal-chip-row mt-5 flex flex-wrap gap-2">
 				{SUGGESTED_COMMANDS.map((command) => (
 					<button
 						key={command}

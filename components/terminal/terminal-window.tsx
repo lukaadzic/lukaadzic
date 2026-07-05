@@ -1,20 +1,44 @@
 "use client";
 
-import { type ReactNode, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 type TerminalWindowProps = {
 	children: ReactNode;
+	/**
+	 * The 404 card is too small to fill the screen — it always floats, and
+	 * the green light nudges its width like the old zoom behavior.
+	 */
+	floatingOnly?: boolean;
 };
 
 const TITLE = "lukaadzic — -zsh — 80×24";
+const MODE_STORAGE_KEY = "terminal-window-mode";
 
-export function TerminalWindow({ children }: TerminalWindowProps) {
+export function TerminalWindow({
+	children,
+	floatingOnly = false,
+}: TerminalWindowProps) {
+	// Fullscreen is the default; the green traffic light zooms down to the
+	// floating windowed look and back, remembered per tab.
+	const [fullscreen, setFullscreen] = useState(!floatingOnly);
 	const [maximized, setMaximized] = useState(false);
 	const [shaking, setShaking] = useState(false);
 	const [minimizing, setMinimizing] = useState(false);
 	const [showNiceTry, setShowNiceTry] = useState(false);
 	const shakeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const toastTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	// Restore this tab's zoom choice (default: fullscreen on first visit).
+	useEffect(() => {
+		if (floatingOnly) return;
+		try {
+			if (window.sessionStorage.getItem(MODE_STORAGE_KEY) === "floating") {
+				setFullscreen(false);
+			}
+		} catch {
+			// sessionStorage unavailable (e.g. blocked) — keep the default.
+		}
+	}, [floatingOnly]);
 
 	function handleClose() {
 		setShaking(false);
@@ -35,25 +59,47 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 		setMinimizing(true);
 	}
 
-	function handleMaximize() {
-		setMaximized((prev) => !prev);
+	function handleZoom() {
+		if (floatingOnly) {
+			setMaximized((prev) => !prev);
+			return;
+		}
+		setFullscreen((prev) => {
+			const next = !prev;
+			try {
+				window.sessionStorage.setItem(
+					MODE_STORAGE_KEY,
+					next ? "fullscreen" : "floating",
+				);
+			} catch {
+				// Persistence is best-effort only.
+			}
+			return next;
+		});
 	}
+
+	const frameClass = floatingOnly
+		? `mx-auto transition-[max-width] duration-300 ease-out ${
+				maximized ? "max-w-[960px]" : "max-w-[720px]"
+			}`
+		: "terminal-window-frame mx-auto";
 
 	return (
 		<div
-			className={`terminal-window-in relative mx-auto w-full transition-[max-width] duration-300 ease-out ${
-				maximized ? "max-w-[960px]" : "max-w-[720px]"
-			} ${shaking ? "terminal-shake" : ""} ${
-				minimizing ? "terminal-minimize" : ""
-			}`}
+			data-mode={
+				floatingOnly ? undefined : fullscreen ? "fullscreen" : "floating"
+			}
+			className={`terminal-window-in relative w-full ${frameClass} ${
+				shaking ? "terminal-shake" : ""
+			} ${minimizing ? "terminal-minimize" : ""}`}
 			onAnimationEnd={(event) => {
 				if (event.animationName === "terminal-minimize") {
 					setMinimizing(false);
 				}
 			}}
 		>
-			<div className="overflow-hidden rounded-[12px] border border-white/10 bg-[rgba(30,30,32,0.92)] shadow-[0_0_0_0.5px_rgba(0,0,0,0.6),0_20px_50px_rgba(0,0,0,0.55),0_8px_20px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl">
-				<div className="relative flex h-[38px] items-center justify-center bg-gradient-to-b from-white/[0.07] to-black/[0.15] px-3 backdrop-blur-sm">
+			<div className="terminal-window-chrome">
+				<div className="terminal-window-titlebar relative flex h-[38px] items-center justify-center bg-gradient-to-b from-white/[0.07] to-black/[0.15] px-3 backdrop-blur-sm">
 					<div className="group absolute left-5 flex items-center gap-2">
 						<button
 							type="button"
@@ -78,7 +124,7 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 						<button
 							type="button"
 							aria-label="Zoom"
-							onClick={handleMaximize}
+							onClick={handleZoom}
 							className="relative flex h-3 w-3 items-center justify-center rounded-full bg-[#28c840] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.15)]"
 						>
 							<span className="select-none text-[8px] leading-none text-black/60 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
@@ -101,7 +147,9 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 					)}
 				</div>
 
-				<div className="p-4 sm:p-6">{children}</div>
+				<div className="terminal-window-content p-4 sm:p-6">
+					<div className="terminal-window-content-inner">{children}</div>
+				</div>
 			</div>
 		</div>
 	);
