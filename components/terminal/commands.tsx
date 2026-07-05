@@ -1,5 +1,9 @@
 import type { ReactNode } from "react";
 import { AboutOutput } from "@/components/terminal/about-output";
+import {
+	GIVEON_BAR_LENGTH,
+	GiveonOutput,
+} from "@/components/terminal/giveon-output";
 import { GithubOutput } from "@/components/terminal/github-output";
 import { HelpOutput } from "@/components/terminal/help-output";
 import { HistoryOutput } from "@/components/terminal/history-output";
@@ -10,6 +14,7 @@ import { ProjectsOutput } from "@/components/terminal/projects-output";
 import { SocialsOutput } from "@/components/terminal/socials-output";
 import { WelcomeOutput } from "@/components/terminal/welcome-output";
 import { WhoamiOutput } from "@/components/terminal/whoami-output";
+import { BELOVED } from "@/lib/easter-eggs";
 import { SITE } from "@/lib/site";
 
 export type CommandResult = {
@@ -47,6 +52,15 @@ const age: Renderer = () => ({
 		</p>
 	),
 });
+
+/** `giveon` / `beloved` — track + progress are picked here, at execution
+ * time (same pattern as `date`), never inside the component's render. */
+const giveon: Renderer = () => {
+	const track =
+		BELOVED.tracks[Math.floor(Math.random() * BELOVED.tracks.length)];
+	const filled = 1 + Math.floor(Math.random() * (GIVEON_BAR_LENGTH - 1));
+	return { output: <GiveonOutput track={track} filled={filled} /> };
+};
 
 const pwd: Renderer = () => ({
 	output: <p className="text-muted">/Users/lukaadzic</p>,
@@ -108,6 +122,10 @@ const REGISTRY: Record<string, Renderer> = {
 	help,
 	cv,
 	email,
+	giveon,
+	beloved: giveon,
+	".beloved": giveon,
+	"cat .beloved": giveon,
 	[EVERYTHING_COMMAND]: everything,
 };
 
@@ -160,6 +178,8 @@ export const KNOWN_COMMANDS = [
 	"pwd",
 	"clear",
 	EVERYTHING_COMMAND,
+	"giveon",
+	"beloved",
 ];
 
 const NOT_SUDOERS =
