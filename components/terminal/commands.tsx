@@ -230,7 +230,6 @@ const everything: Renderer = () => ({
 			<ProjectsOutput />
 			<GithubOutput />
 			<SocialsOutput />
-			<DestinyOutput />
 		</div>
 	),
 });
