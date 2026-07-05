@@ -268,7 +268,10 @@ const REGISTRY: Record<string, Renderer> = {
 	shootout: penalty,
 	"./penalty.sh": penalty,
 	"cat /etc/loved-ones": lovedOnes,
+	"loved-ones": lovedOnes,
+	love: lovedOnes,
 	"git log --oneline": gitLog,
+	"git log": gitLog,
 	[EVERYTHING_COMMAND]: everything,
 };
 
@@ -339,7 +342,10 @@ export const KNOWN_COMMANDS = [
 	"shootout",
 	"./penalty.sh",
 	"cat /etc/loved-ones",
+	"loved-ones",
+	"love",
 	"git log --oneline",
+	"git log",
 	"ls -la",
 ];
 
