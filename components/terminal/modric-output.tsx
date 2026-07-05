@@ -8,6 +8,7 @@ export function ModricOutput() {
 			<p className="text-muted">{MODRIC.stats}</p>
 			<p className="text-muted">{MODRIC.moment}</p>
 			<p className="text-faint">{MODRIC.closer}</p>
+			<p className="text-faint">{MODRIC.petNote}</p>
 		</div>
 	);
 }
