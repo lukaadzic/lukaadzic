@@ -183,10 +183,21 @@ that same registry, so every path renders identical output.
      across the whole sequence (chips and prompt below it don't shift either,
      since transform never touches layout).
   6. `~80ms` after the welcome rise begins — the suggestion chips ripple in
-     (existing pure-CSS stagger, fixed `animation-delay`s tuned to land right
-     after the expected typing completion, no JS gate — they can never be
-     stranded invisible) with a ~40ms stagger, and chips get a subtle
-     `scale(0.97)` on press.
+     with a ~40ms stagger, and chips get a subtle `scale(0.97)` on press.
+
+  Beats 3 and 6 are CSS `animation-delay`s, but timed off one clock, not
+  two: `terminal-session.tsx` sets a `data-booted` attribute on the session
+  root in the exact same effect that starts the typed `welcome` beat (JS
+  clock t=0), and `[data-booted] .terminal-active-prompt-in` /
+  `[data-booted] .terminal-chip-row > *` in `globals.css` measure their
+  delays from that attribute landing rather than from stylesheet-load time —
+  otherwise, on a device where hydration lags well behind first paint, the
+  prompt and chips (timed off page load) can render before typing even
+  starts. Each of those two rules also keeps an ungated fallback copy with a
+  long ~3s delay and a distinct `animation-name` (needed so the browser
+  restarts the animation, delay included, once `data-booted` starts
+  matching) — an un-strandable guarantee that the prompt/chips still
+  eventually appear even if JS never runs at all (this shipped broken once).
 - **Session/command motion.** The session shows the `welcome` block plus
   exactly one command group below it — never a stacking log. Running a new
   command fades the currently displayed group out (~120ms), types the new

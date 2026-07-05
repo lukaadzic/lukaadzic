@@ -97,6 +97,15 @@ export function TerminalSession() {
 		};
 	});
 	const [welcomeRevealed, setWelcomeRevealed] = useState(false);
+	// t=0 of the opening beat's JS clock — set in the same effect that kicks
+	// off the typed `welcome` beat below, so the CSS-timed beats that follow
+	// it (prompt reveal, chip stagger) can anchor their `animation-delay`s to
+	// real hydration time via `[data-booted] ...` selectors in globals.css,
+	// instead of stylesheet-load time. On a slow device that lags between
+	// paint and hydration, that's the difference between the prompt/chips
+	// racing ahead of the typing they're supposed to follow, and everything
+	// landing in order.
+	const [booted, setBooted] = useState(false);
 
 	// Exactly one command group (prompt + output) is displayed at a time.
 	// Running a new command swaps it out; `clear` empties it back to null.
@@ -221,12 +230,20 @@ export function TerminalSession() {
 	);
 
 	// Opening beat: auto-type one short `welcome` command (~1s), then hand
-	// the prompt over. This is the last JS-driven beat of the opening
-	// choreography — window fade, the "Last login" line, and the prompt +
-	// cursor all reveal on fixed CSS delays before this fires (see
-	// globals.css and the entrance-in classes below), so typing starts once
-	// the prompt itself has visibly landed. With prefers-reduced-motion the
-	// output appears instantly and the cursor holds steady.
+	// the prompt over. `setBooted(true)` below is t=0 of this same clock —
+	// the prompt-reveal and chip-stagger CSS animations in globals.css are
+	// gated on the `[data-booted]` attribute this sets on the root element,
+	// with their `animation-delay`s measured from here (350ms for the
+	// prompt, ~965ms+ for the chips) rather than from stylesheet-load time.
+	// That keeps every beat on one clock: on a slow device, hydration (and
+	// therefore this effect) can lag well behind the CSS-only window fade,
+	// but once it does run, the prompt/typing/chips still land in the same
+	// relative order instead of the CSS beats racing ahead of typing that
+	// hasn't started yet. Un-strandable fallback: globals.css also keeps a
+	// bare (ungated) copy of both rules with a long ~3s delay, so if JS
+	// never runs at all the prompt and chips still eventually appear rather
+	// than staying invisible forever. With prefers-reduced-motion the output
+	// appears instantly and the cursor holds steady.
 	useEffect(() => {
 		if (startedRef.current) return;
 		startedRef.current = true;
@@ -234,6 +251,7 @@ export function TerminalSession() {
 		reducedRef.current = window.matchMedia(
 			"(prefers-reduced-motion: reduce)",
 		).matches;
+		setBooted(true);
 
 		if (reducedRef.current) {
 			setCursorBlink(false);
@@ -451,6 +469,7 @@ export function TerminalSession() {
 		<div
 			role="log"
 			aria-label="Terminal session"
+			data-booted={booted ? "" : undefined}
 			className="terminal-session relative font-mono text-[13px] leading-relaxed sm:text-[14px]"
 			onClick={handleContainerClick}
 		>
