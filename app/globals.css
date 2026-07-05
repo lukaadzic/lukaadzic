@@ -560,15 +560,10 @@ body {
 	}
 }
 
-/* Wraps the single displayed command group. Smooths the window's height
-   change as groups swap, where the browser supports animating to/from
-   `auto` sizes; elsewhere the resize just happens instantly, and the
-   opacity/transform transition on the group itself keeps that from feeling
-   jarring. */
-.terminal-group-container {
-	interpolate-size: allow-keywords;
-	transition: height 220ms cubic-bezier(0.16, 1, 0.3, 1);
-}
+/* Wraps the single displayed command group. Its height is driven entirely
+   by JS (a measured FLIP transition in terminal-session.tsx) rather than
+   CSS, since `interpolate-size` — the only way to `transition: height` to
+   an `auto` target in plain CSS — only ships in very new Chrome. */
 
 @media (prefers-reduced-motion: reduce) {
 	.terminal-window-in,
@@ -580,8 +575,7 @@ body {
 
 	.terminal-stage,
 	.terminal-window-frame,
-	.terminal-window-chrome,
-	.terminal-group-container {
+	.terminal-window-chrome {
 		transition: none;
 	}
 
