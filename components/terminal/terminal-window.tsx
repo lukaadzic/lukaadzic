@@ -1,6 +1,8 @@
 "use client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
+import { CloseAlert } from "@/components/terminal/close-alert";
+import { CLOSE_ALERT } from "@/lib/easter-eggs";
 
 type TerminalWindowProps = {
 	children: ReactNode;
@@ -25,8 +27,17 @@ export function TerminalWindow({
 	const [shaking, setShaking] = useState(false);
 	const [minimizing, setMinimizing] = useState(false);
 	const [showNiceTry, setShowNiceTry] = useState(false);
+	// Red light on the home page: a "don't leave." alert instead of a toast.
+	// closeAttempts doubles as "has the alert ever been mounted" — the alert
+	// stays mounted after the first open so its Spotify iframe (and the
+	// music) survives dismissal.
+	const [closeAttempts, setCloseAttempts] = useState(0);
+	const [alertOpen, setAlertOpen] = useState(false);
+	const [showStayNote, setShowStayNote] = useState(false);
 	const shakeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const toastTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const stayNoteTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const closeButtonRef = useRef<HTMLButtonElement>(null);
 
 	// Restore this tab's zoom choice (default: fullscreen on first visit).
 	useEffect(() => {
@@ -45,13 +56,33 @@ export function TerminalWindow({
 		// Force a reflow so retriggering the animation class works even if
 		// clicked twice in quick succession.
 		requestAnimationFrame(() => setShaking(true));
-		setShowNiceTry(true);
-
 		if (shakeTimeout.current) clearTimeout(shakeTimeout.current);
-		if (toastTimeout.current) clearTimeout(toastTimeout.current);
-
 		shakeTimeout.current = setTimeout(() => setShaking(false), 420);
-		toastTimeout.current = setTimeout(() => setShowNiceTry(false), 1400);
+
+		// The 404 card keeps the plain toast. The home terminal can't let
+		// go: a macOS-style "don't leave." alert opens with DON'T LEAVE
+		// already playing inside it.
+		if (floatingOnly) {
+			setShowNiceTry(true);
+			if (toastTimeout.current) clearTimeout(toastTimeout.current);
+			toastTimeout.current = setTimeout(() => setShowNiceTry(false), 1400);
+			return;
+		}
+		setCloseAttempts((attempts) => attempts + 1);
+		setAlertOpen(true);
+	}
+
+	function handleAlertStay() {
+		setAlertOpen(false);
+		closeButtonRef.current?.focus();
+	}
+
+	function handleAlertGiveUp() {
+		setAlertOpen(false);
+		setShowStayNote(true);
+		if (stayNoteTimeout.current) clearTimeout(stayNoteTimeout.current);
+		stayNoteTimeout.current = setTimeout(() => setShowStayNote(false), 2400);
+		closeButtonRef.current?.focus();
 	}
 
 	function handleMinimize() {
@@ -108,6 +139,7 @@ export function TerminalWindow({
 				<div className="terminal-window-titlebar relative flex h-[38px] items-center justify-center bg-gradient-to-b from-white/[0.07] to-black/[0.15] px-3 backdrop-blur-sm">
 					<div className="group absolute left-5 flex items-center gap-2">
 						<button
+							ref={closeButtonRef}
 							type="button"
 							aria-label="Close"
 							onClick={handleClose}
@@ -151,12 +183,27 @@ export function TerminalWindow({
 							nice try 🙂
 						</span>
 					)}
+
+					{showStayNote && (
+						<output className="terminal-toast absolute left-3 top-full z-30 mt-1.5 rounded-md bg-black/80 px-2 py-1 text-[11px] text-white/60">
+							{CLOSE_ALERT.dismissNote}
+						</output>
+					)}
 				</div>
 
 				<div className="terminal-window-content p-4 sm:p-6">
 					<div className="terminal-window-content-inner">{children}</div>
 				</div>
 			</div>
+
+			{closeAttempts > 0 && (
+				<CloseAlert
+					open={alertOpen}
+					attempt={closeAttempts}
+					onStay={handleAlertStay}
+					onGiveUp={handleAlertGiveUp}
+				/>
+			)}
 		</div>
 	);
 }
