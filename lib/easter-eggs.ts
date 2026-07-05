@@ -27,3 +27,18 @@ export const BELOVED = {
 		"GOOD BAD UGLY",
 	],
 } as const;
+
+export const VATRENI = {
+	heading: "Vatreni 🔥 — Hrvatska",
+	summary: "2018 World Cup finalists · 2022 bronze",
+	closer: "idemo!",
+} as const;
+
+export const MODRIC = {
+	headline: "Luka Modrić — #10",
+	stats:
+		"Ballon d'Or 2018 · 6× Champions League · Croatia's most-capped player",
+	moment: "captained the 2018 World Cup final run",
+	closer:
+		"the other Luka. we share a first name and that's where the comparison ends (his favor).",
+} as const;

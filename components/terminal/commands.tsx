@@ -1,17 +1,19 @@
 import type { ReactNode } from "react";
 import { AboutOutput } from "@/components/terminal/about-output";
+import { GithubOutput } from "@/components/terminal/github-output";
 import {
 	GIVEON_BAR_LENGTH,
 	GiveonOutput,
 } from "@/components/terminal/giveon-output";
-import { GithubOutput } from "@/components/terminal/github-output";
 import { HelpOutput } from "@/components/terminal/help-output";
 import { HistoryOutput } from "@/components/terminal/history-output";
 import { LiveAge } from "@/components/terminal/live-age";
 import { LsHomeOutput } from "@/components/terminal/ls-home-output";
 import { LsProjectsOutput } from "@/components/terminal/ls-projects-output";
+import { ModricOutput } from "@/components/terminal/modric-output";
 import { ProjectsOutput } from "@/components/terminal/projects-output";
 import { SocialsOutput } from "@/components/terminal/socials-output";
+import { VatreniOutput } from "@/components/terminal/vatreni-output";
 import { WelcomeOutput } from "@/components/terminal/welcome-output";
 import { WhoamiOutput } from "@/components/terminal/whoami-output";
 import { BELOVED } from "@/lib/easter-eggs";
@@ -61,6 +63,10 @@ const giveon: Renderer = () => {
 	const filled = 1 + Math.floor(Math.random() * (GIVEON_BAR_LENGTH - 1));
 	return { output: <GiveonOutput track={track} filled={filled} /> };
 };
+
+const vatreni: Renderer = () => ({ output: <VatreniOutput /> });
+
+const modric: Renderer = () => ({ output: <ModricOutput /> });
 
 const pwd: Renderer = () => ({
 	output: <p className="text-muted">/Users/lukaadzic</p>,
@@ -126,6 +132,12 @@ const REGISTRY: Record<string, Renderer> = {
 	beloved: giveon,
 	".beloved": giveon,
 	"cat .beloved": giveon,
+	vatreni,
+	hrvatska: vatreni,
+	croatia: vatreni,
+	".vatreni": vatreni,
+	"cat .vatreni": vatreni,
+	modric,
 	[EVERYTHING_COMMAND]: everything,
 };
 
@@ -180,6 +192,10 @@ export const KNOWN_COMMANDS = [
 	EVERYTHING_COMMAND,
 	"giveon",
 	"beloved",
+	"vatreni",
+	"hrvatska",
+	"croatia",
+	"modric",
 ];
 
 const NOT_SUDOERS =
