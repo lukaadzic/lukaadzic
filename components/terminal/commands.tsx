@@ -156,20 +156,21 @@ export function resolveCommand(
 	history: string[] = [],
 ): CommandResult | "clear" {
 	const trimmed = raw.trim();
+	const lower = trimmed.toLowerCase();
 
 	if (trimmed === "") {
 		return { output: null };
 	}
 
-	if (trimmed === "clear") {
+	if (lower === "clear") {
 		return "clear";
 	}
 
-	if (trimmed === "exit") {
+	if (lower === "exit") {
 		return { output: <p className="text-muted">{NO_ESCAPE}</p> };
 	}
 
-	if (/^sudo(\s|$)/.test(trimmed)) {
+	if (/^sudo(\s|$)/.test(lower)) {
 		return { output: <p className="text-muted">{NOT_SUDOERS}</p> };
 	}
 
@@ -178,11 +179,11 @@ export function resolveCommand(
 		return { output: <p className="text-muted">{echoMatch[1] ?? ""}</p> };
 	}
 
-	if (trimmed.toLowerCase() === "history") {
+	if (lower === "history") {
 		return { output: <HistoryOutput commands={history} /> };
 	}
 
-	const handler = REGISTRY[trimmed.toLowerCase()];
+	const handler = REGISTRY[lower];
 	if (handler) {
 		return handler();
 	}

@@ -58,7 +58,7 @@ export function WelcomeOutput() {
 			</pre>
 
 			<p className="mt-2 text-foreground">
-				Hi, I&apos;m {FIRST_NAME} — Student @ Wharton · Philadelphia.
+				Hi, I&apos;m {FIRST_NAME} — {SITE.tagline}.
 			</p>
 			<p className="text-faint">
 				Type a command, or click one below. Try `./everything.sh` to see it all.

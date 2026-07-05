@@ -11,6 +11,11 @@ const GITHUB_USERNAME_REGEX =
 const SUCCESS_CACHE_CONTROL =
 	"public, s-maxage=3600, stale-while-revalidate=86400";
 
+// Fallback data is degraded — keep it out of the CDN for long so real data
+// replaces it quickly once GitHub recovers.
+const FALLBACK_CACHE_CONTROL =
+	"public, s-maxage=60, stale-while-revalidate=300";
+
 function fallbackResponse() {
 	const fallbackData = generateFallbackContributions();
 	return NextResponse.json(
@@ -20,7 +25,7 @@ function fallbackResponse() {
 		},
 		{
 			status: 200,
-			headers: { "Cache-Control": SUCCESS_CACHE_CONTROL },
+			headers: { "Cache-Control": FALLBACK_CACHE_CONTROL },
 		},
 	);
 }

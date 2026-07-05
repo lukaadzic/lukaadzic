@@ -11,7 +11,7 @@ export function SeoContent() {
 	return (
 		<section className="sr-only">
 			<h1>{SITE.name}</h1>
-			<p>Student @ Wharton · Philadelphia</p>
+			<p>{SITE.tagline}</p>
 			<p>{SITE.description}</p>
 
 			<h2>Projects</h2>
