@@ -196,23 +196,25 @@ export type Pet = {
 	grid: readonly string[];
 };
 
-/** Shared silhouette for the two kittens — same pose, ears/head/body/paws —
- * so Modro and Vida read as siblings; only the palette (fur, eyes, paws)
- * differs between them. `b` body, `d` ear-notch shade, `e` eye, `p` nose,
- * `x` paw (the one deliberately distinguishing feature per cat). */
-const KITTEN_GRID = [
+/** Shared silhouette for the two kittens — both are tabbies in real life
+ * (photo-verified littermates), so the pose AND the stripe/white-chest
+ * pattern are shared; only the palette (fur tone, stripe tone, eye color,
+ * paw color — the distinguishing feature) differs between them.
+ * `b` body, `t` stripe, `w` white chin/chest, `d` ear-notch shade,
+ * `e` eye, `p` nose, `x` paw. */
+const TABBY_KITTEN_GRID = [
 	"...b........b...",
 	"..bdb......bdb..",
 	".bdbb......bbdb.",
-	".bbbbbbbbbbbbbb.",
+	".bbtbbbttbbbtbb.",
 	".bbeebbbbbbeebb.",
 	".bbbbbbbbbbbbbb.",
-	".bbbbbbppbbbbbb.",
-	"..bbbbbbbbbbbb..",
-	".bbbbbbbbbbbbbb.",
-	"bbbbbbbbbbbbbbbb",
-	"bbbbbbbbbbbbbbbb",
-	"bbbbbbbbbbbbbbbb",
+	".tbbbbbppbbbbbt.",
+	"..bbbbwwwwbbbb..",
+	".bbtbbwwwwbbtbb.",
+	"btbbtbwwwwbtbbtb",
+	"bbtbbtbwwbtbbtbb",
+	"btbbtbbbbbbtbbtb",
 	"..xxxxx..xxxxx..",
 	"...xxx....xxx...",
 ] as const;
@@ -243,39 +245,44 @@ export const PETS: readonly Pet[] = [
 		id: "modro",
 		name: "modro",
 		nameColor: "#6bc7f5",
-		caption: "modro means blue in croatian. he earned it.",
+		caption: "modro means blue in croatian. he's a brown tabby. we don't ask.",
 		bornLine: "born apr 13, 2026",
 		palette: {
 			".": "transparent",
-			b: "#57677d",
+			b: "#7c6f5d",
+			t: "#453a2d",
+			w: "#ece5d8",
 			d: "#14171b",
-			e: "#6bcf82",
+			e: "#a3b060",
 			p: "#d99aa8",
-			x: "#343a45",
+			x: "#3a3227",
 		},
-		grid: KITTEN_GRID,
+		grid: TABBY_KITTEN_GRID,
 	},
 	{
 		id: "vida",
 		name: "vida",
 		nameColor: "#efe6d8",
-		caption: "white paws, walks like she owns the place.",
+		caption: "white paws, walks like he owns the place.",
 		bornLine: "born apr 13, 2026",
 		palette: {
 			".": "transparent",
-			b: "#b7ada0",
+			b: "#a8a29a",
+			t: "#55514b",
+			w: "#f4efe6",
 			d: "#14171b",
 			e: "#e2a53f",
 			p: "#d99aa8",
 			x: "#f4efe6",
 		},
-		grid: KITTEN_GRID,
+		grid: TABBY_KITTEN_GRID,
 	},
 	{
 		id: "baby",
 		name: "baby",
 		nameColor: "#c98a4b",
-		caption: "best beagle alive.",
+		caption: "best beagle alive. she knows it.",
+		bornLine: "born apr 30, 2021",
 		palette: {
 			".": "transparent",
 			n: "#8a5a34",
