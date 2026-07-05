@@ -182,7 +182,9 @@ body {
 	margin-inline: auto;
 }
 
-/* Window opening — a quick scale + fade, like macOS spawning a window. */
+/* Window opening — a quick scale + fade, like macOS spawning a window. Used
+   by the floating/windowed look (and the 404 card), where the window is a
+   small element and animating its scale is cheap. */
 @keyframes terminal-window-in {
 	from {
 		opacity: 0;
@@ -196,6 +198,26 @@ body {
 
 .terminal-window-in {
 	animation: terminal-window-in 350ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+/* Fullscreen opens edge-to-edge — scaling a full-viewport element forces the
+   browser to repaint the whole page every frame. Opacity + a small
+   translateY is compositor-only, so the entrance stays smooth even on the
+   home page's default fullscreen mode. Selector specificity beats the base
+   rule above since `data-mode` lives on the same element as the class. */
+@keyframes terminal-window-in-flat {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+[data-mode="fullscreen"].terminal-window-in {
+	animation: terminal-window-in-flat 300ms cubic-bezier(0.32, 0.72, 0, 1) both;
 }
 
 /* Red traffic light — "nice try", a firm little shake. */
@@ -509,22 +531,22 @@ body {
 }
 
 .terminal-chip-row > *:nth-child(1) {
-	animation-delay: 1100ms;
+	animation-delay: 950ms;
 }
 .terminal-chip-row > *:nth-child(2) {
-	animation-delay: 1140ms;
+	animation-delay: 990ms;
 }
 .terminal-chip-row > *:nth-child(3) {
-	animation-delay: 1180ms;
+	animation-delay: 1030ms;
 }
 .terminal-chip-row > *:nth-child(4) {
-	animation-delay: 1220ms;
+	animation-delay: 1070ms;
 }
 .terminal-chip-row > *:nth-child(5) {
-	animation-delay: 1260ms;
+	animation-delay: 1110ms;
 }
 .terminal-chip-row > *:nth-child(6) {
-	animation-delay: 1300ms;
+	animation-delay: 1150ms;
 }
 
 @keyframes terminal-chip-in {
@@ -549,7 +571,8 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.terminal-window-in {
+	.terminal-window-in,
+	[data-mode="fullscreen"].terminal-window-in {
 		animation: none;
 		opacity: 1;
 		transform: none;
