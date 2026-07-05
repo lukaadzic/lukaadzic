@@ -74,14 +74,35 @@ the home page (`terminal-window.tsx` + `minimize-dock.tsx`) really
 minimizes: the window shrinks toward its own center and hides
 (`visibility: hidden`, never unmounted, so a playing Spotify embed and the
 ticking live-age both survive), and a full-viewport centered "still
-compiling" splash fades up over the wallpaper in its place — baby-Luka's
-photo icon (`public/images/luka-kid.jpg`, green-`L` fallback), the name
-`luka_early_build.app`, and a fake terminal compile progress line
+compiling" splash fades up in its place over a slow, dark `ShaderGradient`
+backdrop (`@shadergradient/react`, tuned to the same deep blue/purple wash
+as `.terminal-stage`'s own wallpaper gradient — never a bright preset) —
+baby-Luka's photo icon (`public/images/luka-kid.jpg`, green-`L` fallback),
+the name `luka_early_build.app`, and a fake terminal compile progress line
 (`compiling ▓▓▓▓▓░░░░░ 47%`) that crawls, stalls near 99%, and drops back on
 a loop that never finishes — it's v0.1, still compiling, that's the joke —
-under a faint `click anywhere to restore` hint; click anywhere on the splash
-(or Enter/Space on the focused icon, or Esc from anywhere) restores. The
-`/404` card keeps the old plain bounce-back instead. So the
+under a faint `click anywhere to restore` hint. The shader (and,
+transitively, three.js/`@react-three/fiber`) is lazy-loaded from exactly one
+place, `minimize-splash-shader.tsx`, reached only via
+`next/dynamic(..., { ssr: false })` inside `minimize-dock.tsx` — the chunk
+is fetched the first time someone actually minimizes, never on page load, so
+`/`'s First Load JS is unaffected (verified against `next build` output). A
+static CSS echo of the wallpaper (`.minimize-splash-backdrop`) is always the
+base layer, so there's no flash while the chunk loads and a silent,
+on-brand fallback for reduced motion, no WebGL, or a browser that never
+finishes loading the chunk at all. Click anywhere on the splash (or
+Enter/Space on the focused icon, or Esc from anywhere) restores — as a real
+crossfade: the splash's own fade-out and the window's fade-in both start on
+the same tick and run the same 200ms/easing (`MinimizeDock`'s `dismissing`
+prop and `TerminalWindow`'s `restoring` state are the same boolean), so
+there's never a sequential "splash gone, then window pops in" gap. The
+window frame's page-load entrance class (`terminal-window-in`) is
+permanently stripped once its animation first finishes (`hasEntered`) —
+left in place, it silently became the winning `animation` declaration again
+every time `restoring`'s class came back off, replaying the fade-in-from-
+scratch on every single restore (a real, reproduced jostle) right after the
+crossfade had already finished. The `/404` card keeps the old plain
+bounce-back instead. So the
 track starts
 the instant the alert opens rather than after a script fetch,
 `terminal-window.tsx` warms Spotify's iFrame API script during idle time
@@ -281,8 +302,13 @@ that same registry, so every path renders identical output.
   `sr-only` server-rendered block with the full content (name, about,
   project links, social links, email, resume) derived from `lib/`. Keep it
   in sync when adding content sections.
-- **No new dependencies without a strong reason.** Currently 4 runtime deps
-  (`next`, `react`, `react-dom`, `@vercel/analytics`). Justify any addition.
+- **No new dependencies without a strong reason.** Currently 8 runtime deps:
+  `next`, `react`, `react-dom`, `@vercel/analytics`, plus
+  `@shadergradient/react` + `@react-three/fiber` + `three` +
+  `camera-controls` for the minimize splash's shader backdrop
+  (`minimize-splash-shader.tsx`) — all four are lazy-loaded via
+  `next/dynamic(..., { ssr: false })` from that one file, so they never ship
+  in the main bundle. Justify any addition.
 
 ## Git & attribution
 

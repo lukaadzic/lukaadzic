@@ -1,12 +1,29 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 type MinimizeDockProps = {
 	kidPhotoSrc: string;
-	isMinimized: boolean;
-	onRestore: () => void;
+	/** Mount gate. Goes true the moment the minimize-fly finishes, and stays
+	 * true all the way through the crossfade-out below — it only goes false
+	 * once `onDismissed` fires, unlike the old single `isMinimized` flag that
+	 * used to double as both "is this mounted" and "should it be fading out
+	 * right now", which is what made the restore sequential (see
+	 * `dismissing` below). */
+	open: boolean;
+	/** True the instant a restore is requested. Drives this splash's own
+	 * fade-out (`minimize-splash-out`) starting the exact same tick
+	 * `terminal-window.tsx` starts the window frame's fade-in — a real
+	 * crossfade instead of "splash fully gone, then window pops in". */
+	dismissing: boolean;
+	/** Fired immediately on click/Enter/Space/Esc — no animation wait, no
+	 * round trip through this splash's own exit animation first. */
+	onRequestRestore: () => void;
+	/** Fired once this splash's own fade-out animation has actually
+	 * finished, so the caller can unmount it (`open: false`). */
+	onDismissed: () => void;
 };
 
 const APP_NAME = "luka_early_build.app";
@@ -19,6 +36,24 @@ const PROGRESS_TICK_MS = 130;
 
 function reducedMotion(): boolean {
 	return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+/** WebGL feature probe, cached module-wide (cheap after the first call — a
+ * browser without WebGL never even requests the shader chunk below, and
+ * repeated minimizes never re-probe). */
+let webglSupport: boolean | null = null;
+function supportsWebGL(): boolean {
+	if (webglSupport !== null) return webglSupport;
+	try {
+		const canvas = document.createElement("canvas");
+		webglSupport = !!(
+			window.WebGLRenderingContext &&
+			(canvas.getContext("webgl2") || canvas.getContext("webgl"))
+		);
+	} catch {
+		webglSupport = false;
+	}
+	return webglSupport;
 }
 
 /** Renders `compiling ▓▓▓▓▓░░░░░ 47%` for the given 0-99 percent. */
@@ -59,49 +94,64 @@ function SplashPhoto({ src }: { src: string }) {
 	);
 }
 
+/** Lazy-loaded ONLY here, `ssr: false` — see minimize-splash-shader.tsx for
+ * why. `loading: () => null` renders nothing while the chunk (and its own
+ * WebGL init) is still in flight, so `.minimize-splash-backdrop` (the plain
+ * CSS wallpaper, always present underneath) is what's visible the instant
+ * the splash opens — never a flash of flat black waiting on three.js. */
+const MinimizeSplashShader = dynamic(
+	() => import("@/components/terminal/minimize-splash-shader"),
+	{ ssr: false, loading: () => null },
+);
+
 /**
  * The full-viewport "still compiling" splash the yellow light minimizes the
- * terminal into — baby-Luka's icon centered over the wallpaper, boot-screen
+ * terminal into — baby-Luka's icon centered over a slow, dark shader wash
+ * (tuned to the same wallpaper palette as `.terminal-stage`), boot-screen
  * style for `luka_early_build.app`, because the terminal really is still
  * running (its state and any playing music survive under
  * `visibility: hidden`). A tiny `setInterval` drives a fake compile progress
  * bar that crawls up, stalls near 99%, and drops back — it's v0.1, still
  * compiling, and it never finishes; that's the joke. Always mounted
  * (portaled to `document.body`, same pattern as `DestinyEasterEgg`) but
- * renders nothing while `isMinimized` is false — the terminal window itself
- * stays mounted throughout, so no state is ever lost. Clicking anywhere on
- * the splash (or Enter/Space on the focused icon, or Esc from anywhere)
- * sinks it back down before handing off to `onRestore`, which is what
- * actually flips the window visible again.
+ * renders nothing while `open` is false — the terminal window itself stays
+ * mounted throughout, so no state is ever lost. Clicking anywhere on the
+ * splash (or Enter/Space on the focused icon, or Esc from anywhere)
+ * immediately hands off to `onRequestRestore`, which is what actually starts
+ * both this splash's fade-out and the window's fade-in, at the same moment
+ * (see `terminal-window.tsx`).
  */
 export function MinimizeDock({
 	kidPhotoSrc,
-	isMinimized,
-	onRestore,
+	open,
+	dismissing,
+	onRequestRestore,
+	onDismissed,
 }: MinimizeDockProps) {
 	const buttonRef = useRef<HTMLButtonElement>(null);
-	const exitingRef = useRef(false);
-	const [exiting, setExiting] = useState(false);
 	const [bouncing, setBouncing] = useState(false);
 	const [percent, setPercent] = useState(12);
+	const [shaderEligible, setShaderEligible] = useState(false);
 
 	// Fresh appearance each time the splash comes up, and focus lands on the
 	// icon — the restore-side counterpart to the yellow light losing focus.
+	// Whether the shader is even worth loading is decided once per opening
+	// too: reduced motion skips it outright, and a browser without WebGL
+	// never requests the chunk at all.
 	useEffect(() => {
-		if (!isMinimized) return;
-		exitingRef.current = false;
-		setExiting(false);
+		if (!open) return;
 		setBouncing(false);
 		setPercent(12);
+		setShaderEligible(!reducedMotion() && supportsWebGL());
 		buttonRef.current?.focus();
-	}, [isMinimized]);
+	}, [open]);
 
 	// The fake compile progress: crawls up, hangs near 99% for a few ticks,
 	// then drops back to somewhere in the 50s/60s and climbs again — v0.1,
 	// still compiling, never actually finishes. Reduced motion skips the
 	// crawl entirely and just holds one static value.
 	useEffect(() => {
-		if (!isMinimized) return;
+		if (!open) return;
 		if (reducedMotion()) {
 			setPercent(REDUCED_MOTION_PERCENT);
 			return;
@@ -125,35 +175,30 @@ export function MinimizeDock({
 			});
 		}, PROGRESS_TICK_MS);
 		return () => clearInterval(id);
-	}, [isMinimized]);
+	}, [open]);
 
-	// A ref mirror of the restore path so the Esc listener below can always
-	// call the latest version without re-subscribing on every render.
-	const beginRestoreRef = useRef<() => void>(() => {});
-	beginRestoreRef.current = () => {
-		if (exitingRef.current) return;
-		if (reducedMotion()) {
-			onRestore();
-			return;
-		}
-		exitingRef.current = true;
-		setExiting(true);
-	};
+	// A ref mirror so the Esc listener and the click handler below always
+	// call the latest version without re-subscribing on every render. No
+	// local "exiting" gate here on purpose — `terminal-window.tsx` owns
+	// whether a restore is already underway (`dismissing`) and no-ops a
+	// second request itself, so this component just forwards the request.
+	const onRequestRestoreRef = useRef(onRequestRestore);
+	onRequestRestoreRef.current = onRequestRestore;
 
 	// Esc restores from anywhere while the splash is up, same as clicking it.
 	useEffect(() => {
-		if (!isMinimized) return;
+		if (!open) return;
 		function onKeyDown(event: KeyboardEvent) {
 			if (event.key === "Escape") {
 				event.preventDefault();
-				beginRestoreRef.current();
+				onRequestRestoreRef.current();
 			}
 		}
 		document.addEventListener("keydown", onKeyDown);
 		return () => document.removeEventListener("keydown", onKeyDown);
-	}, [isMinimized]);
+	}, [open]);
 
-	if (!isMinimized) return null;
+	if (!open) return null;
 
 	function handleBounce() {
 		if (reducedMotion()) return;
@@ -167,14 +212,22 @@ export function MinimizeDock({
 		// biome-ignore lint/a11y/noStaticElementInteractions: click-anywhere-to-restore is the whole point of this full-viewport layer; the icon button underneath remains the keyboard-operable control (Enter/Space), and Esc is handled globally above.
 		// biome-ignore lint/a11y/useKeyWithClickEvents: same reasoning — the button inside handles keyboard activation, and the global Esc listener above covers keyboard dismissal for this layer.
 		<div
-			className={`minimize-splash-wrap ${exiting ? "minimize-splash-out" : ""}`}
-			onClick={() => beginRestoreRef.current()}
+			className={`minimize-splash-wrap ${dismissing ? "minimize-splash-out" : ""}`}
+			onClick={() => onRequestRestoreRef.current()}
 			onAnimationEnd={(event) => {
 				if (event.animationName === "minimize-splash-out") {
-					onRestore();
+					onDismissed();
 				}
 			}}
 		>
+			<div aria-hidden="true" className="minimize-splash-backdrop" />
+			{shaderEligible && (
+				<div aria-hidden="true" className="minimize-splash-shader-layer">
+					<MinimizeSplashShader />
+				</div>
+			)}
+			<div aria-hidden="true" className="minimize-splash-vignette" />
+
 			<button
 				ref={buttonRef}
 				type="button"
@@ -185,22 +238,22 @@ export function MinimizeDock({
 						setBouncing(false);
 					}
 				}}
-				className={`minimize-splash-icon h-28 w-28 overflow-hidden rounded-[24px] border border-white/[0.12] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_24px_48px_rgba(0,0,0,0.5),0_10px_20px_rgba(0,0,0,0.35)] ${
+				className={`minimize-splash-icon relative z-10 h-28 w-28 overflow-hidden rounded-[24px] border border-white/[0.12] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_24px_48px_rgba(0,0,0,0.5),0_10px_20px_rgba(0,0,0,0.35)] ${
 					bouncing ? "minimize-splash-bounce" : ""
 				}`}
 			>
 				<SplashPhoto src={kidPhotoSrc} />
 			</button>
-			<p className="minimize-splash-name mt-4 font-mono text-[13px] text-foreground">
+			<p className="minimize-splash-name relative z-10 mt-4 font-mono text-[13px] text-foreground">
 				{APP_NAME}
 			</p>
 			<p
 				aria-hidden="true"
-				className="minimize-splash-progress mt-2 min-w-[15ch] text-center font-mono text-[12px] text-muted"
+				className="minimize-splash-progress relative z-10 mt-2 min-w-[15ch] text-center font-mono text-[12px] text-muted"
 			>
 				{progressLine(percent)}
 			</p>
-			<p className="minimize-splash-hint mt-3 font-mono text-[11px] text-faint">
+			<p className="minimize-splash-hint relative z-10 mt-3 font-mono text-[11px] text-faint">
 				{RESTORE_HINT}
 			</p>
 		</div>,

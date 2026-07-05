@@ -39,13 +39,32 @@ export function TerminalWindow({
 	// The old bounce-back minimize — kept only for the /404 card
 	// (`floatingOnly`), which has no desktop to dock an icon onto.
 	const [minimizing, setMinimizing] = useState(false);
-	// The real minimize-to-dock, home page only: `flyingOut` plays the
-	// shrink-fly animation on the window frame, `isMinimized` hides it once
-	// that finishes (and mounts the dock icon), `restoring` plays the
-	// fade/scale back in once the dock hands control back.
+	// The real minimize-to-dock, home page only. `flyingOut` plays the
+	// shrink-fly animation on the window frame; once that finishes,
+	// `windowHidden` hides the frame and `dockOpen` mounts the splash.
+	// Restoring used to be "wait for the splash's own fade-out to finish,
+	// THEN unhide the window" — sequential, and the visible cause of the
+	// restore jostle. Now `windowHidden` drops (and `restoring` starts the
+	// window's fade-in) the instant a restore is requested, at the exact
+	// same tick `dismissing` (== `restoring`, passed to `MinimizeDock`)
+	// starts the splash's own fade-out — a real crossfade. `dockOpen` only
+	// goes false once the splash's fade-out animation actually completes
+	// (`handleDockDismissed`), independent of the window's own fade-in
+	// timing, so the splash and window both stay mounted throughout the
+	// blend instead of one popping out from under the other.
 	const [flyingOut, setFlyingOut] = useState(false);
-	const [isMinimized, setIsMinimized] = useState(false);
+	const [dockOpen, setDockOpen] = useState(false);
+	const [windowHidden, setWindowHidden] = useState(false);
 	const [restoring, setRestoring] = useState(false);
+	// True once the window's own entrance animation has finished — after
+	// that, `terminal-window-in`/`-flat` is stripped from the frame's class
+	// list for good. Left in place, it stays the highest-specificity
+	// `animation` declaration once `restoring`'s class comes back off, and a
+	// change in the winning `animation-name` restarts a CSS animation from
+	// its `from` state even when the "to" state already matches — so every
+	// restore was replaying the page-load fade-in (a real, reproduced
+	// jostle) right after the crossfade had already finished.
+	const [hasEntered, setHasEntered] = useState(false);
 	const [showNiceTry, setShowNiceTry] = useState(false);
 	// Red light on the home page: a "don't leave." alert instead of a toast.
 	// closeAttempts doubles as "has the alert ever been mounted" — the alert
@@ -166,43 +185,58 @@ export function TerminalWindow({
 			return;
 		}
 
-		if (flyingOut || isMinimized) return;
+		if (flyingOut || dockOpen) return;
 		setFlyingOut(true);
+		// The entrance animation is long finished by the time anyone can
+		// reach this button — belt-and-suspenders in case it somehow isn't.
+		setHasEntered(true);
 		// Same reduced-motion escape hatch as above: skip straight to the
 		// hidden/docked state since the fly-out keyframes never play, so
 		// `animationend` never fires to do it for us.
 		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
 			setFlyingOut(false);
-			setIsMinimized(true);
+			setWindowHidden(true);
+			setDockOpen(true);
 		}
 	}
 
-	// The counterpart to handleMinimize — called by the dock icon (after its
-	// own exit animation) or by Esc while minimized. Focus returns to the
-	// yellow light (see the effect below — the button is still
-	// `visibility: hidden` at this exact point, since this state update
-	// hasn't committed to the DOM yet, so focusing it here would silently
-	// fail), mirroring focus landing on the dock icon on the way in.
+	// The counterpart to handleMinimize — called by the dock icon the
+	// instant a restore is requested (click/Enter/Esc), not after any
+	// animation of its own. Unhiding the window and starting its fade-in
+	// here, in the same tick `restoring` flips (which `MinimizeDock` also
+	// receives as `dismissing`, starting its own fade-out), is what makes
+	// the two blend as one crossfade instead of playing back to back.
+	// Guarded against double-firing (e.g. a stray Esc right after a click).
 	function handleRestore() {
-		setIsMinimized(false);
+		if (restoring) return;
+		setWindowHidden(false);
 		setRestoring(true);
+		// Reduced motion: instant swap, no crossfade to run at all — drop
+		// the splash and settle the window in the same tick.
 		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
 			setRestoring(false);
+			setDockOpen(false);
 		}
+	}
+
+	// The splash's own fade-out has actually finished (non-reduced-motion
+	// path only — the reduced-motion branch above already dropped it).
+	function handleDockDismissed() {
+		setDockOpen(false);
 	}
 
 	// Runs after the frame's `visibility: hidden` has actually been lifted,
 	// so the yellow light is focusable again. Skips the initial mount, since
-	// `isMinimized` starting as `false` shouldn't steal focus on page load.
+	// `windowHidden` starting as `false` shouldn't steal focus on page load.
 	useEffect(() => {
 		if (skipRestoreFocusRef.current) {
 			skipRestoreFocusRef.current = false;
 			return;
 		}
-		if (!isMinimized) {
+		if (!windowHidden) {
 			minimizeButtonRef.current?.focus();
 		}
-	}, [isMinimized]);
+	}, [windowHidden]);
 
 	function handleZoom() {
 		if (floatingOnly) {
@@ -234,21 +268,27 @@ export function TerminalWindow({
 			data-mode={
 				floatingOnly ? undefined : fullscreen ? "fullscreen" : "floating"
 			}
-			className={`terminal-window-in relative w-full ${frameClass} ${
+			className={`${hasEntered ? "" : "terminal-window-in"} relative w-full ${frameClass} ${
 				shaking ? "terminal-shake" : ""
 			} ${minimizing ? "terminal-minimize" : ""} ${
 				flyingOut ? "terminal-minimize-fly" : ""
 			} ${restoring ? "terminal-restore-in" : ""} ${
-				isMinimized && !restoring ? "terminal-window-hidden" : ""
+				windowHidden && !restoring ? "terminal-window-hidden" : ""
 			}`}
 			onAnimationEnd={(event) => {
 				if (event.animationName === "terminal-minimize") {
 					setMinimizing(false);
 				} else if (event.animationName === "terminal-minimize-fly") {
 					setFlyingOut(false);
-					setIsMinimized(true);
+					setWindowHidden(true);
+					setDockOpen(true);
 				} else if (event.animationName === "terminal-restore-in") {
 					setRestoring(false);
+				} else if (
+					event.animationName === "terminal-window-in" ||
+					event.animationName === "terminal-window-in-flat"
+				) {
+					setHasEntered(true);
 				}
 			}}
 		>
@@ -331,8 +371,10 @@ export function TerminalWindow({
 			{!floatingOnly && (
 				<MinimizeDock
 					kidPhotoSrc={KID_PHOTO_SRC}
-					isMinimized={isMinimized}
-					onRestore={handleRestore}
+					open={dockOpen}
+					dismissing={restoring}
+					onRequestRestore={handleRestore}
+					onDismissed={handleDockDismissed}
 				/>
 			)}
 		</div>
