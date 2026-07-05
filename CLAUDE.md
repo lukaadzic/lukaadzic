@@ -61,12 +61,15 @@ Giveon's DON'T LEAVE autoplaying inside it, and `leave anyway` loses its
 nerve twice before conceding — all alert copy is original, never verbatim
 lyrics; the `/404` card keeps the plain shake + toast. The yellow light on
 the home page (`terminal-window.tsx` + `minimize-dock.tsx`) really
-minimizes: the window flies toward the bottom-left and hides
+minimizes: the window sinks toward the bottom-center and hides
 (`visibility: hidden`, never unmounted, so a playing Spotify embed and the
-ticking live-age both survive), and a 72px macOS-dock-style icon —
-`luka_early_build.app`, `public/images/luka-kid.jpg` (not added yet, falls
-back to a green `L`) — springs up to restore it; the `/404` card keeps the
-old plain bounce-back instead. So the track starts
+ticking live-age both survive), and a macOS-style dock shelf rises there —
+translucent, bottom-center, one 64px app icon (`public/images/luka-kid.jpg`,
+green-`L` fallback) with the running-app indicator dot lit (the terminal IS
+still running) and a hover/keyboard-focus name pill
+(`luka_early_build.app — v0.1, still compiling`); click/Enter/Space/Esc
+restores. The `/404` card keeps the old plain bounce-back instead. So the
+track starts
 the instant the alert opens rather than after a script fetch,
 `terminal-window.tsx` warms Spotify's iFrame API script during idle time
 after mount and again on the first pointerover/focus of the traffic-light
