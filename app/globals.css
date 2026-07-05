@@ -368,7 +368,8 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 }
 
 /* The live prompt + blinking cursor — the third beat, fading in while the
-   "Last login" line is still settling. Plays once on mount; the prompt is
+   "Last login" line is still settling, just before the typed `welcome` beat
+   (see terminal-session.tsx) begins. Plays once on mount; the prompt is
    never remounted afterward, so this never replays mid-session. */
 @keyframes terminal-active-prompt-in {
 	from {
@@ -381,7 +382,39 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	}
 }
 
+/* Same keyframe, distinct name — used only as the un-strandable fallback
+   below. A different `animation-name` (not just a different delay)
+   guarantees the browser restarts the animation fresh, delay included, the
+   moment `[data-booted]` starts matching, rather than treating it as the
+   same still-running animation with an edited delay. */
+@keyframes terminal-active-prompt-in-fallback {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Un-strandable fallback: if JS never runs at all (script blocked/failed,
+   so `[data-booted]` never lands), the prompt still reveals eventually off
+   a long pure-CSS delay rather than staying invisible forever. */
 .terminal-active-prompt-in {
+	animation: terminal-active-prompt-in-fallback 260ms
+		cubic-bezier(0.16, 1, 0.3, 1) 3000ms both;
+}
+
+/* Once JS boots — `[data-booted]` lands on the session root in the very
+   same effect that starts the JS opening-beat clock (see
+   terminal-session.tsx) — re-time this beat to the real hydration clock
+   instead of stylesheet-load time: 350ms puts it just before the typed
+   `welcome` beat starts, matching the original choreography's schedule but
+   anchored correctly so a slow device doesn't strand it out of order. Higher
+   specificity than the bare class above, so it fully replaces the fallback
+   whenever JS is running. */
+[data-booted] .terminal-active-prompt-in {
 	animation: terminal-active-prompt-in 260ms cubic-bezier(0.16, 1, 0.3, 1) 350ms
 		both;
 }
@@ -616,35 +649,9 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
    ~80ms after the *typical* typed-"welcome" completion (500ms typing start +
    ~385ms average typed duration), overlapping the welcome block's own rise
    rather than waiting for it to finish, so the whole sequence reads as one
-   continuous motion. Pure CSS (no JS trigger) so the chips can never be
-   stranded invisible; `both` keeps them hidden only during their own
-   animation delay. */
-.terminal-chip-row > * {
-	animation: terminal-chip-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.terminal-chip-row > *:nth-child(1) {
-	animation-delay: 965ms;
-}
-.terminal-chip-row > *:nth-child(2) {
-	animation-delay: 1005ms;
-}
-.terminal-chip-row > *:nth-child(3) {
-	animation-delay: 1045ms;
-}
-.terminal-chip-row > *:nth-child(4) {
-	animation-delay: 1085ms;
-}
-.terminal-chip-row > *:nth-child(5) {
-	animation-delay: 1125ms;
-}
-.terminal-chip-row > *:nth-child(6) {
-	animation-delay: 1165ms;
-}
-.terminal-chip-row > *:nth-child(7) {
-	animation-delay: 1205ms;
-}
-
+   continuous motion. Un-strandable fallback below covers JS never running;
+   `[data-booted]` re-times these delays to the real hydration clock. `both`
+   keeps chips hidden only during their own animation delay either way. */
 @keyframes terminal-chip-in {
 	from {
 		opacity: 0;
@@ -656,8 +663,36 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	}
 }
 
+/* Same keyframe, distinct name — see the matching comment on
+   terminal-active-prompt-in-fallback above: a different `animation-name` is
+   what guarantees a clean restart (delay included) once `[data-booted]`
+   starts matching, rather than the browser treating it as the same
+   animation with an edited delay. */
+@keyframes terminal-chip-in-fallback {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Un-strandable fallback: no JS gate, so if hydration never runs the chips
+   still appear (all together, no stagger — this is a safety net, not the
+   intended choreography) off a long pure-CSS delay rather than staying
+   invisible forever. This was a real past bug; keep it this way. */
+.terminal-chip-row > * {
+	animation: terminal-chip-in-fallback 260ms cubic-bezier(0.16, 1, 0.3, 1)
+		3000ms both;
+}
+
 /* `pets` command — portraits stagger in the same pure-CSS way as the
-   suggestion chips (no JS gate, so they can never be stranded invisible). */
+   suggestion chips (no JS gate, so they can never be stranded invisible).
+   Specificity-ordered ahead of the `[data-booted]` chip rules below (lower
+   specificity first) purely to satisfy the linter's ascending-specificity
+   check — these selectors don't otherwise interact. */
 .pets-portrait-row > * {
 	animation: terminal-chip-in 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -670,6 +705,45 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 }
 .pets-portrait-row > *:nth-child(3) {
 	animation-delay: 180ms;
+}
+
+/* Once JS boots (see the matching prompt-reveal comment above), re-time the
+   staggered ripple to the real hydration clock: ~80ms after the welcome
+   block's own rise begins, ~40ms apart per chip. Higher specificity than
+   the bare class above, so it fully replaces the fallback whenever JS is
+   running. */
+[data-booted] .terminal-chip-row > * {
+	animation: terminal-chip-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+[data-booted] .terminal-chip-row > *:nth-child(1) {
+	animation-delay: 965ms;
+}
+[data-booted] .terminal-chip-row > *:nth-child(2) {
+	animation-delay: 1005ms;
+}
+[data-booted] .terminal-chip-row > *:nth-child(3) {
+	animation-delay: 1045ms;
+}
+[data-booted] .terminal-chip-row > *:nth-child(4) {
+	animation-delay: 1085ms;
+}
+[data-booted] .terminal-chip-row > *:nth-child(5) {
+	animation-delay: 1125ms;
+}
+[data-booted] .terminal-chip-row > *:nth-child(6) {
+	animation-delay: 1165ms;
+}
+[data-booted] .terminal-chip-row > *:nth-child(7) {
+	animation-delay: 1205ms;
+}
+/* 8th chip (today: `help`, the last of about/projects/github/socials/cv/
+   pets/love/help) — without its own delay it fell back to the base rule's
+   implicit 0s delay and popped in before every other chip, ahead of the
+   entire stagger. Caught while re-timing this block onto the `data-booted`
+   clock; add another rule here if a 9th chip ever ships. */
+[data-booted] .terminal-chip-row > *:nth-child(8) {
+	animation-delay: 1245ms;
 }
 
 /* Wraps the single displayed command group. Its height is driven entirely
@@ -749,7 +823,11 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 		opacity: 1;
 	}
 
-	.terminal-active-prompt-in {
+	/* Both the un-strandable fallback and the `[data-booted]`-gated rule need
+	   listing here — the gated selector's higher specificity would otherwise
+	   win over a reduced-motion override that only targeted the bare class. */
+	.terminal-active-prompt-in,
+	[data-booted] .terminal-active-prompt-in {
 		animation: none;
 		opacity: 1;
 		transform: none;
@@ -761,6 +839,7 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	}
 
 	.terminal-chip-row > *,
+	[data-booted] .terminal-chip-row > *,
 	.pets-portrait-row > * {
 		opacity: 1;
 		animation: none;
