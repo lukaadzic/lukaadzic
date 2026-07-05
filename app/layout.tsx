@@ -58,10 +58,7 @@ const personSchema = {
 	"@type": "Person",
 	name: SITE.name,
 	url: SITE.url,
-	sameAs: [
-		`https://github.com/${SITE.githubUsername}`,
-		...SOCIALS.map((social) => social.url),
-	],
+	sameAs: SOCIALS.map((social) => social.url),
 };
 
 export default function RootLayout({

@@ -8,7 +8,7 @@ export function NotFoundTerminal() {
 	const pathname = usePathname();
 
 	return (
-		<div className="font-mono text-[13px] leading-relaxed sm:text-[14px]">
+		<div className="terminal-session font-mono text-[13px] leading-relaxed sm:text-[14px]">
 			<PromptLine input={`cd ${pathname}`} />
 			<p className="mt-2 text-muted">
 				zsh: no such file or directory: {pathname}
@@ -16,7 +16,9 @@ export function NotFoundTerminal() {
 			<div className="mt-4 flex flex-wrap items-baseline gap-x-2">
 				<span className="shrink-0 whitespace-pre">
 					<span className="text-[#5fd75f]">lukaadzic</span>
-					<span className="text-muted"> ~ % </span>
+					<span className="text-muted"> </span>
+					<span className="text-[#6bc7f5]/80">~</span>
+					<span className="text-muted"> % </span>
 				</span>
 				<Link
 					href="/"

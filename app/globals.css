@@ -28,6 +28,13 @@ body {
 	color: var(--color-foreground);
 }
 
+/* Inside the terminal, selection gets a subtle green tint instead — a small
+   authentic touch, scoped so the rest of the page keeps the neutral one. */
+.terminal-session ::selection {
+	background: rgba(95, 215, 95, 0.25);
+	color: var(--color-foreground);
+}
+
 /* Focus state — subtle, visible only for keyboard navigation. */
 :focus-visible {
 	outline: 1px solid var(--color-accent);
@@ -94,7 +101,7 @@ body {
 @keyframes terminal-window-in {
 	from {
 		opacity: 0;
-		transform: scale(0.96);
+		transform: scale(0.98);
 	}
 	to {
 		opacity: 1;
@@ -103,7 +110,7 @@ body {
 }
 
 .terminal-window-in {
-	animation: terminal-window-in 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
+	animation: terminal-window-in 350ms cubic-bezier(0.32, 0.72, 0, 1) both;
 }
 
 /* Red traffic light — "nice try", a firm little shake. */
@@ -202,7 +209,7 @@ body {
 }
 
 .terminal-cursor-blink {
-	animation: terminal-cursor-blink 1s step-end infinite;
+	animation: terminal-cursor-blink 1s steps(1, end) infinite;
 }
 
 /* Suggested-command chips — a clickable segmented tab bar under the prompt.
@@ -220,7 +227,8 @@ body {
 	transition:
 		color 200ms ease,
 		background-color 200ms ease,
-		border-color 200ms ease;
+		border-color 200ms ease,
+		transform 100ms ease;
 }
 
 .terminal-chip:hover:not(:disabled) {
@@ -229,8 +237,23 @@ body {
 	border-color: rgba(255, 255, 255, 0.18);
 }
 
+.terminal-chip:active:not(:disabled) {
+	transform: scale(0.97);
+}
+
 .terminal-chip:disabled {
 	cursor: default;
+}
+
+/* Touch/small-screen tap targets — chips grow to a comfortable >=40px height
+   without changing their look on pointer devices. */
+@media (pointer: coarse), (max-width: 480px) {
+	.terminal-chip {
+		display: inline-flex;
+		min-height: 40px;
+		align-items: center;
+		padding: 8px 14px;
+	}
 }
 
 /* The "run it all" chip gets a hint of the accent color at rest. */
@@ -254,6 +277,47 @@ body {
 	color: var(--color-foreground);
 	background: rgba(255, 255, 255, 0.1);
 	border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Chips row — a gentle staggered fade-in the first time it appears, right
+   after the welcome beat finishes. Hidden by default so there's no flash of
+   the resting state before the stagger plays. */
+.terminal-chip-row > * {
+	opacity: 0;
+}
+
+.terminal-chip-row.terminal-chips-in > * {
+	animation: terminal-chip-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.terminal-chip-row.terminal-chips-in > *:nth-child(1) {
+	animation-delay: 0ms;
+}
+.terminal-chip-row.terminal-chips-in > *:nth-child(2) {
+	animation-delay: 40ms;
+}
+.terminal-chip-row.terminal-chips-in > *:nth-child(3) {
+	animation-delay: 80ms;
+}
+.terminal-chip-row.terminal-chips-in > *:nth-child(4) {
+	animation-delay: 120ms;
+}
+.terminal-chip-row.terminal-chips-in > *:nth-child(5) {
+	animation-delay: 160ms;
+}
+.terminal-chip-row.terminal-chips-in > *:nth-child(6) {
+	animation-delay: 200ms;
+}
+
+@keyframes terminal-chip-in {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
 /* Wraps the single displayed command group. Smooths the window's height
@@ -295,5 +359,15 @@ body {
 	.terminal-cursor-blink {
 		animation: none;
 		opacity: 1;
+	}
+
+	.terminal-chip-row > * {
+		opacity: 1;
+		animation: none;
+		transform: none;
+	}
+
+	.terminal-chip:active:not(:disabled) {
+		transform: none;
 	}
 }
