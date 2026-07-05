@@ -363,23 +363,26 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	pointer-events: none;
 }
 
-/* Restoring — the window fades/scales back in once the dock icon's exit
-   animation hands off to `onRestore`. Same easing family as the rest of the
-   site's entrances. */
+/* Restoring — the window fades back in the instant a restore is requested,
+   at the exact same tick the splash starts its own fade-out below
+   (`minimize-splash-out`) — a real crossfade, not a sequential
+   fade-out-then-fade-in. Opacity only, on purpose: no scale, no translate —
+   any transform here reads as a "pop" against the splash dissolving in
+   place on top of it, and the brief made it worse, not better. Same
+   duration and easing as `minimize-splash-out` so the two halves of the
+   blend actually finish together. */
 @keyframes terminal-restore-in {
 	from {
 		opacity: 0;
-		transform: scale(0.97);
 	}
 	to {
 		opacity: 1;
-		transform: scale(1);
 	}
 }
 
 /* Same specificity reasoning as terminal-minimize-fly above. */
 .terminal-window-frame.terminal-restore-in {
-	animation: terminal-restore-in 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+	animation: terminal-restore-in 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* The centered "still compiling" splash (minimize-dock.tsx) — a full-
@@ -397,6 +400,72 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	align-items: center;
 	justify-content: center;
 	cursor: pointer;
+	overflow: hidden;
+}
+
+/* Base layer, always present — a static echo of `.terminal-stage`'s own
+   wallpaper gradient (identical stops), so the splash reads as the same
+   product floating over the same desktop rather than a flat black panel.
+   This is what's visible the instant the splash opens (the shader chunk
+   below is fetched lazily and may take a beat), and it's the entire splash
+   in three cases: reduced motion, no WebGL, or the shader chunk failing to
+   load — in every case, a silent, on-brand fallback, never a blank void. */
+.minimize-splash-backdrop {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	pointer-events: none;
+	background:
+		radial-gradient(
+			ellipse 60% 50% at 18% 12%,
+			rgba(70, 90, 210, 0.16),
+			transparent 60%
+		),
+		radial-gradient(
+			ellipse 65% 55% at 88% 85%,
+			rgba(130, 70, 150, 0.14),
+			transparent 60%
+		),
+		radial-gradient(
+			ellipse 80% 60% at 50% 15%,
+			rgba(255, 255, 255, 0.05),
+			transparent 60%
+		), #0a0a0c;
+}
+
+/* The shader canvas (ShaderGradient, lazy-loaded — see minimize-dock.tsx)
+   fades in gently over the backdrop once its chunk has actually mounted, so
+   there's never an abrupt pop once three.js finishes booting. */
+@keyframes minimize-splash-shader-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+.minimize-splash-shader-layer {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	pointer-events: none;
+	animation: minimize-splash-shader-in 900ms ease-out both;
+}
+
+/* A soft dark vignette over the shader/backdrop, same spirit as
+   `.terminal-stage`'s own vignette wash — keeps the centered text/icon
+   reading clearly no matter what the gradient is doing underneath. */
+.minimize-splash-vignette {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	pointer-events: none;
+	background: radial-gradient(
+		ellipse at center,
+		rgba(0, 0, 0, 0) 40%,
+		rgba(5, 5, 8, 0.55) 100%
+	);
 }
 
 /* Entrance cascade — icon, name, progress line, then hint, ~80ms apart (see
@@ -443,22 +512,24 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 		both;
 }
 
-/* Splash exit — fades/sinks as one piece while the window re-enters;
-   `onRestore` is handed off on this animation's end (matched by name, not a
-   timer), same pattern the old dock-shelf-out used. */
+/* Splash exit — fades out in place while the window frame fades in
+   underneath it at the same time (`terminal-restore-in`, same duration and
+   easing); `onDismissed` is handed off on this animation's end (matched by
+   name, not a timer). Opacity only, same reasoning as `terminal-restore-in`
+   above: a translate/scale here read as the splash "sinking away" rather
+   than dissolving into the window arriving underneath it, which is the
+   whole point of a crossfade. */
 @keyframes minimize-splash-out {
 	from {
 		opacity: 1;
-		transform: translateY(0) scale(1);
 	}
 	to {
 		opacity: 0;
-		transform: translateY(8px) scale(0.98);
 	}
 }
 
 .minimize-splash-out {
-	animation: minimize-splash-out 220ms cubic-bezier(0.4, 0, 0.2, 1) both;
+	animation: minimize-splash-out 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* One bounce per hover — the classic dock bounce, re-triggered via a
