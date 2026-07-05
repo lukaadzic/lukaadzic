@@ -15,6 +15,7 @@ const ROWS: Array<[string, ReactNode]> = [
 	["work", SITE.work],
 	["school", SITE.school],
 	["location", SITE.location],
+	["roots", SITE.roots],
 	["age", <LiveAge key="age" />],
 	["focus", SITE.focus],
 	["projects", `${PROJECTS.length} shipped — try \`projects\``],
