@@ -3,6 +3,7 @@
 import { type ReactNode, useEffect, useState } from "react";
 import { AboutOutput } from "@/components/terminal/about-output";
 import { openDestiny } from "@/components/terminal/destiny-easter-egg";
+import { DestinyOutput } from "@/components/terminal/destiny-output";
 import { GithubOutput } from "@/components/terminal/github-output";
 import { GiveonOutput } from "@/components/terminal/giveon-output";
 import { HelpOutput } from "@/components/terminal/help-output";
@@ -181,11 +182,11 @@ const modric: Renderer = () => ({ output: <ModricOutput /> });
  * own state; the registry just mounts it, same as any other renderer. */
 const penalty: Renderer = () => ({ output: <PenaltyGame /> });
 
-/** `cat /etc/loved-ones` / `git log --oneline` — hidden triggers for the
- * Destiny easter egg (also reachable via the konami code, listened for
- * directly in destiny-easter-egg.tsx). Deliberately absent from
- * `SUGGESTED_COMMANDS`, `COMMAND_HELP`, and `ls -la`'s hidden-file listing —
- * konami plus curiosity are enough. */
+/** `destiny` — her own first-class section (chip + help), while
+ * `cat /etc/loved-ones` / `git log --oneline` / the konami code remain the
+ * playful triggers that open the modal reveals (konami is listened for
+ * directly in destiny-easter-egg.tsx). */
+const destiny: Renderer = () => ({ output: <DestinyOutput /> });
 const lovedOnes: Renderer = () => ({ output: <LovedOnesOutput /> });
 const gitLog: Renderer = () => ({ output: <GitLogOutput /> });
 
@@ -225,6 +226,7 @@ const everything: Renderer = () => ({
 			<ProjectsOutput />
 			<GithubOutput />
 			<SocialsOutput />
+			<DestinyOutput />
 		</div>
 	),
 });
@@ -261,6 +263,7 @@ const REGISTRY: Record<string, Renderer> = {
 	".vatreni": vatreni,
 	"cat .vatreni": vatreni,
 	modric,
+	destiny,
 	penalty,
 	shootout: penalty,
 	"./penalty.sh": penalty,
@@ -274,6 +277,7 @@ export const SUGGESTED_COMMANDS = [
 	"projects",
 	"github",
 	"socials",
+	"destiny",
 	"cv",
 	"help",
 ];
@@ -290,6 +294,7 @@ export const COMMAND_HELP: Array<[string, string]> = [
 	["ls", "list the home directory"],
 	["socials", "where to find me online"],
 	["github", "recent GitHub activity"],
+	["destiny", "my sweet angel girl"],
 	["cv", "open my resume"],
 	["email", "compose an email to me"],
 	["age", "exactly how old I am, right now"],
@@ -314,6 +319,7 @@ export const KNOWN_COMMANDS = [
 	"email",
 	"age",
 	"date",
+	"destiny",
 	"echo",
 	"history",
 	"pwd",
