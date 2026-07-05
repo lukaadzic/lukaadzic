@@ -20,13 +20,23 @@ interface GitHubContributionsResponse {
 // activity, and it always fits the content width with zero horizontal scroll.
 const SPARK_CHARS = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"] as const;
 
+/**
+ * Parses a YYYY-MM-DD string as a LOCAL calendar date. `new Date("2026-07-04")`
+ * parses as UTC midnight, so `.getDay()` shifts the weekday for every visitor
+ * in a timezone behind UTC.
+ */
+function parseLocalDate(dateStr: string): Date {
+	const [year, month, day] = dateStr.split("-").map(Number);
+	return new Date(year, month - 1, day);
+}
+
 function getWeeksInYear(contributions: ContributionDay[]): ContributionDay[][] {
 	const weeks: ContributionDay[][] = [];
 	let currentWeek: ContributionDay[] = [];
 	let placeholderIndex = 0;
 
 	contributions.forEach((day, index) => {
-		const dayOfWeek = new Date(day.date).getDay();
+		const dayOfWeek = parseLocalDate(day.date).getDay();
 
 		if (index === 0) {
 			for (let i = 0; i < dayOfWeek; i++) {

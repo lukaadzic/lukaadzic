@@ -119,6 +119,29 @@ export const SUGGESTED_COMMANDS = [
 	"cv",
 ];
 
+/**
+ * Command metadata shared by the help screen and Tab-completion, so neither
+ * can drift from the registry. Order = how the help screen lists them.
+ */
+export const COMMAND_HELP: Array<[string, string]> = [
+	[EVERYTHING_COMMAND, "run the whole tour"],
+	["whoami", "who am I"],
+	["about", "neofetch-style info card"],
+	["projects", "things I've built"],
+	["ls", "list the home directory"],
+	["socials", "where to find me online"],
+	["github", "recent GitHub activity"],
+	["cv", "open my resume"],
+	["email", "compose an email to me"],
+	["age", "exactly how old I am, right now"],
+	["date", "today, from your side of the screen"],
+	["echo <text>", "say it back"],
+	["history", "commands you've run this session"],
+	["pwd", "print working directory"],
+	["clear", "clear the screen"],
+	["help", "show this list"],
+];
+
 /** Known commands for Tab-completion, roughly ordered by how likely they are to be typed. */
 export const KNOWN_COMMANDS = [
 	"help",

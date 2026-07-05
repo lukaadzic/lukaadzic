@@ -18,7 +18,12 @@ export function SeoContent() {
 			<ul>
 				{PROJECTS.map((project) => (
 					<li key={project.slug}>
-						<a href={project.href}>{project.slug}</a> — {project.description}
+						{/* tabIndex -1: crawlable/readable, but never in the keyboard
+						    tab order ahead of the interactive terminal. */}
+						<a href={project.href} tabIndex={-1}>
+							{project.slug}
+						</a>{" "}
+						— {project.description}
 					</li>
 				))}
 			</ul>
@@ -27,18 +32,22 @@ export function SeoContent() {
 			<ul>
 				{SOCIALS.map((social) => (
 					<li key={social.url}>
-						<a href={social.url}>
+						<a href={social.url} tabIndex={-1}>
 							{social.label} ({social.handle})
 						</a>
 					</li>
 				))}
 				<li>
-					<a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+					<a href={`mailto:${SITE.email}`} tabIndex={-1}>
+						{SITE.email}
+					</a>
 				</li>
 			</ul>
 
 			<p>
-				<a href={SITE.resumePath}>Resume</a>
+				<a href={SITE.resumePath} tabIndex={-1}>
+					Resume
+				</a>
 			</p>
 		</section>
 	);

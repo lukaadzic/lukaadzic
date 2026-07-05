@@ -57,6 +57,12 @@ export function TerminalWindow({
 	function handleMinimize() {
 		if (minimizing) return;
 		setMinimizing(true);
+		// The reset normally happens on animationend, but reduced-motion
+		// disables the keyframes entirely — reset immediately so the button
+		// doesn't get stuck as a permanent no-op.
+		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+			setMinimizing(false);
+		}
 	}
 
 	function handleZoom() {

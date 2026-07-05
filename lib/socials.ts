@@ -9,7 +9,7 @@ export type Social = {
 export const SOCIALS: Social[] = [
 	{
 		label: "GitHub",
-		handle: "@lukaadzic",
+		handle: `@${SITE.githubUsername}`,
 		url: `https://github.com/${SITE.githubUsername}`,
 	},
 	{

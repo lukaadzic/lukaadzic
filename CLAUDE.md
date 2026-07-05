@@ -25,10 +25,11 @@ slugs), `echo <text>`, `date` (client-evaluated, never SSR'd), `history`
 via arrow keys — plus Tab-completion of partial input against known
 commands. Unknown commands occasionally get a sassier
 `command not found` message (1-in-3). The pinned `welcome` block opens with
-a small block-letter ASCII banner of the first name (built from a tiny
-per-letter glyph map in `welcome-output.tsx`, `aria-hidden` with an
-`sr-only` text alternative); below ~480px it collapses to styled name text
-instead so it never wraps. There is deliberately no photo, and the GitHub
+a block-letter ASCII banner of the FULL name (built from a tiny per-letter
+glyph map in `welcome-output.tsx`, `aria-hidden` with an `sr-only` text
+alternative); below 640px the banner stays block-letter but stacks
+first/last name on two lines so it never wraps — Luka explicitly wants the
+banner present at every screen size, never collapsed to plain text. There is deliberately no photo, and the GitHub
 graph renders as a terminal-native block sparkline. The terminal aesthetic
 and the reveal-by-prompting interaction ARE the product — preserve them in
 every change; don't "improve" it into a generic component library look or
