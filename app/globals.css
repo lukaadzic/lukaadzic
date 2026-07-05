@@ -688,6 +688,29 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 		3000ms both;
 }
 
+/* Motionless opacity-only appear — used by the reduced-motion overrides so
+   the entrance keeps its ORDER (content before chips) without any movement.
+   Instant reveals at first paint would let CSS-revealed pieces (chips,
+   prompt) beat the JS-revealed ones (login text, welcome block) on slow
+   hydration — a real reported bug on reduced-motion devices. */
+@keyframes terminal-appear {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes terminal-appear-fallback {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
 /* `pets` command — portraits stagger in the same pure-CSS way as the
    suggestion chips (no JS gate, so they can never be stranded invisible).
    Specificity-ordered ahead of the `[data-booted]` chip rules below (lower
@@ -835,18 +858,27 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 		transform: none;
 	}
 
+	/* Reduced motion keeps the entrance ORDER, just without movement:
+	   opacity-only 1ms appears anchored to the same [data-booted] clock as
+	   the full choreography, with long un-strandable no-JS fallbacks. An
+	   instant `opacity: 1` here would paint chips/prompt before the
+	   JS-revealed login text and welcome block on slow-hydrating devices. */
 	.terminal-last-login-in {
-		animation: none;
-		opacity: 1;
+		animation: terminal-appear-fallback 1ms 3000ms both;
+		transform: none;
 	}
 
-	/* Both the un-strandable fallback and the `[data-booted]`-gated rule need
-	   listing here — the gated selector's higher specificity would otherwise
-	   win over a reduced-motion override that only targeted the bare class. */
-	.terminal-active-prompt-in,
+	[data-booted] .terminal-last-login-in {
+		animation: terminal-appear 1ms both;
+	}
+
+	.terminal-active-prompt-in {
+		animation: terminal-appear-fallback 1ms 3000ms both;
+		transform: none;
+	}
+
 	[data-booted] .terminal-active-prompt-in {
-		animation: none;
-		opacity: 1;
+		animation: terminal-appear 1ms 150ms both;
 		transform: none;
 	}
 
@@ -855,8 +887,16 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 		opacity: 1;
 	}
 
-	.terminal-chip-row > *,
-	[data-booted] .terminal-chip-row > *,
+	.terminal-chip-row > * {
+		animation: terminal-appear-fallback 1ms 3200ms both;
+		transform: none;
+	}
+
+	[data-booted] .terminal-chip-row > * {
+		animation: terminal-appear 1ms 300ms both;
+		transform: none;
+	}
+
 	.pets-portrait-row > * {
 		opacity: 1;
 		animation: none;
