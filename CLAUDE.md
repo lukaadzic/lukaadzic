@@ -37,8 +37,11 @@ commands. Unknown commands occasionally get a sassier
 `command not found` message (1-in-3). A handful of personality easter eggs
 (`giveon`/`beloved`, `vatreni`, `modric`) hide as dotfiles discoverable via
 `ls -la`; their content lives in `lib/easter-eggs.ts` and must stay verified
-fact, never invented. There's also a hidden one for Luka's girlfriend
-Destiny: `cat /etc/loved-ones` and `git log --oneline` each stagger their
+fact, never invented. Luka's girlfriend Destiny has her own FIRST-CLASS
+section: the `destiny` command (visible chip, in `help` and
+`./everything.sh`) renders her photo + card inline (`destiny-output.tsx`).
+The playful triggers remain on top of that: `cat /etc/loved-ones` and
+`git log --oneline` each stagger their
 lines in, then auto-open a Destiny reveal modal (`destiny-easter-egg.tsx`,
 portaled to `document.body`) in one of three site-styled forms — a mini
 terminal window, a "classified" dossier, or a quiet polaroid-style card; the
