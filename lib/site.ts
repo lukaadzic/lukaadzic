@@ -26,6 +26,7 @@ export const SITE = {
 		"Contact Luka Adzic",
 	],
 	email: "lukaadz@wharton.upenn.edu",
+	tagline: "Student @ Wharton · Philadelphia",
 	school: "The Wharton School, UPenn",
 	location: "Philadelphia, PA",
 	focus: "finance · markets · code",

@@ -177,6 +177,12 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
 
 		if (username) {
 			fetchContributions();
+		} else {
+			setIsFallback(true);
+			const fallback = generateFallbackContributions();
+			setContributions(fallback.contributions);
+			setTotalContributions(fallback.totalContributions);
+			setLoading(false);
 		}
 
 		return () => {

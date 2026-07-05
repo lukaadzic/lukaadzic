@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 		title: SITE.title,
 		description: SITE.description,
 		url: SITE.url,
-		siteName: "Luka Adzic Portfolio",
+		siteName: SITE.title,
 		images: [
 			{
 				url: "/icon.ico",

@@ -6,7 +6,7 @@ export function WhoamiOutput() {
 		<div className="leading-relaxed">
 			<p>
 				<span className="text-foreground">{SITE.name}</span>
-				<span className="text-muted"> — Student @ Wharton · Philadelphia</span>
+				<span className="text-muted"> — {SITE.tagline}</span>
 			</p>
 			<p className="text-muted">
 				age: <LiveAge />

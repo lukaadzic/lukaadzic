@@ -421,7 +421,8 @@ body {
 
 	.terminal-stage,
 	.terminal-window-frame,
-	.terminal-window-chrome {
+	.terminal-window-chrome,
+	.terminal-group-container {
 		transition: none;
 	}
 
