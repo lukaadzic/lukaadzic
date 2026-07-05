@@ -173,3 +173,116 @@ export const DESTINY = {
 } as const;
 
 export type DestinyRowTone = (typeof DESTINY.terminal.rows)[number]["tone"];
+
+/**
+ * `pets` — pixel-art portraits of the household. Same technique as the
+ * `vatreni` šahovnica and the `welcome` glyph banner: each grid is an array
+ * of equal-length strings, one character per cell, mapped through a small
+ * per-pet palette (`.` is always transparent). Only verified facts from
+ * Luka: Modro + Vida are domestic shorthair kittens born apr 13, 2026 —
+ * Modro darker-coated with dark paws, Vida lighter-coated with white paws
+ * (her signature); Baby is a tricolor beagle, "best beagle alive."
+ */
+export type Pet = {
+	id: string;
+	name: string;
+	/** Accent color for the name line — Destiny-style named-color exception,
+	 * scoped to this one command. */
+	nameColor: string;
+	caption: string;
+	bornLine?: string;
+	palette: Record<string, string>;
+	/** Rows top-to-bottom, one character per cell, all rows equal length. */
+	grid: readonly string[];
+};
+
+/** Shared silhouette for the two kittens — same pose, ears/head/body/paws —
+ * so Modro and Vida read as siblings; only the palette (fur, eyes, paws)
+ * differs between them. `b` body, `d` ear-notch shade, `e` eye, `p` nose,
+ * `x` paw (the one deliberately distinguishing feature per cat). */
+const KITTEN_GRID = [
+	"...b........b...",
+	"..bdb......bdb..",
+	".bdbb......bbdb.",
+	".bbbbbbbbbbbbbb.",
+	".bbeebbbbbbeebb.",
+	".bbbbbbbbbbbbbb.",
+	".bbbbbbppbbbbbb.",
+	"..bbbbbbbbbbbb..",
+	".bbbbbbbbbbbbbb.",
+	"bbbbbbbbbbbbbbbb",
+	"bbbbbbbbbbbbbbbb",
+	"bbbbbbbbbbbbbbbb",
+	"..xxxxx..xxxxx..",
+	"...xxx....xxx...",
+] as const;
+
+/** Front-facing beagle — same paw/body technique as the kittens. `n` brown,
+ * `s` the dark saddle/cap marking, `w` white (muzzle/chest/paws), `k` black
+ * (nose + eyes). */
+const BEAGLE_GRID = [
+	".....ssssss.....",
+	"..ssssssssssss..",
+	"nnnssssssssssnnn",
+	"nnnnnnnnnnnnnnnn",
+	"nnnnnknnnnknnnnn",
+	"nnnnnnwwwwnnnnnn",
+	"nnnnwwwkkwwwnnnn",
+	"nnnnwwwwwwwwnnnn",
+	"nn.nwwwwwwwwn.nn",
+	".n.nwwwwwwwwn.n.",
+	".nnwwwwwwwwwwnn.",
+	".nnwwwwwwwwwwnn.",
+	"nnnwwwwwwwwwwnnn",
+	"..wwwww..wwwww..",
+	"...www....www...",
+] as const;
+
+export const PETS: readonly Pet[] = [
+	{
+		id: "modro",
+		name: "modro",
+		nameColor: "#6bc7f5",
+		caption: "modro means blue in croatian. he earned it.",
+		bornLine: "born apr 13, 2026",
+		palette: {
+			".": "transparent",
+			b: "#57677d",
+			d: "#14171b",
+			e: "#6bcf82",
+			p: "#d99aa8",
+			x: "#343a45",
+		},
+		grid: KITTEN_GRID,
+	},
+	{
+		id: "vida",
+		name: "vida",
+		nameColor: "#efe6d8",
+		caption: "white paws, walks like she owns the place.",
+		bornLine: "born apr 13, 2026",
+		palette: {
+			".": "transparent",
+			b: "#b7ada0",
+			d: "#14171b",
+			e: "#e2a53f",
+			p: "#d99aa8",
+			x: "#f4efe6",
+		},
+		grid: KITTEN_GRID,
+	},
+	{
+		id: "baby",
+		name: "baby",
+		nameColor: "#c98a4b",
+		caption: "best beagle alive.",
+		palette: {
+			".": "transparent",
+			n: "#8a5a34",
+			s: "#2a201c",
+			w: "#f4efe6",
+			k: "#171310",
+		},
+		grid: BEAGLE_GRID,
+	},
+] as const;
