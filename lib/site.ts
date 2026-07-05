@@ -30,6 +30,7 @@ export const SITE = {
 	work: "SWE @ Community for Rigor · AI research @ Wharton",
 	school: "The Wharton School, UPenn",
 	location: "Philadelphia, PA",
+	roots: "Croatia 🇭🇷",
 	focus: "finance · markets · code",
 	// Matches `new Date(2005, 11, 7)` from the LiveAge calculation in app/page.tsx.
 	// `month` is 0-indexed (JS Date constructor convention), so 11 = December.
