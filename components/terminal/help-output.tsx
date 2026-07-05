@@ -12,6 +12,9 @@ export function HelpOutput() {
 					</div>
 				))}
 			</dl>
+			<p className="mt-2 text-faint">
+				…plus a few hidden things. real ones run `ls -la`.
+			</p>
 		</div>
 	);
 }

@@ -31,6 +31,7 @@ const welcome: Renderer = () => ({ output: <WelcomeOutput /> });
 const whoami: Renderer = () => ({ output: <WhoamiOutput /> });
 const about: Renderer = () => ({ output: <AboutOutput /> });
 const lsHome: Renderer = () => ({ output: <LsHomeOutput /> });
+const lsHomeHidden: Renderer = () => ({ output: <LsHomeOutput showHidden /> });
 const lsProjects: Renderer = () => ({ output: <LsProjectsOutput /> });
 const projects: Renderer = () => ({ output: <ProjectsOutput /> });
 const github: Renderer = () => ({ output: <GithubOutput /> });
@@ -116,6 +117,8 @@ const REGISTRY: Record<string, Renderer> = {
 	about,
 	"ls ~/projects": lsProjects,
 	ls: lsHome,
+	"ls -la": lsHomeHidden,
+	"ls -a": lsHomeHidden,
 	"open ~/projects --verbose": projects,
 	projects,
 	"github --contributions": github,
@@ -196,14 +199,18 @@ export const KNOWN_COMMANDS = [
 	"hrvatska",
 	"croatia",
 	"modric",
+	"ls -la",
 ];
 
 const NOT_SUDOERS =
 	"lukaadzic is not in the sudoers file.  This incident will be reported.";
 const NO_ESCAPE = "there is no escape. try `cv` instead.";
 
-/** A little personality for the 1-in-3 unlucky typo. */
-const SASSY_SUFFIX = " — try `help`, it's there for a reason.";
+/** A little personality for the 1-in-3 unlucky typo — rotates between variants. */
+const SASSY_SUFFIXES = [
+	" — try `help`, it's there for a reason.",
+	" — try `ls -la`, there's more here than it looks.",
+];
 
 /**
  * Resolves raw user input into a command result, or "clear" for the special
@@ -248,11 +255,14 @@ export function resolveCommand(
 	}
 
 	const sassy = Math.random() < 1 / 3;
+	const suffix = sassy
+		? SASSY_SUFFIXES[Math.floor(Math.random() * SASSY_SUFFIXES.length)]
+		: "";
 	return {
 		output: (
 			<p className="text-muted">
 				zsh: command not found: {trimmed}
-				{sassy ? SASSY_SUFFIX : ""}
+				{suffix}
 			</p>
 		),
 	};
