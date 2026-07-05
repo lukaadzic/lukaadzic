@@ -59,10 +59,38 @@ const ENTERED_STYLE: CSSProperties = {
 		"opacity 280ms cubic-bezier(0.16, 1, 0.3, 1), transform 280ms cubic-bezier(0.16, 1, 0.3, 1)",
 };
 
+// Pure opacity, deliberately no transform: this block's space is reserved
+// from the very first paint (see `welcomeEntry` below), so revealing it only
+// ever needs to fade in — a translateY here would still move the painted
+// box and show up as a layout shift even though the layout itself never
+// changes.
+const WELCOME_HIDDEN_STYLE: CSSProperties = {
+	opacity: 0,
+};
+
+const WELCOME_REVEALED_STYLE: CSSProperties = {
+	opacity: 1,
+	transition: "opacity 320ms cubic-bezier(0.16, 1, 0.3, 1)",
+};
+
 export function TerminalSession() {
-	// The `welcome` block is set once at mount and never replaced — it stays
-	// pinned above whatever command group is currently displayed.
-	const [pinned, setPinned] = useState<Entry | null>(null);
+	// The pinned `welcome` output is pure/deterministic (no randomness, no
+	// side effect — see the `welcome` renderer in commands.tsx), so it's
+	// resolved once up front and mounted from the very first paint. That
+	// reserves its final on-screen height immediately: the block only fades
+	// its own opacity in once the typed "welcome" beat finishes, instead of
+	// being inserted into the DOM later and shoving the prompt/chips below it
+	// down the page.
+	const [welcomeEntry] = useState<Entry>(() => {
+		const result = resolveCommand("welcome");
+		return {
+			id: 0,
+			command: "welcome",
+			output: result === "clear" ? null : result.output,
+		};
+	});
+	const [welcomeRevealed, setWelcomeRevealed] = useState(false);
+
 	// Exactly one command group (prompt + output) is displayed at a time.
 	// Running a new command swaps it out; `clear` empties it back to null.
 	const [current, setCurrent] = useState<Entry | null>(null);
@@ -159,7 +187,7 @@ export function TerminalSession() {
 
 	// Opening beat: auto-type one short `welcome` command (~1s), then hand
 	// the prompt over. With prefers-reduced-motion the output appears
-	// instantly and the cursor holds steady. The result is pinned permanently.
+	// instantly and the cursor holds steady.
 	useEffect(() => {
 		if (startedRef.current) return;
 		startedRef.current = true;
@@ -167,27 +195,21 @@ export function TerminalSession() {
 		reducedRef.current = window.matchMedia(
 			"(prefers-reduced-motion: reduce)",
 		).matches;
+
 		if (reducedRef.current) {
 			setCursorBlink(false);
+			setWelcomeRevealed(true);
+			focusInput();
+			return;
 		}
 
 		(async () => {
 			setAnimating(true);
 			const gen = ++genRef.current;
-			if (!reducedRef.current) {
-				await sleep(250);
-			}
+			await sleep(250);
 			await typeAtPrompt("welcome", gen, WELCOME_CHAR_DELAY_MS);
 			setInputValue("");
-			const result = resolveCommand("welcome");
-			if (result !== "clear") {
-				idRef.current += 1;
-				setPinned({
-					id: idRef.current,
-					command: "welcome",
-					output: result.output,
-				});
-			}
+			setWelcomeRevealed(true);
 			setAnimating(false);
 			focusInput();
 		})();
@@ -306,6 +328,11 @@ export function TerminalSession() {
 		return entered ? ENTERED_STYLE : ENTERING_STYLE;
 	}
 
+	function welcomeStyle(): CSSProperties {
+		if (reducedRef.current) return {};
+		return welcomeRevealed ? WELCOME_REVEALED_STYLE : WELCOME_HIDDEN_STYLE;
+	}
+
 	return (
 		// biome-ignore lint/a11y/useKeyWithClickEvents: click only focuses the input below; keyboard users can already Tab to it directly.
 		<div
@@ -316,12 +343,16 @@ export function TerminalSession() {
 		>
 			<p className="text-faint">{LAST_LOGIN}</p>
 
-			{pinned && (
-				<div className="terminal-output-in mt-5">
-					<PromptLine input={pinned.command} active={false} />
-					{pinned.output && <div className="mt-1.5">{pinned.output}</div>}
-				</div>
-			)}
+			<div
+				className="mt-5"
+				style={welcomeStyle()}
+				aria-hidden={welcomeRevealed ? undefined : true}
+			>
+				<PromptLine input={welcomeEntry.command} active={false} />
+				{welcomeEntry.output && (
+					<div className="mt-1.5">{welcomeEntry.output}</div>
+				)}
+			</div>
 
 			<div className="terminal-group-container">
 				{current && (

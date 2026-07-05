@@ -116,16 +116,24 @@ whole rundown" as one command, not a scripted replay.
   copy a block just to tweak it.
 - **Motion.** CSS-only (plus small inline-style transitions driven by React
   state for the exact swap timings below), gated behind
-  `prefers-reduced-motion`. No JS animation libraries. The session shows the
-  pinned `welcome` block plus exactly one command group below it — never a
+  `prefers-reduced-motion` (instant, no animation). No JS animation
+  libraries. The pinned `welcome` block is mounted (at `opacity: 0`) from
+  first paint so its final height is reserved immediately — it only fades in
+  (~320ms) once the typed `welcome` beat finishes, so there is zero layout
+  shift as the opening sequence plays out. The session then shows that
+  `welcome` block plus exactly one command group below it — never a
   stacking log. Running a new command fades the currently displayed group
   out (~120ms), types the new command at the prompt, then fades its output
   up (~280ms, `cubic-bezier(0.16, 1, 0.3, 1)`); `clear` fades the current
   group out and leaves the welcome-only state. `.terminal-group-container`
   additionally smooths the resulting height change via `interpolate-size`
-  where supported. The window itself opens with a ~350ms scale(0.98→1) +
-  fade (`cubic-bezier(0.32, 0.72, 0, 1)`), the suggestion chips fade in with
-  a ~40ms stagger right after the welcome beat finishes, and chips get a
+  where supported. The window itself opens with a fade; in fullscreen (the
+  default, and the common mobile state) that's opacity + a small
+  `translateY` only, since scaling a full-viewport element forces a
+  whole-page repaint every frame — floating mode and the `/404` card, being
+  small elements, keep the original ~350ms scale(0.98→1) + fade
+  (`cubic-bezier(0.32, 0.72, 0, 1)`). The suggestion chips fade in with a
+  ~40ms stagger right after the welcome beat finishes, and chips get a
   subtle `scale(0.97)` on press.
 - **System font, no webfonts.** `--font-mono` / `--font-sans` in
   `app/globals.css` are OS font stacks (`ui-monospace`, `SF Mono`, etc.) —
