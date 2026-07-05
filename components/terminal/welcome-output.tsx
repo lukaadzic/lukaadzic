@@ -6,8 +6,12 @@ const GLYPHS: Record<string, readonly string[]> = {
 	u: ["█   █", "█   █", "█   █", "█   █", " ███ "],
 	k: ["█  █ ", "█ █  ", "██   ", "█ █  ", "█  █ "],
 	a: [" ███ ", "█   █", "█████", "█   █", "█   █"],
+	d: ["████ ", "█   █", "█   █", "█   █", "████ "],
+	z: ["█████", "   █ ", "  █  ", " █   ", "█████"],
+	i: ["███", " █ ", " █ ", " █ ", "███"],
+	c: [" ████", "█    ", "█    ", "█    ", " ████"],
 };
-const BLANK_GLYPH = ["     ", "     ", "     ", "     ", "     "];
+const BLANK_GLYPH = ["   ", "   ", "   ", "   ", "   "];
 
 /** Renders `word` as a small block-letter ASCII banner, one row per line. */
 function buildBanner(word: string): string {
@@ -23,32 +27,35 @@ function buildBanner(word: string): string {
 	return rows.join("\n");
 }
 
-const FIRST_NAME = SITE.name.split(" ")[0];
-const BANNER = buildBanner(FIRST_NAME.toLowerCase());
+const [FIRST_NAME, LAST_NAME] = SITE.name.split(" ");
+const BANNER_FULL = buildBanner(SITE.name.toLowerCase());
+const BANNER_FIRST = buildBanner(FIRST_NAME.toLowerCase());
+const BANNER_LAST = buildBanner((LAST_NAME ?? "").toLowerCase());
 
 export function WelcomeOutput() {
 	return (
 		<div className="leading-relaxed">
 			{/* Screen-reader text alternative for the decorative banner below. */}
-			<span className="sr-only">{FIRST_NAME}</span>
+			<span className="sr-only">{SITE.name}</span>
 
-			{/* >=480px: the full pixel-font banner. Narrow enough (23 columns)
-			    to never wrap or overflow at any supported width. */}
+			{/* >=640px: the full name as a single-line pixel-font banner. */}
 			<pre
 				aria-hidden="true"
-				className="hidden select-none whitespace-pre font-mono text-[10px] leading-[1.15] text-[#5fd75f] min-[480px]:block sm:text-[12px]"
+				className="hidden select-none whitespace-pre font-mono text-[11px] leading-[1.15] text-[#5fd75f] sm:block md:text-[12px]"
 			>
-				{BANNER}
+				{BANNER_FULL}
 			</pre>
 
-			{/* <480px: styled name text instead of the banner — guarantees zero
-			    horizontal overflow on the smallest screens. */}
-			<p
+			{/* <640px: same block letters, stacked first/last name so the banner
+			    stays large without ever overflowing narrow screens. */}
+			<pre
 				aria-hidden="true"
-				className="font-bold text-[#5fd75f] text-sm tracking-[0.3em] min-[480px]:hidden"
+				className="select-none whitespace-pre font-mono text-[10px] leading-[1.15] text-[#5fd75f] sm:hidden"
 			>
-				{FIRST_NAME.toLowerCase()}
-			</p>
+				{BANNER_FIRST}
+				{"\n\n"}
+				{BANNER_LAST}
+			</pre>
 
 			<p className="mt-2 text-foreground">
 				Hi, I&apos;m {FIRST_NAME} — Student @ Wharton · Philadelphia.
