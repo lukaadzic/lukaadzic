@@ -2,7 +2,6 @@
 
 import { type ReactNode, useEffect, useState } from "react";
 import { AboutOutput } from "@/components/terminal/about-output";
-import { openDestiny } from "@/components/terminal/destiny-easter-egg";
 import { DestinyOutput } from "@/components/terminal/destiny-output";
 import { GithubOutput } from "@/components/terminal/github-output";
 import { GiveonOutput } from "@/components/terminal/giveon-output";
@@ -33,26 +32,16 @@ function useReducedMotion(): boolean {
 }
 
 const LOVED_ONES_LINE_MS = 200;
-/** Delay after the destiny line itself has revealed, not after mount. */
-const LOVED_ONES_OPEN_DELAY_MS = 800;
 
 /** `cat /etc/loved-ones` — lines stagger in like close-alert's own line
- * reveal (same class, same easing), then the terminal-style destiny reveal
- * opens on its own a beat after her line lands. */
+ * reveal (same class, same easing). No longer auto-opens the destiny
+ * reveal on its own — the konami code and the chip in `destiny`'s section
+ * are the only doors into that modal now. */
 function LovedOnesOutput() {
 	const reduced = useReducedMotion();
 	const lineClass = reduced ? undefined : "close-alert-line";
 	const delayStyle = (index: number) =>
 		reduced ? undefined : { animationDelay: `${index * LOVED_ONES_LINE_MS}ms` };
-
-	useEffect(() => {
-		const destinyLineDelay = reduced ? 0 : 1 * LOVED_ONES_LINE_MS;
-		const timeout = setTimeout(
-			() => openDestiny("terminal"),
-			destinyLineDelay + LOVED_ONES_OPEN_DELAY_MS,
-		);
-		return () => clearTimeout(timeout);
-	}, [reduced]);
 
 	return (
 		<div className="leading-relaxed">
@@ -81,26 +70,12 @@ function LovedOnesOutput() {
 }
 
 const GIT_LOG_LINE_MS = 180;
-const GIT_LOG_DESTINY_INDEX = 1;
-/** Delay after the destiny commit line itself has revealed, not after mount. */
-const GIT_LOG_OPEN_DELAY_MS = 600;
 
-/** `git log --oneline` — commits stagger in the same way; the destiny commit
- * (the pink one) opens the card-style destiny reveal a beat after it lands. */
+/** `git log --oneline` — commits stagger in the same way. No longer
+ * auto-opens the destiny reveal on its own — see `LovedOnesOutput` above. */
 function GitLogOutput() {
 	const reduced = useReducedMotion();
 	const lineClass = reduced ? undefined : "close-alert-line";
-
-	useEffect(() => {
-		const destinyLineDelay = reduced
-			? 0
-			: GIT_LOG_DESTINY_INDEX * GIT_LOG_LINE_MS;
-		const timeout = setTimeout(
-			() => openDestiny("card"),
-			destinyLineDelay + GIT_LOG_OPEN_DELAY_MS,
-		);
-		return () => clearTimeout(timeout);
-	}, [reduced]);
 
 	return (
 		<div className="leading-relaxed">
