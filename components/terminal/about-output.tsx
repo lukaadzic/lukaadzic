@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
+import { ExternalLink } from "@/components/shared/external-link";
 import { LiveAge } from "@/components/terminal/live-age";
 import { PROJECTS } from "@/lib/projects";
-import { SITE } from "@/lib/site";
+import { SITE, WORK_PARTS } from "@/lib/site";
 
 const TITLE = SITE.githubUsername;
 const UNDERLINE = "─".repeat(TITLE.length);
@@ -10,10 +11,35 @@ const UNDERLINE = "─".repeat(TITLE.length);
 const KEY_CLASS = "text-[#5fd75f]/70";
 const VALUE_CLASS = "min-w-0 break-words text-foreground";
 
+/** Same muted-underline treatment as the `contact` row's mailto link below. */
+const WORK_LINK_CLASS =
+	"text-foreground underline decoration-white/20 underline-offset-4 transition-colors duration-200 hover:text-accent";
+
+/** `work` row — C4R and Wharton render as links, everything else stays text. */
+function WorkRow() {
+	return (
+		<>
+			{WORK_PARTS.map((part, index) =>
+				part.href ? (
+					<ExternalLink
+						key={`${part.text}-${index}`}
+						href={part.href}
+						className={WORK_LINK_CLASS}
+					>
+						{part.text}
+					</ExternalLink>
+				) : (
+					<span key={`${part.text}-${index}`}>{part.text}</span>
+				),
+			)}
+		</>
+	);
+}
+
 const ROWS: Array<[string, ReactNode]> = [
 	["name", SITE.name],
-	["work", SITE.work],
-	["school", SITE.school],
+	["work", <WorkRow key="work" />],
+	["university", SITE.school],
 	["location", SITE.location],
 	["roots", SITE.roots],
 	["age", <LiveAge key="age" />],
