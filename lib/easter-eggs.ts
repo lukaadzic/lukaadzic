@@ -57,3 +57,22 @@ export const MODRIC = {
 	closer:
 		"the other Luka. we share a first name and that's where the comparison ends (his favor).",
 } as const;
+
+/**
+ * `penalty` / `shootout` / `./penalty.sh` — trivia rotated in one line at a
+ * time after each round of the shootout minigame. Only verified World Cup
+ * shootout facts, same rule as everything else here.
+ */
+export const SHOOTOUT_HISTORY = [
+	"2018 R16 vs Denmark: won 3-2 on pens. Subašić saved three. You were saying?",
+	"2018 QF vs Russia: won 4-3 on pens. Rakitić scored the winner — same as he did against Denmark.",
+	"2022 R16 vs Japan: won 3-1 on pens. Livaković saved three.",
+	"2022 QF vs Brazil: won 4-2 on pens. Livaković saved from Rodrygo, Marquinhos hit the post, and Modrić was among the scorers.",
+	"four straight World Cup shootout wins across 2018 and 2022. Croatia has never lost one.",
+] as const;
+
+/** End-state copy for the `penalty` minigame. */
+export const PENALTY_END_MESSAGES = {
+	win: "you out-shot the shootout GOATs. screenshot this, nobody will believe you.",
+	loss: "Livaković remains a wall. 2018 Denmark, 2018 Russia, 2022 Japan, 2022 Brazil — you're in good company.",
+} as const;
