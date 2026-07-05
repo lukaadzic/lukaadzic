@@ -108,11 +108,31 @@ function sparkLevel(total: number, max: number): number {
 
 const LEVEL_OPACITY = [0.15, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 1] as const;
 
-function ContributionsSkeleton() {
+/**
+ * Occupies the *exact* final height of the real content below (sparkline
+ * row + summary line) so the crossfade from skeleton to data never shifts
+ * the layout. That means matching structure, not just guessing pixel
+ * heights: each bar is an inline-block spanning the same font-size/
+ * line-height context (`leading-relaxed`, inherited `text-[13px]
+ * sm:text-[14px]`) as its real counterpart, with a non-breaking space to
+ * generate a real line box — a background-color on an inline element
+ * paints across that whole line box, so the bar's rendered height is
+ * pixel-identical to the text row it's standing in for, at every
+ * breakpoint, without hardcoding em/px values that could drift out of sync.
+ * Exported so `github-contributions-lazy.tsx` can reuse the identical
+ * markup as its `loading` fallback instead of a second hand-maintained copy.
+ */
+export function ContributionsSkeleton() {
 	return (
-		<div aria-hidden="true">
-			<div className="h-[1.25em] w-full max-w-[420px] animate-pulse rounded-[2px] bg-white/[0.06] motion-reduce:animate-none" />
-			<div className="mt-2 h-[1em] w-56 animate-pulse rounded-[2px] bg-white/[0.04] motion-reduce:animate-none" />
+		<div aria-hidden="true" className="leading-relaxed">
+			<span className="inline-block w-full max-w-[420px] animate-pulse rounded-[2px] bg-white/[0.06] text-[13px] sm:text-[14px] motion-reduce:animate-none">
+				&nbsp;
+			</span>
+			<p className="mt-1">
+				<span className="inline-block w-56 animate-pulse rounded-[2px] bg-white/[0.04] text-[13px] sm:text-[14px] motion-reduce:animate-none">
+					&nbsp;
+				</span>
+			</p>
 		</div>
 	);
 }
@@ -210,7 +230,10 @@ export function GitHubContributions({ username }: GitHubContributionsProps) {
 	const max = buckets.reduce((acc, bucket) => Math.max(acc, bucket.total), 0);
 
 	return (
-		<div ref={containerRef} className="relative leading-relaxed">
+		<div
+			ref={containerRef}
+			className="github-contributions-in relative leading-relaxed"
+		>
 			<span
 				ref={probeRef}
 				aria-hidden="true"
