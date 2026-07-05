@@ -170,9 +170,11 @@ that same registry, so every path renders identical output.
   animation libraries. One easing family — `cubic-bezier(0.16, 1, 0.3, 1)` —
   runs through the whole opening choreography below.
 - **Opening choreography.** Page load is one deliberately staged sequence,
-  each beat starting while the previous is still finishing (~60-70% through
-  it) rather than waiting, so it reads as continuous motion, not a slideshow
-  — total time to interactive is ~1.4-1.5s:
+  strictly top to bottom like a real terminal boot — no beat renders below
+  content that hasn't appeared yet above it — each beat starting while the
+  previous is still finishing (~60-70% through it) rather than waiting, so
+  it reads as continuous motion, not a slideshow — total time to interactive
+  is ~2.1-2.3s:
   1. `0-280ms` — the window fades in. In fullscreen (the default, and the
      common mobile state) that's opacity + a small `translateY` only, since
      scaling a full-viewport element forces a whole-page repaint every
@@ -186,32 +188,50 @@ that same registry, so every path renders identical output.
      paint too), the bare "Last login:" placeholder is never visible — the
      line only ever reserves its own height until a fixed-delay CSS fade
      (`terminal-last-login-in`, 240ms) reveals it fully formed.
-  3. `~350ms` — the live prompt + blinking cursor fade in
-     (`terminal-active-prompt-in`, 260ms) — plays once on mount, never
-     replays mid-session.
-  4. `~500ms` — the typed `welcome` beat begins (jittered ~55ms/char).
-  5. On typing completion — the pinned `welcome` block (banner + greeting +
-     hint) rises in as one block (opacity + small `translateY`, 300ms) into
-     its already-reserved space: it's mounted at `opacity: 0` from first
-     paint so its final height never moves, and there is zero layout shift
-     across the whole sequence (chips and prompt below it don't shift either,
-     since transform never touches layout).
-  6. `~80ms` after the welcome rise begins — the suggestion chips ripple in
+  3. `~350ms` — the PINNED welcome block's own prompt line fades in directly
+     under login, with the block cursor (`terminal-active-prompt-in`,
+     260ms) — plays once on mount, never replays mid-session.
+  4. `~500ms` — `welcome` types into that pinned line, char by char
+     (jittered ~55ms/char) — `bootTyped` state in `terminal-session.tsx`,
+     kept separate from `inputValue` (which stays reserved for real user
+     input). The bottom active prompt is not visible yet.
+  5. On typing completion — the pinned block's OUTPUT (banner + greeting +
+     hint) prints line by line below it via `.welcome-line` +
+     `data-welcome-revealed` (unchanged mechanics: 90/190/280ms per-line
+     delay, 240ms fade each), while the pinned prompt line itself goes
+     static (cursor removed). Mounted at `opacity: 0` from first paint so
+     its final height never moves — zero layout shift across the whole
+     sequence.
+  6. Once the last welcome line has settled (280ms delay + 240ms fade + a
+     100ms tail after typing completes) — the ACTIVE prompt fades in below
+     everything, with the cursor now handed to it
+     (`terminal-prompt-ready-in`, 260ms). This used to be the bottom
+     prompt's very first beat, with `welcome` typing there directly — that
+     read as the eye jumping bottom-to-top once the pinned block later
+     appeared above it; it's now deliberately last.
+  7. `~90ms` after the active prompt beat — the suggestion chips ripple in
      with a ~40ms stagger, and chips get a subtle `scale(0.97)` on press.
 
-  Beats 3 and 6 are CSS `animation-delay`s, but timed off one clock, not
-  two: `terminal-session.tsx` sets a `data-booted` attribute on the session
-  root in the exact same effect that starts the typed `welcome` beat (JS
-  clock t=0), and `[data-booted] .terminal-active-prompt-in` /
-  `[data-booted] .terminal-chip-row > *` in `globals.css` measure their
-  delays from that attribute landing rather than from stylesheet-load time —
-  otherwise, on a device where hydration lags well behind first paint, the
-  prompt and chips (timed off page load) can render before typing even
-  starts. Each of those two rules also keeps an ungated fallback copy with a
+  Beats 3 and 7 are CSS `animation-delay`s off `[data-booted]` (fixed,
+  hydration-anchored delays — 350ms for the pinned prompt, ~1600ms+ for
+  chips). Beat 6 is different: because it depends on how long `welcome`
+  actually took to type plus the real welcome-line stagger, it isn't a
+  guessed fixed delay — `terminal-session.tsx` sets a second attribute,
+  `data-prompt-ready`, on the session root only once that has actually
+  finished (see `finishBoot`), and `[data-prompt-ready]
+  .terminal-prompt-ready-in` in `globals.css` needs no further delay of its
+  own. All of `data-booted`, `data-welcome-revealed`, and `data-prompt-ready`
+  land in the same JS effect/clock, so a slow-hydrating device still gets
+  every beat in the same relative order instead of CSS beats racing ahead of
+  typing that hasn't started. Each of the `[data-booted]`-gated rules (and
+  `.terminal-prompt-ready-in`) also keeps an ungated fallback copy with a
   long ~3s delay and a distinct `animation-name` (needed so the browser
-  restarts the animation, delay included, once `data-booted` starts
-  matching) — an un-strandable guarantee that the prompt/chips still
-  eventually appear even if JS never runs at all (this shipped broken once).
+  restarts the animation, delay included, once its gate starts matching) —
+  an un-strandable guarantee that the pinned prompt/active prompt/chips
+  still eventually appear even if JS never runs at all (this shipped broken
+  once). Clicking/pressing Enter during boot fast-forwards straight to the
+  final state (full command, all lines, active prompt + cursor) — chips
+  still land on their own timing.
 - **Session/command motion.** The session shows the `welcome` block plus
   exactly one command group below it — never a stacking log. Running a new
   command fades the currently displayed group out (~120ms), types the new
