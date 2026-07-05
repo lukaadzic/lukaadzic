@@ -12,13 +12,14 @@ export const PROJECTS: Project[] = [
 	},
 	{
 		slug: "maritime-penn-web-app",
-		description: "Building tomorrow's maritime leaders at UPenn & Wharton",
+		description:
+			"Penn's first maritime club — founder & president, 100+ members",
 		href: "https://pennmaritime.club/",
 	},
 	{
 		slug: "algorithmic-trading-system-live-pnl",
 		description:
-			"A live systematic trading system combining quantitative trend signals and NLP-driven sentiment analysis to execute and manage a real equity portfolio.",
+			"Live systematic trading system — quantitative trend signals plus NLP sentiment on real capital, 22% realized return in two months.",
 		href: "https://github.com/lukaadzic/Live-Algorithmic-Trading-System",
 	},
 	{
