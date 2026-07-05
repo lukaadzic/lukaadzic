@@ -71,8 +71,9 @@ export const SHOOTOUT_HISTORY = [
 	"four straight World Cup shootout wins across 2018 and 2022. Croatia has never lost one.",
 ] as const;
 
-/** End-state copy for the `penalty` minigame. */
+/** End-state copy for the `penalty` minigame. Keeper facts matter:
+ * Subašić kept goal in the 2018 shootouts, Livaković in the 2022 ones. */
 export const PENALTY_END_MESSAGES = {
 	win: "you out-shot the shootout GOATs. screenshot this, nobody will believe you.",
-	loss: "Livaković remains a wall. 2018 Denmark, 2018 Russia, 2022 Japan, 2022 Brazil — you're in good company.",
+	loss: "Livaković remains a wall. Subašić owned 2018, Livaković owned 2022 — you're in good company.",
 } as const;
