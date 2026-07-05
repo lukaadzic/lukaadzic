@@ -47,16 +47,24 @@ portraits of Modro, Vida & Baby (`pets-output.tsx`) using the same colored-
 cell-grid technique as the `vatreni` šahovnica — grids, palettes, and
 captions live in `lib/easter-eggs.ts` as `PETS`. Luka's girlfriend Destiny has her own FIRST-CLASS
 section: the `destiny` command (visible chip, in `help`)
-renders her photo + card inline (`destiny-output.tsx`).
-The playful triggers remain on top of that: `cat /etc/loved-ones` and
-`git log --oneline` each stagger their
-lines in, then auto-open a Destiny reveal modal (`destiny-easter-egg.tsx`,
-portaled to `document.body`) in one of three site-styled forms — a mini
-terminal window, a "classified" dossier, or a quiet polaroid-style card; the
-classic konami code (`↑↑↓↓←→←→ba`) opens the dossier from anywhere. `#f0a6ca`
-(soft pink) is Destiny's color across all three — the one deliberate named-
-color exception in the app, same idea as the green prompt. Not listed in
-`help`, the suggestion chips, or `ls -la` — konami plus curiosity are enough.
+renders her photo + card inline (`destiny-output.tsx`, photo path from
+`DESTINY_PHOTO` in `lib/easter-eggs.ts`), with its own trigger chips below —
+`cat /etc/loved-ones`, `git log`, and the konami chip (no `pets` chip here
+anymore; `pets` is a main tab of its own now, so it stayed off this list).
+`cat /etc/loved-ones` and `git log --oneline` still stagger their lines in
+the same way, but no longer auto-open anything on their own — the classic
+konami code (`↑↑↓↓←→←→ba`), typed anywhere or tapped as the chip in
+`destiny`'s section, is the only door into the "classified" dossier reveal
+(`destiny-easter-egg.tsx`, portaled to `document.body`). The dossier uses its
+own photo, `DESTINY_CLASSIFIED_PHOTO` (`destiny-classified.jpg` — the Croatia
+jersey, making a heart), distinct from `DESTINY_PHOTO` used everywhere else.
+Two other site-styled reveal forms (a mini terminal window, a quiet
+polaroid-style card) still live in the same file as the `terminal`/`card`
+styles, dormant until something calls `openDestiny` with them again.
+`#f0a6ca` (soft pink) is Destiny's color across every reveal — the one
+deliberate named-color exception in the app, same idea as the green prompt.
+Not listed in `help`, the suggestion chips, or `ls -la` — konami plus
+curiosity are enough.
 On the home page the red traffic light refuses to
 close: a macOS-style "don't leave." alert opens over the window with
 Giveon's DON'T LEAVE autoplaying inside it, and `leave anyway` loses its
