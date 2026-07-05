@@ -61,14 +61,17 @@ Giveon's DON'T LEAVE autoplaying inside it, and `leave anyway` loses its
 nerve twice before conceding — all alert copy is original, never verbatim
 lyrics; the `/404` card keeps the plain shake + toast. The yellow light on
 the home page (`terminal-window.tsx` + `minimize-dock.tsx`) really
-minimizes: the window sinks toward the bottom-center and hides
+minimizes: the window shrinks toward its own center and hides
 (`visibility: hidden`, never unmounted, so a playing Spotify embed and the
-ticking live-age both survive), and a macOS-style dock shelf rises there —
-translucent, bottom-center, one 64px app icon (`public/images/luka-kid.jpg`,
-green-`L` fallback) with the running-app indicator dot lit (the terminal IS
-still running) and a hover/keyboard-focus name pill
-(`luka_early_build.app — v0.1, still compiling`); click/Enter/Space/Esc
-restores. The `/404` card keeps the old plain bounce-back instead. So the
+ticking live-age both survive), and a full-viewport centered "still
+compiling" splash fades up over the wallpaper in its place — baby-Luka's
+photo icon (`public/images/luka-kid.jpg`, green-`L` fallback), the name
+`luka_early_build.app`, and a fake terminal compile progress line
+(`compiling ▓▓▓▓▓░░░░░ 47%`) that crawls, stalls near 99%, and drops back on
+a loop that never finishes — it's v0.1, still compiling, that's the joke —
+under a faint `click anywhere to restore` hint; click anywhere on the splash
+(or Enter/Space on the focused icon, or Esc from anywhere) restores. The
+`/404` card keeps the old plain bounce-back instead. So the
 track starts
 the instant the alert opens rather than after a script fetch,
 `terminal-window.tsx` warms Spotify's iFrame API script during idle time
