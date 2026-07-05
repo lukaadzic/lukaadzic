@@ -39,7 +39,7 @@ export function DestinyOutput() {
 					className={TRIGGER_CHIP_CLASS}
 					onClick={(event) => {
 						event.stopPropagation();
-						runCommand("love");
+						runCommand("cat /etc/loved-ones");
 					}}
 				>
 					cat /etc/loved-ones

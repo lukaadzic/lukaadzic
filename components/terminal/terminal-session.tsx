@@ -256,9 +256,11 @@ export function TerminalSession() {
 	}, [focusInput, typeAtPrompt]);
 
 	// Outputs can run commands too (e.g. the trigger chips inside the destiny
-	// section) — same path as a suggestion-chip click, typing included.
+	// section) — same path as a suggestion-chip click, typing included, and
+	// the same animating gate every other entry point into submit() has.
 	useEffect(() => {
 		const onRun = (event: Event) => {
+			if (animating) return;
 			const command = (event as CustomEvent<string>).detail;
 			if (typeof command === "string" && command) {
 				submit(command, true);
@@ -266,7 +268,7 @@ export function TerminalSession() {
 		};
 		window.addEventListener("terminal:run", onRun);
 		return () => window.removeEventListener("terminal:run", onRun);
-	}, [submit]);
+	}, [submit, animating]);
 
 	// FLIP the group container's height whenever the displayed group changes,
 	// crossfade the new content in, and only then scroll the live prompt into
