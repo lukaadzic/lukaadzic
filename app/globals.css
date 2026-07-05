@@ -325,6 +325,158 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	animation: terminal-minimize 650ms cubic-bezier(0.65, 0, 0.35, 1);
 }
 
+/* Real minimize-to-dock (home page only — the old bounce above stays for
+   the /404 card, which has no desktop to dock onto). The window shrinks and
+   flies toward the bottom-left corner, where the dock icon will spring up
+   once this finishes (terminal-window.tsx swaps to the icon on
+   `animationend`, matched by name, not a timer). */
+@keyframes terminal-minimize-fly {
+	from {
+		transform: scale(1) translate(0, 0);
+		opacity: 1;
+	}
+	to {
+		transform: scale(0.04) translate(-46vw, 46vh);
+		opacity: 0;
+	}
+}
+
+/* Specificity matches (and, via source order, beats)
+   `[data-mode="fullscreen"].terminal-window-in` below — otherwise, in
+   fullscreen (the home page's default state), that rule's `animation`
+   shorthand would silently win over a plain single class and the fly-out
+   keyframes would never actually play, so `animationend` would never fire
+   for `terminal-minimize-fly` and the window would never hide. */
+.terminal-window-frame.terminal-minimize-fly {
+	animation: terminal-minimize-fly 450ms cubic-bezier(0.4, 0, 0.2, 1) both;
+	transform-origin: bottom left;
+}
+
+/* Hides the window frame once minimized while keeping it mounted and laid
+   out — `visibility: hidden` (not `display: none`) so anything still
+   running inside it (a playing Spotify embed, the ticking live-age
+   interval) keeps working while docked. */
+.terminal-window-hidden {
+	visibility: hidden;
+	pointer-events: none;
+}
+
+/* Restoring — the window fades/scales back in once the dock icon's exit
+   animation hands off to `onRestore`. Same easing family as the rest of the
+   site's entrances. */
+@keyframes terminal-restore-in {
+	from {
+		opacity: 0;
+		transform: scale(0.97);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+/* Same specificity reasoning as terminal-minimize-fly above. */
+.terminal-window-frame.terminal-restore-in {
+	animation: terminal-restore-in 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* The dock icon itself (minimize-dock.tsx) — a macOS-dock-style app icon
+   that springs up with an overshoot once the window finishes flying out. */
+@keyframes dock-icon-in {
+	from {
+		opacity: 0;
+		transform: translateY(80px) scale(0.4);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+.dock-icon-in {
+	animation: dock-icon-in 350ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Clicking (or Enter/Space/Esc) the icon plays this before handing off to
+   `onRestore` — a quick pop past 1 before vanishing. */
+@keyframes dock-icon-out {
+	0% {
+		transform: scale(1);
+		opacity: 1;
+	}
+	50% {
+		transform: scale(1.15);
+		opacity: 1;
+	}
+	100% {
+		transform: scale(0);
+		opacity: 0;
+	}
+}
+
+.dock-icon-out {
+	animation: dock-icon-out 250ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* One bounce per hover — re-triggered via a remove/re-add class trick in
+   minimize-dock.tsx (same idea as the red light's shake retrigger). */
+@keyframes dock-icon-bounce {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	30% {
+		transform: translateY(-14px);
+	}
+	50% {
+		transform: translateY(0);
+	}
+	65% {
+		transform: translateY(-6px);
+	}
+	80% {
+		transform: translateY(0);
+	}
+}
+
+.dock-icon-bounce {
+	animation: dock-icon-bounce 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* The dock icon's tooltip — same floating-surface language as
+   close-alert-surface, sized down for a compact hint. Anchored to the
+   icon's left edge (not centered) so it never overflows the viewport's left
+   side on narrow screens, where the icon sits close to the corner. A plain
+   opacity/transform transition (not a keyframe pair) so it reverses cleanly
+   on mouse-leave/blur instead of needing a separate exit animation. */
+.dock-tooltip {
+	position: absolute;
+	bottom: 100%;
+	left: 0;
+	margin-bottom: 10px;
+	width: max-content;
+	max-width: 200px;
+	border-radius: 8px;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	background: rgba(30, 30, 32, 0.97);
+	padding: 8px 10px;
+	font-family: var(--font-mono);
+	font-size: 11px;
+	line-height: 1.5;
+	color: var(--color-muted);
+	opacity: 0;
+	transform: translateY(2px);
+	transition:
+		opacity 200ms cubic-bezier(0.16, 1, 0.3, 1),
+		transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+	pointer-events: none;
+}
+
+.dock-tooltip-visible {
+	opacity: 1;
+	transform: translateY(0);
+}
+
 /* Terminal command group (prompt + output) — a quick fade + rise as each
    block appears. Opacity/transform only, so inserting a new group never
    causes layout jank. */
@@ -850,6 +1002,22 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 
 	.terminal-minimize {
 		animation: none;
+	}
+
+	/* Matches the compound selectors above so these overrides actually win
+	   on specificity, not just source order. */
+	.terminal-window-frame.terminal-minimize-fly,
+	.terminal-window-frame.terminal-restore-in,
+	.dock-icon-in,
+	.dock-icon-out,
+	.dock-icon-bounce {
+		animation: none;
+		opacity: 1;
+		transform: none;
+	}
+
+	.dock-tooltip {
+		transition: none;
 	}
 
 	.terminal-output-in {
