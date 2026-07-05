@@ -51,6 +51,9 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
 	themeColor: "#0a0a0a",
+	// The fullscreen terminal extends under notches/home indicators; the
+	// window content compensates via env(safe-area-inset-*) padding.
+	viewportFit: "cover",
 };
 
 const personSchema = {

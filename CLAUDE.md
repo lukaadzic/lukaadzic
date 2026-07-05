@@ -4,7 +4,11 @@
 
 Luka Adzic's personal portfolio. One page (`/`) plus a `/404`. The UI is a
 faithful, interactive macOS Terminal window built around **prompt-driven
-discovery**: on load only a short `welcome` greeting types out and stays
+discovery**. The window is **fullscreen by default** (edge-to-edge, square
+corners, sticky title bar, content capped to a readable ~900px column); the
+green traffic light zooms it down to the floating windowed look and back,
+remembered per tab via `sessionStorage` (the `/404` card always floats). On
+load only a short `welcome` greeting types out and stays
 pinned at the top, then the visitor reveals content by prompting — typing
 commands or clicking the suggestion chips under the prompt (`about`,
 `projects`, `github`, `socials`, `cv`, and an accented `./everything.sh`).
