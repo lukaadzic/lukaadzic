@@ -1,7 +1,14 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import {
+	type ReactNode,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import { CloseAlert } from "@/components/terminal/close-alert";
+import { loadSpotifyIframeApi } from "@/components/terminal/spotify-iframe-api";
 import { CLOSE_ALERT } from "@/lib/easter-eggs";
 
 type TerminalWindowProps = {
@@ -59,6 +66,41 @@ export function TerminalWindow({
 			// sessionStorage unavailable (e.g. blocked) — keep the default.
 		}
 	}, [floatingOnly]);
+
+	// The 404 card never opens the "don't leave." alert, so it never needs
+	// the Spotify iFrame API — only the home page warms it.
+	const warmSpotify = useCallback(() => {
+		if (floatingOnly) return;
+		// Cheap no-op once the script is cached — safe to call repeatedly.
+		loadSpotifyIframeApi().catch(() => {
+			// Blocked/offline: the click path just retries later, same as today.
+		});
+	}, [floatingOnly]);
+
+	// Warm the Spotify iFrame API during idle time, well before anyone's
+	// touched the red light — so by the time "don't leave." opens, the
+	// script is already cached and the embedded player boots instantly
+	// instead of paying for a fresh script fetch after the popup appears.
+	useEffect(() => {
+		if (floatingOnly) return;
+		const idleWindow = window as Window & {
+			requestIdleCallback?: (
+				callback: IdleRequestCallback,
+				options?: IdleRequestOptions,
+			) => number;
+			cancelIdleCallback?: (handle: number) => void;
+		};
+
+		if (typeof idleWindow.requestIdleCallback === "function") {
+			const handle = idleWindow.requestIdleCallback(warmSpotify, {
+				timeout: 3000,
+			});
+			return () => idleWindow.cancelIdleCallback?.(handle);
+		}
+
+		const timeout = setTimeout(warmSpotify, 2500);
+		return () => clearTimeout(timeout);
+	}, [floatingOnly, warmSpotify]);
 
 	function handleClose() {
 		setShaking(false);
@@ -146,7 +188,12 @@ export function TerminalWindow({
 		>
 			<div className="terminal-window-chrome">
 				<div className="terminal-window-titlebar relative flex h-[38px] items-center justify-center bg-gradient-to-b from-white/[0.07] to-black/[0.15] px-3 backdrop-blur-sm">
-					<div className="group absolute left-5 flex items-center gap-2">
+					{/* biome-ignore lint/a11y/noStaticElementInteractions: passive intent-warm listener only (loads a script), not a control — the real interactive elements are the buttons inside. */}
+					<div
+						className="group absolute left-5 flex items-center gap-2"
+						onPointerOver={warmSpotify}
+						onFocus={warmSpotify}
+					>
 						<button
 							ref={closeButtonRef}
 							type="button"
