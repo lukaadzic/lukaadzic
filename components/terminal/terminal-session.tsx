@@ -63,18 +63,22 @@ const ENTERED_STYLE: CSSProperties = {
 		"opacity 280ms cubic-bezier(0.16, 1, 0.3, 1), transform 280ms cubic-bezier(0.16, 1, 0.3, 1)",
 };
 
-// Pure opacity, deliberately no transform: this block's space is reserved
-// from the very first paint (see `welcomeEntry` below), so revealing it only
-// ever needs to fade in — a translateY here would still move the painted
-// box and show up as a layout shift even though the layout itself never
-// changes.
+// This block's space is reserved from the very first paint (see
+// `welcomeEntry` below), so the container's height never moves — the small
+// translateY here is a purely cosmetic rise within that already-allocated
+// box (transform doesn't touch layout), landing the pinned welcome banner
+// as one continuous "rises in" beat right when the typed `welcome` finishes,
+// same easing family as the rest of the opening choreography.
 const WELCOME_HIDDEN_STYLE: CSSProperties = {
 	opacity: 0,
+	transform: "translateY(8px)",
 };
 
 const WELCOME_REVEALED_STYLE: CSSProperties = {
 	opacity: 1,
-	transition: "opacity 320ms cubic-bezier(0.16, 1, 0.3, 1)",
+	transform: "translateY(0)",
+	transition:
+		"opacity 300ms cubic-bezier(0.16, 1, 0.3, 1), transform 300ms cubic-bezier(0.16, 1, 0.3, 1)",
 };
 
 export function TerminalSession() {
@@ -218,8 +222,12 @@ export function TerminalSession() {
 	);
 
 	// Opening beat: auto-type one short `welcome` command (~1s), then hand
-	// the prompt over. With prefers-reduced-motion the output appears
-	// instantly and the cursor holds steady.
+	// the prompt over. This is the last JS-driven beat of the opening
+	// choreography — window fade, the "Last login" line, and the prompt +
+	// cursor all reveal on fixed CSS delays before this fires (see
+	// globals.css and the entrance-in classes below), so typing starts once
+	// the prompt itself has visibly landed. With prefers-reduced-motion the
+	// output appears instantly and the cursor holds steady.
 	useEffect(() => {
 		if (startedRef.current) return;
 		startedRef.current = true;
@@ -238,7 +246,7 @@ export function TerminalSession() {
 		(async () => {
 			setAnimating(true);
 			const gen = ++genRef.current;
-			await sleep(250);
+			await sleep(500);
 			await typeAtPrompt("welcome", gen, WELCOME_CHAR_DELAY_MS);
 			setInputValue("");
 			setWelcomeRevealed(true);
@@ -459,7 +467,7 @@ export function TerminalSession() {
 				)}
 			</div>
 
-			<div ref={activePromptRef} className="mt-5">
+			<div ref={activePromptRef} className="terminal-active-prompt-in mt-5">
 				<PromptLine input={inputValue} cursor cursorBlink={cursorBlink} />
 			</div>
 
