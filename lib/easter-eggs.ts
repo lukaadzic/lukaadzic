@@ -28,6 +28,21 @@ export const BELOVED = {
 	],
 } as const;
 
+/**
+ * The tracks the `giveon` command actually plays, via official Spotify
+ * track embeds (30s preview for everyone; full track for logged-in
+ * Spotify users). IDs verified against open.spotify.com/oembed.
+ */
+export const FEATURED_TRACKS = [
+	{ title: "STRANGERS", spotifyTrackId: "7jF5V0KISfBLyVO5eF4D1w" },
+	{
+		title: "REPLICA (feat. Sasha Keable)",
+		spotifyTrackId: "2OfBeaRCWOB7AHOsePBlsN",
+	},
+] as const;
+
+export type FeaturedTrack = (typeof FEATURED_TRACKS)[number];
+
 export const VATRENI = {
 	heading: "Vatreni 🔥 — Hrvatska",
 	summary: "2018 World Cup finalists · 2022 bronze",
