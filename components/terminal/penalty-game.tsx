@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { PENALTY_END_MESSAGES, SHOOTOUT_HISTORY } from "@/lib/easter-eggs";
 import {
 	decide,
@@ -13,7 +13,13 @@ import {
 } from "@/lib/penalty";
 
 type Side = "L" | "C" | "R";
-type Phase = "shoot" | "dive" | "roundEnd" | "gameOver";
+type Phase =
+	| "shoot"
+	| "shootSuspense"
+	| "dive"
+	| "diveSuspense"
+	| "roundEnd"
+	| "gameOver";
 
 const SIDES: readonly Side[] = ["L", "C", "R"];
 const SIDE_LABEL: Record<Side, string> = {
@@ -21,6 +27,17 @@ const SIDE_LABEL: Record<Side, string> = {
 	C: "center",
 	R: "right",
 };
+
+/** How long the stadium holds its breath between the pick and the reveal. */
+const SUSPENSE_MS = 600;
+
+/** Flavor only — rotated per kick while the suspense timer runs. */
+const SUSPENSE_LINES = [
+	"the stadium holds its breath…",
+	"run-up…",
+	"eye contact from twelve yards…",
+	"the crowd goes quiet…",
+] as const;
 
 /** Livaković is the wall: he guesses your side 45% of the time (vs. a fair
  * 33%) — "he's saved harder shots than yours." */
@@ -47,22 +64,6 @@ function icon(k: Kick): string {
 	return k === "goal" ? "⚽" : "❌";
 }
 
-/** A tiny 3-column ASCII goal mouth: ⚽ shows where the shot went, 🧤 shows
- * where the keeper dove. Fixed-width monospace cells so it lines up. */
-function goalFrame(ballSide: Side, keeperSide: Side): string {
-	const cell = (side: Side, mark: string) =>
-		` ${ballSide === side ? mark : " "} `;
-	const keeperRow = SIDES.map((side) =>
-		keeperSide === side ? " 🧤 " : "    ",
-	).join("");
-	return [
-		"┌───┬───┬───┐",
-		`│${cell("L", "⚽")}│${cell("C", "⚽")}│${cell("R", "⚽")}│`,
-		"└───┴───┴───┘",
-		` ${keeperRow}`,
-	].join("\n");
-}
-
 /** Narration for kicks that never happen once the math is settled. */
 function skippedKicksNote(state: ShootoutState, winner: Kicker): string | null {
 	if (state.phase !== "regulation") return null;
@@ -78,16 +79,107 @@ function skippedKicksNote(state: ShootoutState, winner: Kicker): string | null {
 		: "Croatia's remaining kicks can't save them — they never happen.";
 }
 
+const GOAL_TOP = "┌───────┬───────┬───────┐";
+const GOAL_BOTTOM = "└───────┴───────┴───────┘";
+const EMPTY_CELL = "       ";
+
+/** One zone of the goalmouth; the emoji pops in via CSS when present. */
+function zoneCell(present: boolean, emoji: string, animClass: string) {
+	if (!present) return EMPTY_CELL;
+	return (
+		<>
+			{"  "}
+			<span className={animClass}>{emoji}</span>
+			{"   "}
+		</>
+	);
+}
+
+/** The goalmouth: posts + crossbar in box-drawing chars, three zones, ⚽ in
+ * the shot zone (top row) and 🧤 in the dive zone (bottom row). Remounted
+ * per kick, so the pop-in animations replay for every reveal. */
+function GoalFrame({
+	ballSide,
+	gloveSide,
+}: {
+	ballSide: Side;
+	gloveSide: Side;
+}) {
+	return (
+		<div
+			aria-hidden="true"
+			className="select-none whitespace-pre font-mono leading-[1.35] text-foreground"
+		>
+			<div>{GOAL_TOP}</div>
+			<div>
+				{"│"}
+				{SIDES.map((side) => (
+					<Fragment key={side}>
+						{zoneCell(side === ballSide, "⚽", "penalty-ball-in")}
+						{"│"}
+					</Fragment>
+				))}
+			</div>
+			<div>
+				{"│"}
+				{SIDES.map((side) => (
+					<Fragment key={side}>
+						{zoneCell(side === gloveSide, "🧤", "penalty-glove-in")}
+						{"│"}
+					</Fragment>
+				))}
+			</div>
+			<div>{GOAL_BOTTOM}</div>
+		</div>
+	);
+}
+
+/** Scoreline icons; the newest one pops as it lands. */
+function ScoreIcons({ kicks, pop }: { kicks: Kick[]; pop: boolean }) {
+	if (kicks.length === 0) return "—";
+	const head = kicks.slice(0, -1).map(icon).join("");
+	return (
+		<>
+			{head}
+			<span key={kicks.length} className={pop ? "penalty-icon-pop" : undefined}>
+				{icon(kicks[kicks.length - 1])}
+			</span>
+		</>
+	);
+}
+
+/** The verdict line: colored verdict word flashes in just after the ball. */
+function ResultLine({
+	verdict,
+	good,
+	rest,
+}: {
+	verdict: string;
+	good: boolean;
+	rest: string;
+}) {
+	return (
+		<p className="penalty-result-in text-muted">
+			<span className={good ? "text-[#5fd75f]" : "text-[#e63946]"}>
+				{verdict}
+			</span>
+			{rest}
+		</p>
+	);
+}
+
 type ShotRecord = { side: Side; keeperSide: Side; result: Kick };
 type HrvShotRecord = { hrvSide: Side; yourDive: Side; result: Kick };
 
 function SideButtons({
 	prompt,
 	verb,
+	disabled,
 	onPick,
 }: {
 	prompt: string;
 	verb: string;
+	disabled: boolean;
 	onPick: (side: Side) => void;
 }) {
 	return (
@@ -98,6 +190,7 @@ function SideButtons({
 					<button
 						key={side}
 						type="button"
+						disabled={disabled}
 						className="terminal-chip penalty-chip"
 						onClick={(event) => {
 							event.stopPropagation();
@@ -115,7 +208,8 @@ function SideButtons({
 /** `penalty` / `shootout` / `./penalty.sh` — a best-of-5 shootout against
  * Livaković, Croatia's 2022 shootout wall (Subašić held 2018 — the trivia
  * keeps the years straight). The rules math lives in `lib/penalty.ts` as
- * pure functions; this component only rolls dice and renders. */
+ * pure functions; this component only rolls dice, holds its breath for a
+ * beat, and renders the reveal. */
 export function PenaltyGame() {
 	const [shootout, setShootout] = useState<ShootoutState>(initialShootoutState);
 	const [yourList, setYourList] = useState<Kick[]>([]);
@@ -127,7 +221,21 @@ export function PenaltyGame() {
 	const [triviaLine, setTriviaLine] = useState<string | null>(null);
 	const [winner, setWinner] = useState<Kicker | null>(null);
 	const [skipNote, setSkipNote] = useState<string | null>(null);
+	const [suspenseLine, setSuspenseLine] = useState("");
+	const [landedFor, setLandedFor] = useState<"you" | "cro" | null>(null);
 	const triviaIndexRef = useRef(0);
+	const suspenseIndexRef = useRef(0);
+	const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const reducedRef = useRef(false);
+
+	useEffect(() => {
+		reducedRef.current = window.matchMedia(
+			"(prefers-reduced-motion: reduce)",
+		).matches;
+		return () => {
+			if (timeoutRef.current !== null) clearTimeout(timeoutRef.current);
+		};
+	}, []);
 
 	function nextTrivia(): string {
 		const line =
@@ -136,51 +244,78 @@ export function PenaltyGame() {
 		return line;
 	}
 
+	function nextSuspenseLine(): string {
+		const line =
+			SUSPENSE_LINES[suspenseIndexRef.current % SUSPENSE_LINES.length];
+		suspenseIndexRef.current += 1;
+		return line;
+	}
+
+	/** Holds ~600ms of tension before the reveal; instant under reduced motion. */
+	function afterSuspense(reveal: () => void) {
+		if (reducedRef.current) {
+			reveal();
+			return;
+		}
+		timeoutRef.current = setTimeout(reveal, SUSPENSE_MS);
+	}
+
 	function handleShoot(side: Side) {
 		const { result, keeperSide } = resolveYourShot(side);
-		setLastYourShot({ side, keeperSide, result });
-		setLastHrvShot(null);
-		setYourList((prev) => [...prev, result]);
+		setSuspenseLine(nextSuspenseLine());
+		setPhase("shootSuspense");
+		afterSuspense(() => {
+			setLastYourShot({ side, keeperSide, result });
+			setLastHrvShot(null);
+			setYourList((prev) => [...prev, result]);
+			setLandedFor("you");
 
-		const next = recordKick(shootout, "you", result);
-		setShootout(next);
+			const next = recordKick(shootout, "you", result);
+			setShootout(next);
 
-		// Real shootout rules: the game can end on YOUR kick — if it does,
-		// Croatia's reply never happens.
-		const decided = decide(next);
-		if (decided) {
-			setWinner(decided);
-			setSkipNote(skippedKicksNote(next, decided));
-			setTriviaLine(nextTrivia());
-			setPhase("gameOver");
-		} else {
-			setPhase("dive");
-		}
+			// Real shootout rules: the game can end on YOUR kick — if it
+			// does, Croatia's reply never happens.
+			const decided = decide(next);
+			if (decided) {
+				setWinner(decided);
+				setSkipNote(skippedKicksNote(next, decided));
+				setTriviaLine(nextTrivia());
+				setPhase("gameOver");
+			} else {
+				setPhase("dive");
+			}
+		});
 	}
 
 	function handleDive(side: Side) {
 		const { result, hrvSide } = resolveHrvShot(side);
-		setLastHrvShot({ hrvSide, yourDive: side, result });
-		setCroList((prev) => [...prev, result]);
+		setSuspenseLine(nextSuspenseLine());
+		setPhase("diveSuspense");
+		afterSuspense(() => {
+			setLastHrvShot({ hrvSide, yourDive: side, result });
+			setCroList((prev) => [...prev, result]);
+			setLandedFor("cro");
 
-		const next = recordKick(shootout, "croatia", result);
-		setShootout(next);
-		setTriviaLine(nextTrivia());
+			const next = recordKick(shootout, "croatia", result);
+			setShootout(next);
+			setTriviaLine(nextTrivia());
 
-		const decided = decide(next);
-		if (decided) {
-			setWinner(decided);
-			setSkipNote(skippedKicksNote(next, decided));
-			setPhase("gameOver");
-		} else {
-			setPhase("roundEnd");
-		}
+			const decided = decide(next);
+			if (decided) {
+				setWinner(decided);
+				setSkipNote(skippedKicksNote(next, decided));
+				setPhase("gameOver");
+			} else {
+				setPhase("roundEnd");
+			}
+		});
 	}
 
 	function handleContinue() {
 		setRoundNumber((r) => r + 1);
 		setLastYourShot(null);
 		setLastHrvShot(null);
+		setLandedFor(null);
 		setPhase("shoot");
 	}
 
@@ -195,13 +330,24 @@ export function PenaltyGame() {
 		setTriviaLine(null);
 		setWinner(null);
 		setSkipNote(null);
+		setLandedFor(null);
 		triviaIndexRef.current = 0;
+		suspenseIndexRef.current = 0;
 	}
 
 	const roundLabel =
 		roundNumber <= REGULATION_KICKS
 			? `round ${roundNumber} of ${REGULATION_KICKS}`
 			: `sudden death — kick ${roundNumber - REGULATION_KICKS}`;
+
+	const phaseLabel =
+		phase === "shoot" || phase === "shootSuspense"
+			? "you shoot"
+			: phase === "dive" || phase === "diveSuspense"
+				? "croatia shoots"
+				: phase === "roundEnd"
+					? "round over"
+					: "full time";
 
 	// Which kick to show in the aftermath: Croatia's if they kicked this
 	// round, otherwise yours (the game ended before their reply).
@@ -212,43 +358,73 @@ export function PenaltyGame() {
 			<p className="text-[#e63946]">
 				⚽ penalty — vs Livaković (the 2022 wall)
 			</p>
-			<p className="text-faint">{roundLabel}</p>
-
-			<p className="mt-2 text-muted">
-				HRV {croList.length > 0 ? croList.map(icon).join("") : "—"} · YOU{" "}
-				{yourList.length > 0 ? yourList.map(icon).join("") : "—"}
+			<p
+				key={`${roundLabel} · ${phaseLabel}`}
+				className="penalty-fade text-faint"
+			>
+				{roundLabel} · {phaseLabel}
 			</p>
 
-			{phase === "shoot" && (
-				<SideButtons
-					prompt="you shoot. Livaković's saved harder shots than yours — pick a side."
-					verb="shoot"
-					onPick={handleShoot}
-				/>
+			<p className="mt-2 text-muted">
+				HRV <ScoreIcons kicks={croList} pop={landedFor === "cro"} /> · YOU{" "}
+				<ScoreIcons kicks={yourList} pop={landedFor === "you"} />
+			</p>
+
+			{(phase === "shoot" || phase === "shootSuspense") && (
+				<>
+					<SideButtons
+						prompt="you shoot. Livaković's saved harder shots than yours — pick a side."
+						verb="shoot"
+						disabled={phase === "shootSuspense"}
+						onPick={handleShoot}
+					/>
+					{phase === "shootSuspense" && (
+						<p className="penalty-suspense mt-2 text-faint">{suspenseLine}</p>
+					)}
+				</>
 			)}
 
-			{(phase === "dive" || (phase === "gameOver" && !finalShot)) &&
+			{(phase === "dive" ||
+				phase === "diveSuspense" ||
+				(phase === "gameOver" && !finalShot)) &&
 				lastYourShot && (
 					<div className="mt-2">
-						<pre aria-hidden="true" className="text-foreground">
-							{goalFrame(lastYourShot.side, lastYourShot.keeperSide)}
-						</pre>
+						<GoalFrame
+							ballSide={lastYourShot.side}
+							gloveSide={lastYourShot.keeperSide}
+						/>
 						<p className="sr-only">
 							You shot {SIDE_LABEL[lastYourShot.side]}. Livaković dove{" "}
 							{SIDE_LABEL[lastYourShot.keeperSide]}.{" "}
 							{lastYourShot.result === "goal" ? "Goal." : "Saved."}
 						</p>
-						<p className="text-muted">
-							{lastYourShot.result === "goal"
-								? `GOAL. Livaković dove to the ${SIDE_LABEL[lastYourShot.keeperSide]} — you went to the ${SIDE_LABEL[lastYourShot.side]}.`
-								: `SAVED. Livaković read your shot to the ${SIDE_LABEL[lastYourShot.side]} like a book.`}
-						</p>
-						{phase === "dive" && (
-							<SideButtons
-								prompt="Croatia shoots. you keep — pick a side to dive."
-								verb="dive"
-								onPick={handleDive}
+						{lastYourShot.result === "goal" ? (
+							<ResultLine
+								verdict="GOAL"
+								good
+								rest={`. Livaković dove to the ${SIDE_LABEL[lastYourShot.keeperSide]} — you went to the ${SIDE_LABEL[lastYourShot.side]}.`}
 							/>
+						) : (
+							<ResultLine
+								verdict="SAVED"
+								good={false}
+								rest={`. Livaković read your shot to the ${SIDE_LABEL[lastYourShot.side]} like a book.`}
+							/>
+						)}
+						{(phase === "dive" || phase === "diveSuspense") && (
+							<>
+								<SideButtons
+									prompt="Croatia shoots. you keep — pick a side to dive."
+									verb="dive"
+									disabled={phase === "diveSuspense"}
+									onPick={handleDive}
+								/>
+								{phase === "diveSuspense" && (
+									<p className="penalty-suspense mt-2 text-faint">
+										{suspenseLine}
+									</p>
+								)}
+							</>
 						)}
 					</div>
 				)}
@@ -256,21 +432,32 @@ export function PenaltyGame() {
 			{(phase === "roundEnd" || (phase === "gameOver" && finalShot)) &&
 				lastHrvShot && (
 					<div className="mt-2">
-						<pre aria-hidden="true" className="text-foreground">
-							{goalFrame(lastHrvShot.hrvSide, lastHrvShot.yourDive)}
-						</pre>
+						<GoalFrame
+							ballSide={lastHrvShot.hrvSide}
+							gloveSide={lastHrvShot.yourDive}
+						/>
 						<p className="sr-only">
 							Croatia shot {SIDE_LABEL[lastHrvShot.hrvSide]}. You dove{" "}
 							{SIDE_LABEL[lastHrvShot.yourDive]}.{" "}
 							{lastHrvShot.result === "goal" ? "Goal." : "Saved."}
 						</p>
-						<p className="text-muted">
-							{lastHrvShot.result === "miss"
-								? `SAVED! You dove to the ${SIDE_LABEL[lastHrvShot.yourDive]} and got it — Croatia's finally human.`
-								: lastHrvShot.yourDive === lastHrvShot.hrvSide
-									? `GOAL. You guessed correctly — didn't matter. Clinical.`
-									: `GOAL. Croatia doesn't miss when it matters.`}
-						</p>
+						{lastHrvShot.result === "miss" ? (
+							<ResultLine
+								verdict="SAVED"
+								good
+								rest={`! You dove to the ${SIDE_LABEL[lastHrvShot.yourDive]} and got it — Croatia's finally human.`}
+							/>
+						) : (
+							<ResultLine
+								verdict="GOAL"
+								good={false}
+								rest={
+									lastHrvShot.yourDive === lastHrvShot.hrvSide
+										? ". You guessed correctly — didn't matter. Clinical."
+										: ". Croatia doesn't miss when it matters."
+								}
+							/>
+						)}
 					</div>
 				)}
 
@@ -288,8 +475,7 @@ export function PenaltyGame() {
 								handleContinue();
 							}}
 						>
-							{shootout.phase === "suddenDeath" &&
-							roundNumber >= REGULATION_KICKS
+							{shootout.phase === "suddenDeath"
 								? "sudden death ▸"
 								: "next round ▸"}
 						</button>
