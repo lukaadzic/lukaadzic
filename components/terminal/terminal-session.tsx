@@ -16,11 +16,8 @@ import {
 	resolveCommand,
 	SUGGESTED_COMMANDS,
 } from "@/components/terminal/commands";
+import { LastLogin } from "@/components/terminal/last-login";
 import { PromptLine } from "@/components/terminal/prompt-line";
-
-// Stable fake session banner — never derived from Date.now() at render, so
-// server and client always agree and there's no hydration mismatch.
-const LAST_LOGIN = "Last login: Thu Nov 14 09:32:07 on ttys003";
 
 const CHIP_CHAR_DELAY_MS = 20;
 const WELCOME_CHAR_DELAY_MS = 55;
@@ -427,7 +424,7 @@ export function TerminalSession() {
 			className="terminal-session relative font-mono text-[13px] leading-relaxed sm:text-[14px]"
 			onClick={handleContainerClick}
 		>
-			<p className="text-faint">{LAST_LOGIN}</p>
+			<LastLogin />
 
 			<div
 				className="mt-5"
