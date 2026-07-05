@@ -582,6 +582,13 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	animation: close-alert-fade-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Destiny egg — "classified" reveal reuses the close-alert surface treatment
+   but with a pink-tinted border instead of the neutral one; ordered after
+   `.close-alert-surface` so it wins the tie in specificity. */
+.destiny-classified-surface {
+	border-color: rgba(240, 166, 202, 0.4);
+}
+
 /* The "run it all" chip gets a hint of the accent color at rest. */
 .terminal-chip-accent {
 	color: var(--color-accent);

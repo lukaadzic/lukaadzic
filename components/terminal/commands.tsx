@@ -1,5 +1,8 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { type ReactNode, useEffect, useState } from "react";
 import { AboutOutput } from "@/components/terminal/about-output";
+import { openDestiny } from "@/components/terminal/destiny-easter-egg";
 import { GithubOutput } from "@/components/terminal/github-output";
 import { GiveonOutput } from "@/components/terminal/giveon-output";
 import { HelpOutput } from "@/components/terminal/help-output";
@@ -14,8 +17,116 @@ import { SocialsOutput } from "@/components/terminal/socials-output";
 import { VatreniOutput } from "@/components/terminal/vatreni-output";
 import { WelcomeOutput } from "@/components/terminal/welcome-output";
 import { WhoamiOutput } from "@/components/terminal/whoami-output";
-import { FEATURED_TRACKS } from "@/lib/easter-eggs";
+import { DESTINY, FEATURED_TRACKS } from "@/lib/easter-eggs";
 import { SITE } from "@/lib/site";
+
+/** Whether to skip the staggered reveal below and show everything at once —
+ * read once per mount, same pattern as the rest of the app's motion gates. */
+function useReducedMotion(): boolean {
+	const [reduced, setReduced] = useState(false);
+	useEffect(() => {
+		setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+	}, []);
+	return reduced;
+}
+
+const LOVED_ONES_LINE_MS = 200;
+/** Delay after the destiny line itself has revealed, not after mount. */
+const LOVED_ONES_OPEN_DELAY_MS = 800;
+
+/** `cat /etc/loved-ones` — lines stagger in like close-alert's own line
+ * reveal (same class, same easing), then the terminal-style destiny reveal
+ * opens on its own a beat after her line lands. */
+function LovedOnesOutput() {
+	const reduced = useReducedMotion();
+	const lineClass = reduced ? undefined : "close-alert-line";
+	const delayStyle = (index: number) =>
+		reduced ? undefined : { animationDelay: `${index * LOVED_ONES_LINE_MS}ms` };
+
+	useEffect(() => {
+		const destinyLineDelay = reduced ? 0 : 1 * LOVED_ONES_LINE_MS;
+		const timeout = setTimeout(
+			() => openDestiny("terminal"),
+			destinyLineDelay + LOVED_ONES_OPEN_DELAY_MS,
+		);
+		return () => clearTimeout(timeout);
+	}, [reduced]);
+
+	return (
+		<div className="leading-relaxed">
+			<p className={lineClass} style={delayStyle(0)}>
+				{DESTINY.lovedOnes.intro}
+			</p>
+			<div className="mt-2">
+				{DESTINY.lovedOnes.lines.map((line, index) => (
+					<p
+						key={line.text}
+						className={`${lineClass ?? ""} ${line.pink ? "text-[#f0a6ca]" : "text-foreground"}`}
+						style={delayStyle(index + 1)}
+					>
+						{line.text}
+					</p>
+				))}
+			</div>
+			<p
+				className={`mt-2 text-faint ${lineClass ?? ""}`}
+				style={delayStyle(DESTINY.lovedOnes.lines.length + 1)}
+			>
+				{DESTINY.lovedOnes.note}
+			</p>
+		</div>
+	);
+}
+
+const GIT_LOG_LINE_MS = 180;
+const GIT_LOG_DESTINY_INDEX = 1;
+/** Delay after the destiny commit line itself has revealed, not after mount. */
+const GIT_LOG_OPEN_DELAY_MS = 600;
+
+/** `git log --oneline` — commits stagger in the same way; the destiny commit
+ * (the pink one) opens the card-style destiny reveal a beat after it lands. */
+function GitLogOutput() {
+	const reduced = useReducedMotion();
+	const lineClass = reduced ? undefined : "close-alert-line";
+
+	useEffect(() => {
+		const destinyLineDelay = reduced
+			? 0
+			: GIT_LOG_DESTINY_INDEX * GIT_LOG_LINE_MS;
+		const timeout = setTimeout(
+			() => openDestiny("card"),
+			destinyLineDelay + GIT_LOG_OPEN_DELAY_MS,
+		);
+		return () => clearTimeout(timeout);
+	}, [reduced]);
+
+	return (
+		<div className="leading-relaxed">
+			{DESTINY.gitLog.map((commit, index) => (
+				<p
+					key={commit.hash}
+					className={lineClass}
+					style={
+						reduced
+							? undefined
+							: { animationDelay: `${index * GIT_LOG_LINE_MS}ms` }
+					}
+				>
+					{commit.pink ? (
+						<span className="text-[#f0a6ca]">
+							{commit.hash} {commit.message}
+						</span>
+					) : (
+						<>
+							<span className="text-[#6bc7f5]">{commit.hash}</span>{" "}
+							<span className="text-muted">{commit.message}</span>
+						</>
+					)}
+				</p>
+			))}
+		</div>
+	);
+}
 
 export type CommandResult = {
 	output: ReactNode;
@@ -69,6 +180,14 @@ const modric: Renderer = () => ({ output: <ModricOutput /> });
 /** `penalty` / `shootout` / `./penalty.sh` — the shootout minigame owns its
  * own state; the registry just mounts it, same as any other renderer. */
 const penalty: Renderer = () => ({ output: <PenaltyGame /> });
+
+/** `cat /etc/loved-ones` / `git log --oneline` — hidden triggers for the
+ * Destiny easter egg (also reachable via the konami code, listened for
+ * directly in destiny-easter-egg.tsx). Deliberately absent from
+ * `SUGGESTED_COMMANDS`, `COMMAND_HELP`, and `ls -la`'s hidden-file listing —
+ * konami plus curiosity are enough. */
+const lovedOnes: Renderer = () => ({ output: <LovedOnesOutput /> });
+const gitLog: Renderer = () => ({ output: <GitLogOutput /> });
 
 const pwd: Renderer = () => ({
 	output: <p className="text-muted">/Users/lukaadzic</p>,
@@ -145,6 +264,8 @@ const REGISTRY: Record<string, Renderer> = {
 	penalty,
 	shootout: penalty,
 	"./penalty.sh": penalty,
+	"cat /etc/loved-ones": lovedOnes,
+	"git log --oneline": gitLog,
 	[EVERYTHING_COMMAND]: everything,
 };
 
@@ -211,6 +332,8 @@ export const KNOWN_COMMANDS = [
 	"penalty",
 	"shootout",
 	"./penalty.sh",
+	"cat /etc/loved-ones",
+	"git log --oneline",
 	"ls -la",
 ];
 

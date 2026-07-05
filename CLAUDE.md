@@ -37,7 +37,16 @@ commands. Unknown commands occasionally get a sassier
 `command not found` message (1-in-3). A handful of personality easter eggs
 (`giveon`/`beloved`, `vatreni`, `modric`) hide as dotfiles discoverable via
 `ls -la`; their content lives in `lib/easter-eggs.ts` and must stay verified
-fact, never invented. On the home page the red traffic light refuses to
+fact, never invented. There's also a hidden one for Luka's girlfriend
+Destiny: `cat /etc/loved-ones` and `git log --oneline` each stagger their
+lines in, then auto-open a Destiny reveal modal (`destiny-easter-egg.tsx`,
+portaled to `document.body`) in one of three site-styled forms — a mini
+terminal window, a "classified" dossier, or a quiet polaroid-style card; the
+classic konami code (`↑↑↓↓←→←→ba`) opens the dossier from anywhere. `#f0a6ca`
+(soft pink) is Destiny's color across all three — the one deliberate named-
+color exception in the app, same idea as the green prompt. Not listed in
+`help`, the suggestion chips, or `ls -la` — konami plus curiosity are enough.
+On the home page the red traffic light refuses to
 close: a macOS-style "don't leave." alert opens over the window with
 Giveon's DON'T LEAVE autoplaying inside it, and `leave anyway` loses its
 nerve twice before conceding — all alert copy is original, never verbatim
