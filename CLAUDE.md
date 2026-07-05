@@ -64,7 +64,17 @@ the instant the alert opens rather than after a script fetch,
 `terminal-window.tsx` warms Spotify's iFrame API script during idle time
 after mount and again on the first pointerover/focus of the traffic-light
 group — `loadSpotifyIframeApi()` is a safe no-op once already loaded, and
-warming never itself plays audio. The pinned
+warming never itself plays audio; `app/layout.tsx` also preconnects to
+`open.spotify.com` and `embed-cdn.spotifycdn.com` so the embed boots fast
+enough to land inside the gesture window when the browser allows it at all.
+Mobile browsers (iOS especially) routinely block the autoplay outright — the
+gesture doesn't carry across the cross-origin iframe boundary, and that
+can't be worked around from the page side. `SpotifyPlayer` (shared by
+`giveon` and the close alert) handles this gracefully instead: if
+`playback_started` hasn't fired ~1.4s after `ready`, a small faint nudge
+line fades in below the player (`tap ▶ to play — your phone wants the
+honors.`), and fades back out if playback ends up starting late. It never
+appears in the normal desktop case. The pinned
 `welcome` block opens with
 a block-letter ASCII banner of the FULL name (built from a tiny per-letter
 glyph map in `welcome-output.tsx`, `aria-hidden` with an `sr-only` text

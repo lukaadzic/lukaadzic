@@ -72,6 +72,10 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<head>
+				<link rel="preconnect" href="https://open.spotify.com" />
+				<link rel="preconnect" href="https://embed-cdn.spotifycdn.com" />
+				<link rel="dns-prefetch" href="https://open.spotify.com" />
+				<link rel="dns-prefetch" href="https://embed-cdn.spotifycdn.com" />
 				<script
 					type="application/ld+json"
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD requires raw script content.

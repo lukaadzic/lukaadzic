@@ -21,9 +21,6 @@ export function GiveonOutput({ track }: GiveonOutputProps) {
 			<div className="max-w-[420px]">
 				<SpotifyPlayer trackId={track.spotifyTrackId} />
 			</div>
-			<p className="mt-1.5 text-faint">
-				(if it's quiet, tap play — your browser is shy)
-			</p>
 			<p className="mt-2 text-faint">
 				{BELOVED.title} — {BELOVED.artist} · {BELOVED.year}
 			</p>

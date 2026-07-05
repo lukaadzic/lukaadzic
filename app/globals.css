@@ -677,6 +677,40 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
    CSS, since `interpolate-size` — the only way to `transition: height` to
    an `auto` target in plain CSS — only ships in very new Chrome. */
 
+/* Autoplay nudge (spotify-player.tsx) — mobile browsers routinely swallow
+   the gesture that's supposed to authorize the cross-origin iframe's
+   `play()`, so this only ever appears if `playback_started` hasn't fired
+   ~1.4s after `ready`; it fades back out if playback ends up starting late.
+   Reduced motion is handled in JS (the animation classes are simply never
+   applied), so no reduced-motion override is needed here. */
+@keyframes spotify-nudge-in {
+	from {
+		opacity: 0;
+		transform: translateY(2px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.spotify-nudge-in {
+	animation: spotify-nudge-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes spotify-nudge-out {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+.spotify-nudge-out {
+	animation: spotify-nudge-out 200ms ease both;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.terminal-window-in,
 	[data-mode="fullscreen"].terminal-window-in {
