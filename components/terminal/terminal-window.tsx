@@ -8,6 +8,7 @@ import {
 	useState,
 } from "react";
 import { CloseAlert } from "@/components/terminal/close-alert";
+import { MinimizeDock } from "@/components/terminal/minimize-dock";
 import { loadSpotifyIframeApi } from "@/components/terminal/spotify-iframe-api";
 import { CLOSE_ALERT } from "@/lib/easter-eggs";
 
@@ -22,6 +23,9 @@ type TerminalWindowProps = {
 
 const TITLE = "lukaadzic — -zsh — 80×24";
 const MODE_STORAGE_KEY = "terminal-window-mode";
+// Doesn't exist yet — MinimizeDock falls back to a green `L` mark via
+// `onError` until this file is dropped into `public/images/`.
+const KID_PHOTO_SRC = "/images/luka-kid.jpg";
 
 export function TerminalWindow({
 	children,
@@ -32,7 +36,16 @@ export function TerminalWindow({
 	const [fullscreen, setFullscreen] = useState(!floatingOnly);
 	const [maximized, setMaximized] = useState(false);
 	const [shaking, setShaking] = useState(false);
+	// The old bounce-back minimize — kept only for the /404 card
+	// (`floatingOnly`), which has no desktop to dock an icon onto.
 	const [minimizing, setMinimizing] = useState(false);
+	// The real minimize-to-dock, home page only: `flyingOut` plays the
+	// shrink-fly animation on the window frame, `isMinimized` hides it once
+	// that finishes (and mounts the dock icon), `restoring` plays the
+	// fade/scale back in once the dock hands control back.
+	const [flyingOut, setFlyingOut] = useState(false);
+	const [isMinimized, setIsMinimized] = useState(false);
+	const [restoring, setRestoring] = useState(false);
 	const [showNiceTry, setShowNiceTry] = useState(false);
 	// Red light on the home page: a "don't leave." alert instead of a toast.
 	// closeAttempts doubles as "has the alert ever been mounted" — the alert
@@ -45,6 +58,8 @@ export function TerminalWindow({
 	const toastTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const stayNoteTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const closeButtonRef = useRef<HTMLButtonElement>(null);
+	const minimizeButtonRef = useRef<HTMLButtonElement>(null);
+	const skipRestoreFocusRef = useRef(true);
 
 	// Pending timers must not fire into an unmounted component.
 	useEffect(() => {
@@ -137,15 +152,57 @@ export function TerminalWindow({
 	}
 
 	function handleMinimize() {
-		if (minimizing) return;
-		setMinimizing(true);
-		// The reset normally happens on animationend, but reduced-motion
-		// disables the keyframes entirely — reset immediately so the button
-		// doesn't get stuck as a permanent no-op.
+		// The 404 card keeps the old bounce-back — it's a small floating card
+		// with no desktop behind it to dock an icon onto.
+		if (floatingOnly) {
+			if (minimizing) return;
+			setMinimizing(true);
+			// The reset normally happens on animationend, but reduced-motion
+			// disables the keyframes entirely — reset immediately so the button
+			// doesn't get stuck as a permanent no-op.
+			if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+				setMinimizing(false);
+			}
+			return;
+		}
+
+		if (flyingOut || isMinimized) return;
+		setFlyingOut(true);
+		// Same reduced-motion escape hatch as above: skip straight to the
+		// hidden/docked state since the fly-out keyframes never play, so
+		// `animationend` never fires to do it for us.
 		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-			setMinimizing(false);
+			setFlyingOut(false);
+			setIsMinimized(true);
 		}
 	}
+
+	// The counterpart to handleMinimize — called by the dock icon (after its
+	// own exit animation) or by Esc while minimized. Focus returns to the
+	// yellow light (see the effect below — the button is still
+	// `visibility: hidden` at this exact point, since this state update
+	// hasn't committed to the DOM yet, so focusing it here would silently
+	// fail), mirroring focus landing on the dock icon on the way in.
+	function handleRestore() {
+		setIsMinimized(false);
+		setRestoring(true);
+		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+			setRestoring(false);
+		}
+	}
+
+	// Runs after the frame's `visibility: hidden` has actually been lifted,
+	// so the yellow light is focusable again. Skips the initial mount, since
+	// `isMinimized` starting as `false` shouldn't steal focus on page load.
+	useEffect(() => {
+		if (skipRestoreFocusRef.current) {
+			skipRestoreFocusRef.current = false;
+			return;
+		}
+		if (!isMinimized) {
+			minimizeButtonRef.current?.focus();
+		}
+	}, [isMinimized]);
 
 	function handleZoom() {
 		if (floatingOnly) {
@@ -179,10 +236,19 @@ export function TerminalWindow({
 			}
 			className={`terminal-window-in relative w-full ${frameClass} ${
 				shaking ? "terminal-shake" : ""
-			} ${minimizing ? "terminal-minimize" : ""}`}
+			} ${minimizing ? "terminal-minimize" : ""} ${
+				flyingOut ? "terminal-minimize-fly" : ""
+			} ${restoring ? "terminal-restore-in" : ""} ${
+				isMinimized && !restoring ? "terminal-window-hidden" : ""
+			}`}
 			onAnimationEnd={(event) => {
 				if (event.animationName === "terminal-minimize") {
 					setMinimizing(false);
+				} else if (event.animationName === "terminal-minimize-fly") {
+					setFlyingOut(false);
+					setIsMinimized(true);
+				} else if (event.animationName === "terminal-restore-in") {
+					setRestoring(false);
 				}
 			}}
 		>
@@ -206,6 +272,7 @@ export function TerminalWindow({
 							</span>
 						</button>
 						<button
+							ref={minimizeButtonRef}
 							type="button"
 							aria-label="Minimize"
 							onClick={handleMinimize}
@@ -258,6 +325,14 @@ export function TerminalWindow({
 					attempt={closeAttempts}
 					onStay={handleAlertStay}
 					onGiveUp={handleAlertGiveUp}
+				/>
+			)}
+
+			{!floatingOnly && (
+				<MinimizeDock
+					kidPhotoSrc={KID_PHOTO_SRC}
+					isMinimized={isMinimized}
+					onRestore={handleRestore}
 				/>
 			)}
 		</div>
