@@ -35,6 +35,7 @@ export function DestinyOutput() {
 				width={180}
 				height={240}
 				onLoad={() => setLoaded(true)}
+				onError={() => setLoaded(true)}
 				className={`mt-2 h-[240px] w-[180px] rounded-md object-cover transition-opacity duration-[240ms] ease-out motion-reduce:transition-none ${
 					loaded ? "opacity-100" : "opacity-0"
 				}`}
