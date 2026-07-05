@@ -50,11 +50,17 @@ let apiPromise: Promise<SpotifyIFrameApi> | null = null;
 export function loadSpotifyIframeApi(): Promise<SpotifyIFrameApi> {
 	if (apiPromise) return apiPromise;
 
-	apiPromise = new Promise((resolve) => {
+	apiPromise = new Promise((resolve, reject) => {
 		window.onSpotifyIframeApiReady = (api) => resolve(api);
 		const script = document.createElement("script");
 		script.src = IFRAME_API_SRC;
 		script.async = true;
+		script.onerror = () => {
+			// Reset the singleton so a later invocation can retry instead of
+			// inheriting a permanently-pending promise (ad-blockers, offline).
+			apiPromise = null;
+			reject(new Error("spotify iframe api failed to load"));
+		};
 		document.body.appendChild(script);
 	});
 

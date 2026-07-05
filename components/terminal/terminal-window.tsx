@@ -39,6 +39,15 @@ export function TerminalWindow({
 	const stayNoteTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const closeButtonRef = useRef<HTMLButtonElement>(null);
 
+	// Pending timers must not fire into an unmounted component.
+	useEffect(() => {
+		return () => {
+			if (shakeTimeout.current) clearTimeout(shakeTimeout.current);
+			if (toastTimeout.current) clearTimeout(toastTimeout.current);
+			if (stayNoteTimeout.current) clearTimeout(stayNoteTimeout.current);
+		};
+	}, []);
+
 	// Restore this tab's zoom choice (default: fullscreen on first visit).
 	useEffect(() => {
 		if (floatingOnly) return;
