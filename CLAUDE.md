@@ -37,7 +37,10 @@ commands. Unknown commands occasionally get a sassier
 `command not found` message (1-in-3). A handful of personality easter eggs
 (`giveon`/`beloved`, `vatreni`, `modric`) hide as dotfiles discoverable via
 `ls -la`; their content lives in `lib/easter-eggs.ts` and must stay verified
-fact, never invented. Luka's girlfriend Destiny has her own FIRST-CLASS
+fact, never invented. `pets` (visible command, in `help`) renders pixel-art
+portraits of Modro, Vida & Baby (`pets-output.tsx`) using the same colored-
+cell-grid technique as the `vatreni` šahovnica — grids, palettes, and
+captions live in `lib/easter-eggs.ts` as `PETS`. Luka's girlfriend Destiny has her own FIRST-CLASS
 section: the `destiny` command (visible chip, in `help` and
 `./everything.sh`) renders her photo + card inline (`destiny-output.tsx`).
 The playful triggers remain on top of that: `cat /etc/loved-ones` and
