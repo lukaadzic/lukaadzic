@@ -67,15 +67,27 @@ body {
 	display: none;
 }
 
-/* Full-viewport stage behind the terminal window — a soft vignette so the
-   window reads as floating above the desktop rather than sitting flat. */
+/* Full-viewport stage behind the terminal window — a soft macOS-wallpaper-
+   style gradient mesh (two large, heavily-darkened color washes plus the
+   original vignette) so the window reads as floating above a desktop rather
+   than sitting on a flat void. Kept subtle: the window stays the hero. */
 .terminal-stage {
 	background:
+		radial-gradient(
+			ellipse 60% 50% at 18% 12%,
+			rgba(70, 90, 210, 0.16),
+			transparent 60%
+		),
+		radial-gradient(
+			ellipse 65% 55% at 88% 85%,
+			rgba(130, 70, 150, 0.14),
+			transparent 60%
+		),
 		radial-gradient(
 			ellipse 80% 60% at 50% 15%,
 			rgba(255, 255, 255, 0.05),
 			transparent 60%
-		), var(--color-background);
+		), #0a0a0c;
 }
 
 /* Window opening — a quick scale + fade, like macOS spawning a window. */
@@ -193,7 +205,10 @@ body {
 	animation: terminal-cursor-blink 1s step-end infinite;
 }
 
-/* Suggested-command chips — faint mono buttons that "prompt" the terminal. */
+/* Suggested-command chips — a clickable segmented tab bar under the prompt.
+   Resting state must always read as interactive (never dimmed), with a
+   clear hover and a brighter "active" state for whichever chip's command is
+   currently displayed. */
 .terminal-chip {
 	border-radius: 6px;
 	border: 1px solid rgba(255, 255, 255, 0.1);
@@ -205,13 +220,12 @@ body {
 	transition:
 		color 200ms ease,
 		background-color 200ms ease,
-		border-color 200ms ease,
-		opacity 200ms ease;
+		border-color 200ms ease;
 }
 
 .terminal-chip:hover:not(:disabled) {
 	color: var(--color-foreground);
-	background: rgba(255, 255, 255, 0.07);
+	background: rgba(255, 255, 255, 0.08);
 	border-color: rgba(255, 255, 255, 0.18);
 }
 
@@ -219,7 +233,7 @@ body {
 	cursor: default;
 }
 
-/* The "run it all" chip gets a hint of the accent color. */
+/* The "run it all" chip gets a hint of the accent color at rest. */
 .terminal-chip-accent {
 	color: var(--color-accent);
 	border-color: rgba(169, 184, 196, 0.3);
@@ -232,9 +246,24 @@ body {
 	border-color: rgba(169, 184, 196, 0.45);
 }
 
-/* Already-run commands dim, but stay clickable. */
-.terminal-chip-dim {
-	opacity: 0.45;
+/* The chip whose command output is currently displayed. Declared last so it
+   always wins over the accent resting/hover rules above, regardless of
+   which other chip classes are also present. */
+.terminal-chip-active,
+.terminal-chip-active:hover:not(:disabled) {
+	color: var(--color-foreground);
+	background: rgba(255, 255, 255, 0.1);
+	border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Wraps the single displayed command group. Smooths the window's height
+   change as groups swap, where the browser supports animating to/from
+   `auto` sizes; elsewhere the resize just happens instantly, and the
+   opacity/transform transition on the group itself keeps that from feeling
+   jarring. */
+.terminal-group-container {
+	interpolate-size: allow-keywords;
+	transition: height 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {

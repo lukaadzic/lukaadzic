@@ -1,6 +1,7 @@
 "use client";
 
 import {
+	type CSSProperties,
 	type KeyboardEvent,
 	type ReactNode,
 	useCallback,
@@ -10,7 +11,6 @@ import {
 } from "react";
 import {
 	EVERYTHING_COMMAND,
-	EVERYTHING_STEPS,
 	resolveCommand,
 	SUGGESTED_COMMANDS,
 } from "@/components/terminal/commands";
@@ -22,7 +22,7 @@ const LAST_LOGIN = "Last login: Thu Nov 14 09:32:07 on ttys003";
 
 const CHIP_CHAR_DELAY_MS = 20;
 const WELCOME_CHAR_DELAY_MS = 55;
-const SEQUENCE_PAUSE_MS = 320;
+const GROUP_LEAVE_MS = 120;
 
 type Entry = {
 	id: number;
@@ -40,39 +40,51 @@ function jitter(baseMs: number): number {
 	return Math.max(1, Math.round(baseMs * factor));
 }
 
+const LEAVING_STYLE: CSSProperties = {
+	opacity: 0,
+	transform: "translateY(-4px)",
+	transition: "opacity 120ms ease, transform 120ms ease",
+};
+
+const ENTERING_STYLE: CSSProperties = {
+	opacity: 0,
+	transform: "translateY(8px)",
+};
+
+const ENTERED_STYLE: CSSProperties = {
+	opacity: 1,
+	transform: "translateY(0)",
+	transition:
+		"opacity 280ms cubic-bezier(0.16, 1, 0.3, 1), transform 280ms cubic-bezier(0.16, 1, 0.3, 1)",
+};
+
 export function TerminalSession() {
-	const [entries, setEntries] = useState<Entry[]>([]);
+	// The `welcome` block is set once at mount and never replaced — it stays
+	// pinned above whatever command group is currently displayed.
+	const [pinned, setPinned] = useState<Entry | null>(null);
+	// Exactly one command group (prompt + output) is displayed at a time.
+	// Running a new command swaps it out; `clear` empties it back to null.
+	const [current, setCurrent] = useState<Entry | null>(null);
+	const [leaving, setLeaving] = useState(false);
+	const [entered, setEntered] = useState(false);
+
 	const [inputValue, setInputValue] = useState("");
 	const [animating, setAnimating] = useState(false);
 	const [cursorBlink, setCursorBlink] = useState(true);
-	const [ranCommands, setRanCommands] = useState<ReadonlySet<string>>(
-		() => new Set(),
-	);
 
 	const genRef = useRef(0);
 	const idRef = useRef(0);
 	const reducedRef = useRef(false);
 	const startedRef = useRef(false);
+	const currentRef = useRef<Entry | null>(null);
 	const commandHistoryRef = useRef<string[]>([]);
 	const historyPointerRef = useRef<number | null>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const activePromptRef = useRef<HTMLDivElement>(null);
 
-	// Re-running a command that's already in the session replaces its previous
-	// block rather than stacking a duplicate — keyed by the exact command text
-	// (chip and typed invocations of the same command collide; aliases like
-	// `about` vs `cat about.txt` don't, since they're different command text).
-	const appendEntry = useCallback((command: string, output: ReactNode) => {
-		idRef.current += 1;
-		const newEntry: Entry = { id: idRef.current, command, output };
-		const key = command.trim().toLowerCase();
-		setEntries((prev) => {
-			const deduped =
-				key === ""
-					? prev
-					: prev.filter((entry) => entry.command.trim().toLowerCase() !== key);
-			return [...deduped, newEntry];
-		});
+	const setCurrentEntry = useCallback((entry: Entry | null) => {
+		currentRef.current = entry;
+		setCurrent(entry);
 	}, []);
 
 	// Keyboard focus pops the on-screen keyboard on touch devices, so only
@@ -96,43 +108,27 @@ export function TerminalSession() {
 		[],
 	);
 
-	const runSingle = useCallback(
-		(raw: string) => {
-			const result = resolveCommand(raw);
-			if (result === "clear") {
-				setEntries([]);
-				return;
-			}
-			result.sideEffect?.();
-			appendEntry(raw, result.output);
-		},
-		[appendEntry],
-	);
-
-	const runEverything = useCallback(
-		async (gen: number) => {
-			for (const step of EVERYTHING_STEPS) {
-				await typeAtPrompt(step.command, gen, CHIP_CHAR_DELAY_MS);
-				setInputValue("");
-				appendEntry(step.command, step.run().output);
-				if (genRef.current === gen && !reducedRef.current) {
-					await sleep(SEQUENCE_PAUSE_MS);
-				}
-			}
-		},
-		[appendEntry, typeAtPrompt],
-	);
-
 	/**
 	 * Central command entry point. `typeIt` animates the command at the
 	 * prompt first (chip clicks); manual Enter passes false since the text
-	 * is already sitting at the prompt.
+	 * is already sitting at the prompt. Whatever is currently displayed
+	 * fades out first, then the new command types in and its output fades
+	 * up — exactly one group is ever on screen below the pinned welcome.
 	 */
 	const submit = useCallback(
 		async (raw: string, typeIt: boolean) => {
 			const trimmed = raw.trim();
 			setAnimating(true);
 			const gen = ++genRef.current;
+
+			if (currentRef.current) {
+				setLeaving(true);
+				if (!reducedRef.current && genRef.current === gen) {
+					await sleep(GROUP_LEAVE_MS);
+				}
+				setLeaving(false);
+				setCurrentEntry(null);
+			}
 
 			if (typeIt) {
 				await typeAtPrompt(raw, gen, CHIP_CHAR_DELAY_MS);
@@ -141,30 +137,29 @@ export function TerminalSession() {
 
 			if (trimmed !== "") {
 				commandHistoryRef.current.push(raw);
-				setRanCommands((prev) => {
-					const next = new Set(prev);
-					next.add(trimmed.toLowerCase());
-					return next;
-				});
 			}
 			historyPointerRef.current = null;
 
-			if (trimmed === EVERYTHING_COMMAND) {
-				appendEntry(raw, null);
-				await runEverything(gen);
-			} else {
-				runSingle(raw);
+			const result = resolveCommand(raw);
+			if (result !== "clear") {
+				result.sideEffect?.();
+				idRef.current += 1;
+				setCurrentEntry({
+					id: idRef.current,
+					command: raw,
+					output: result.output,
+				});
 			}
 
 			setAnimating(false);
 			focusInput();
 		},
-		[appendEntry, focusInput, runEverything, runSingle, typeAtPrompt],
+		[focusInput, setCurrentEntry, typeAtPrompt],
 	);
 
 	// Opening beat: auto-type one short `welcome` command (~1s), then hand
 	// the prompt over. With prefers-reduced-motion the output appears
-	// instantly and the cursor holds steady.
+	// instantly and the cursor holds steady. The result is pinned permanently.
 	useEffect(() => {
 		if (startedRef.current) return;
 		startedRef.current = true;
@@ -184,22 +179,44 @@ export function TerminalSession() {
 			}
 			await typeAtPrompt("welcome", gen, WELCOME_CHAR_DELAY_MS);
 			setInputValue("");
-			runSingle("welcome");
+			const result = resolveCommand("welcome");
+			if (result !== "clear") {
+				idRef.current += 1;
+				setPinned({
+					id: idRef.current,
+					command: "welcome",
+					output: result.output,
+				});
+			}
 			setAnimating(false);
 			focusInput();
 		})();
-	}, [focusInput, runSingle, typeAtPrompt]);
+	}, [focusInput, typeAtPrompt]);
 
-	// After a new command group renders, keep the live prompt in view rather
+	// Play the fade-up transition on whatever just became the displayed
+	// group — mount it hidden, then flip to visible on the next frame so the
+	// opacity/transform transition actually runs.
+	useEffect(() => {
+		if (current?.id == null) return;
+		if (reducedRef.current) {
+			setEntered(true);
+			return;
+		}
+		setEntered(false);
+		const raf = requestAnimationFrame(() => setEntered(true));
+		return () => cancelAnimationFrame(raf);
+	}, [current?.id]);
+
+	// After the displayed group changes, keep the live prompt in view rather
 	// than letting the page jump — "nearest" only scrolls if it isn't already
 	// visible, and reduced motion drops the smooth scroll animation.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: intentionally re-runs whenever entries changes, even though the effect body only reads refs.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentionally re-runs whenever the displayed group changes, even though the effect body only reads refs.
 	useEffect(() => {
 		activePromptRef.current?.scrollIntoView({
 			behavior: reducedRef.current ? "auto" : "smooth",
 			block: "nearest",
 		});
-	}, [entries]);
+	}, [current]);
 
 	const fastForward = useCallback(() => {
 		genRef.current++;
@@ -217,14 +234,14 @@ export function TerminalSession() {
 		const commands = commandHistoryRef.current;
 		if (commands.length === 0) return;
 
-		const current = historyPointerRef.current;
+		const pointer = historyPointerRef.current;
 		let next: number;
 
-		if (current === null) {
+		if (pointer === null) {
 			if (direction === 1) return;
 			next = commands.length - 1;
 		} else {
-			next = current + direction;
+			next = pointer + direction;
 		}
 
 		if (next < 0) next = 0;
@@ -260,11 +277,23 @@ export function TerminalSession() {
 		}
 	}
 
+	function isActive(command: string): boolean {
+		return (
+			current?.command.trim().toLowerCase() === command.trim().toLowerCase()
+		);
+	}
+
 	function chipClass(command: string, accent: boolean): string {
 		const base = accent
 			? "terminal-chip terminal-chip-accent"
 			: "terminal-chip";
-		return ranCommands.has(command) ? `${base} terminal-chip-dim` : base;
+		return isActive(command) ? `${base} terminal-chip-active` : base;
+	}
+
+	function groupStyle(): CSSProperties {
+		if (reducedRef.current) return {};
+		if (leaving) return LEAVING_STYLE;
+		return entered ? ENTERED_STYLE : ENTERING_STYLE;
 	}
 
 	return (
@@ -277,12 +306,21 @@ export function TerminalSession() {
 		>
 			<p className="text-faint">{LAST_LOGIN}</p>
 
-			{entries.map((entry) => (
-				<div key={entry.id} className="terminal-output-in mt-5">
-					<PromptLine input={entry.command} active={false} />
-					{entry.output && <div className="mt-1.5">{entry.output}</div>}
+			{pinned && (
+				<div className="terminal-output-in mt-5">
+					<PromptLine input={pinned.command} active={false} />
+					{pinned.output && <div className="mt-1.5">{pinned.output}</div>}
 				</div>
-			))}
+			)}
+
+			<div className="terminal-group-container">
+				{current && (
+					<div key={current.id} style={groupStyle()} className="mt-5">
+						<PromptLine input={current.command} active={false} />
+						{current.output && <div className="mt-1.5">{current.output}</div>}
+					</div>
+				)}
+			</div>
 
 			<div ref={activePromptRef} className="mt-5">
 				<PromptLine input={inputValue} cursor cursorBlink={cursorBlink} />
@@ -294,6 +332,7 @@ export function TerminalSession() {
 						key={command}
 						type="button"
 						disabled={animating}
+						aria-pressed={isActive(command)}
 						onClick={(event) => {
 							event.stopPropagation();
 							submit(command, true);
@@ -306,6 +345,7 @@ export function TerminalSession() {
 				<button
 					type="button"
 					disabled={animating}
+					aria-pressed={isActive(EVERYTHING_COMMAND)}
 					onClick={(event) => {
 						event.stopPropagation();
 						submit(EVERYTHING_COMMAND, true);

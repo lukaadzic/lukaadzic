@@ -59,19 +59,22 @@ const email: Renderer = () => ({
 	},
 });
 
-/** The "show me everything" script — runs command-by-command, user-initiated. */
+/** The "show me everything" script — a single combined output, user-initiated. */
 export const EVERYTHING_COMMAND = "./everything.sh";
 
-export const EVERYTHING_STEPS: Array<{ command: string; run: Renderer }> = [
-	{ command: "whoami", run: whoami },
-	{ command: "cat about.txt", run: about },
-	{ command: "ls ~/projects", run: lsProjects },
-	{ command: "open ~/projects --verbose", run: projects },
-	{ command: "github --contributions", run: github },
-	{ command: "open socials/", run: socials },
-];
+/** The whole rundown as one output: every section stacked, blank-line separated. */
+const everything: Renderer = () => ({
+	output: (
+		<div className="flex flex-col gap-6">
+			<AboutOutput />
+			<ProjectsOutput />
+			<GithubOutput />
+			<SocialsOutput />
+		</div>
+	),
+});
 
-/** Interactive command registry — same renderers as the scripted sequence. */
+/** Interactive command registry — same renderers power chips and typed input. */
 const REGISTRY: Record<string, Renderer> = {
 	welcome,
 	whoami,
@@ -90,6 +93,7 @@ const REGISTRY: Record<string, Renderer> = {
 	help,
 	cv,
 	email,
+	[EVERYTHING_COMMAND]: everything,
 };
 
 export const SUGGESTED_COMMANDS = [

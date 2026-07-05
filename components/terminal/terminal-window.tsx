@@ -52,14 +52,14 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 				}
 			}}
 		>
-			<div className="overflow-hidden rounded-[10px] border border-white/10 bg-[rgba(28,28,30,0.95)] shadow-[0_25px_60px_rgba(0,0,0,0.6)] backdrop-blur-xl">
-				<div className="relative flex h-9 items-center justify-center bg-gradient-to-b from-white/[0.06] to-black/[0.15] px-3">
-					<div className="group absolute left-3 flex items-center gap-2">
+			<div className="overflow-hidden rounded-[12px] border border-white/10 bg-[rgba(30,30,32,0.92)] shadow-[0_0_0_0.5px_rgba(0,0,0,0.6),0_20px_50px_rgba(0,0,0,0.55),0_8px_20px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl">
+				<div className="relative flex h-[38px] items-center justify-center bg-gradient-to-b from-white/[0.07] to-black/[0.15] px-3 backdrop-blur-sm">
+					<div className="group absolute left-5 flex items-center gap-2">
 						<button
 							type="button"
 							aria-label="Close"
 							onClick={handleClose}
-							className="relative flex h-3 w-3 items-center justify-center rounded-full bg-[#ff5f57]"
+							className="relative flex h-3 w-3 items-center justify-center rounded-full bg-[#ff5f57] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.15)]"
 						>
 							<span className="select-none text-[8px] leading-none text-black/60 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
 								×
@@ -69,7 +69,7 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 							type="button"
 							aria-label="Minimize"
 							onClick={handleMinimize}
-							className="relative flex h-3 w-3 items-center justify-center rounded-full bg-[#febc2e]"
+							className="relative flex h-3 w-3 items-center justify-center rounded-full bg-[#febc2e] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.15)]"
 						>
 							<span className="select-none text-[8px] leading-none text-black/60 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
 								−
@@ -79,7 +79,7 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 							type="button"
 							aria-label="Zoom"
 							onClick={handleMaximize}
-							className="relative flex h-3 w-3 items-center justify-center rounded-full bg-[#28c840]"
+							className="relative flex h-3 w-3 items-center justify-center rounded-full bg-[#28c840] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.15)]"
 						>
 							<span className="select-none text-[8px] leading-none text-black/60 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
 								+
@@ -87,7 +87,7 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 						</button>
 					</div>
 
-					<p className="select-none truncate text-[12px] text-white/50">
+					<p className="select-none truncate font-sans text-[13px] font-medium text-white/[0.55]">
 						{TITLE}
 					</p>
 
