@@ -65,19 +65,17 @@ const ENTERED_STYLE: CSSProperties = {
 // This block's space is reserved from the very first paint (see
 // `welcomeEntry` below), so the container's height never moves — the small
 // translateY here is a purely cosmetic rise within that already-allocated
-// box (transform doesn't touch layout), landing the pinned welcome banner
-// as one continuous "rises in" beat right when the typed `welcome` finishes,
-// same easing family as the rest of the opening choreography.
+// box (transform doesn't touch layout). The container itself just becomes
+// visible when the typed `welcome` finishes — the actual motion happens
+// line by line via `.welcome-line` + `data-welcome-revealed` in globals.css,
+// so the block prints top-to-bottom like a real terminal instead of rising
+// as one slab.
 const WELCOME_HIDDEN_STYLE: CSSProperties = {
 	opacity: 0,
-	transform: "translateY(8px)",
 };
 
 const WELCOME_REVEALED_STYLE: CSSProperties = {
 	opacity: 1,
-	transform: "translateY(0)",
-	transition:
-		"opacity 300ms cubic-bezier(0.16, 1, 0.3, 1), transform 300ms cubic-bezier(0.16, 1, 0.3, 1)",
 };
 
 export function TerminalSession() {
@@ -478,9 +476,12 @@ export function TerminalSession() {
 			<div
 				className="mt-5"
 				style={welcomeStyle()}
+				data-welcome-revealed={welcomeRevealed ? "" : undefined}
 				aria-hidden={welcomeRevealed ? undefined : true}
 			>
-				<PromptLine input={welcomeEntry.command} active={false} />
+				<div className="welcome-line welcome-line-1">
+					<PromptLine input={welcomeEntry.command} active={false} />
+				</div>
 				{welcomeEntry.output && (
 					<div className="mt-1.5">{welcomeEntry.output}</div>
 				)}
