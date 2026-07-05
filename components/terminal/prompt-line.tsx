@@ -1,5 +1,10 @@
+import type { ReactNode } from "react";
+import { SITE } from "@/lib/site";
+
 type PromptLineProps = {
-	input: string;
+	input?: string;
+	/** Rendered in place of `input` — for interactive content like links. */
+	trailing?: ReactNode;
 	cursor?: boolean;
 	cursorBlink?: boolean;
 	/** False for past (non-active) history lines — dims the user slightly so the live prompt stays the visual anchor. */
@@ -7,7 +12,8 @@ type PromptLineProps = {
 };
 
 export function PromptLine({
-	input,
+	input = "",
+	trailing,
 	cursor = false,
 	cursorBlink = true,
 	active = true,
@@ -16,7 +22,7 @@ export function PromptLine({
 		<div className="flex flex-wrap items-baseline gap-x-2">
 			<span className="shrink-0 whitespace-pre">
 				<span className={active ? "text-[#5fd75f]" : "text-[#5fd75f]/60"}>
-					lukaadzic
+					{SITE.githubUsername}
 				</span>
 				<span className="text-muted"> </span>
 				<span className={active ? "text-[#6bc7f5]/80" : "text-[#6bc7f5]/50"}>
@@ -25,7 +31,7 @@ export function PromptLine({
 				<span className="text-muted"> % </span>
 			</span>
 			<span className="whitespace-pre-wrap break-all text-foreground">
-				{input}
+				{trailing ?? input}
 				{cursor && (
 					<span
 						aria-hidden="true"

@@ -6,7 +6,7 @@ type ExternalLinkProps = {
 	children: ReactNode;
 } & Omit<
 	AnchorHTMLAttributes<HTMLAnchorElement>,
-	"href" | "className" | "children"
+	"href" | "className" | "children" | "target" | "rel"
 >;
 
 export function ExternalLink({
