@@ -21,6 +21,18 @@ import { PromptLine } from "@/components/terminal/prompt-line";
 const CHIP_CHAR_DELAY_MS = 20;
 const WELCOME_CHAR_DELAY_MS = 55;
 const GROUP_LEAVE_MS = 120;
+/** Must match `[data-welcome-revealed] .welcome-line-4` (delay) and
+ * `[data-welcome-revealed] .welcome-line` (duration) in globals.css — the
+ * last welcome line to print, and how long its own fade takes. Used to time
+ * the active-prompt reveal off the real moment printing settles rather than
+ * guessing. */
+const WELCOME_LAST_LINE_DELAY_MS = 280;
+const WELCOME_LAST_LINE_DURATION_MS = 240;
+/** Small buffer after the welcome output finishes settling, before the
+ * active prompt below it fades in — keeps a beat of daylight between "output
+ * done printing" and "shell hands you a fresh prompt" instead of them
+ * landing in the same instant. */
+const PROMPT_READY_TAIL_MS = 100;
 /** Duration of the JS-driven FLIP height transition on the group container —
  * measured old height -> measured new height, so the window resizes as one
  * fluid motion instead of snapping (interpolate-size only lands in very new
@@ -62,14 +74,17 @@ const ENTERED_STYLE: CSSProperties = {
 		"opacity 280ms cubic-bezier(0.16, 1, 0.3, 1), transform 280ms cubic-bezier(0.16, 1, 0.3, 1)",
 };
 
-// This block's space is reserved from the very first paint (see
-// `welcomeEntry` below), so the container's height never moves — the small
-// translateY here is a purely cosmetic rise within that already-allocated
-// box (transform doesn't touch layout). The container itself just becomes
-// visible when the typed `welcome` finishes — the actual motion happens
-// line by line via `.welcome-line` + `data-welcome-revealed` in globals.css,
-// so the block prints top-to-bottom like a real terminal instead of rising
-// as one slab.
+// The welcome OUTPUT's (banner/greeting/hint) space is reserved from the
+// very first paint (see `welcomeEntry` below), so the container's height
+// never moves. It stays invisible while `welcome` is still typing at the
+// pinned prompt line above it, and only becomes visible once that typing
+// finishes — the actual motion from there is line by line via
+// `.welcome-line` + `data-welcome-revealed` in globals.css, so the block
+// prints top-to-bottom like a real terminal instead of rising as one slab.
+// The pinned prompt line itself (the "welcome" command text) is a separate
+// element with its own always-mounted `.terminal-active-prompt-in` reveal —
+// see the render below — since it needs to be visible and typing-into
+// before this output block appears.
 const WELCOME_HIDDEN_STYLE: CSSProperties = {
 	opacity: 0,
 };
@@ -97,13 +112,30 @@ export function TerminalSession() {
 	const [welcomeRevealed, setWelcomeRevealed] = useState(false);
 	// t=0 of the opening beat's JS clock — set in the same effect that kicks
 	// off the typed `welcome` beat below, so the CSS-timed beats that follow
-	// it (prompt reveal, chip stagger) can anchor their `animation-delay`s to
-	// real hydration time via `[data-booted] ...` selectors in globals.css,
-	// instead of stylesheet-load time. On a slow device that lags between
-	// paint and hydration, that's the difference between the prompt/chips
-	// racing ahead of the typing they're supposed to follow, and everything
-	// landing in order.
+	// it (pinned prompt reveal, chip stagger) can anchor their
+	// `animation-delay`s to real hydration time via `[data-booted] ...`
+	// selectors in globals.css, instead of stylesheet-load time. On a slow
+	// device that lags between paint and hydration, that's the difference
+	// between the prompt/chips racing ahead of the typing they're supposed to
+	// follow, and everything landing in order.
 	const [booted, setBooted] = useState(false);
+	// One clock, three beats, strictly top to bottom: `welcome` types at the
+	// PINNED prompt line (top of the session, directly under login) instead
+	// of the bottom active prompt — typing at the bottom and then having the
+	// pinned block materialize above it once done used to read as the eye
+	// jumping bottom-to-top. `bootTyped` is that pinned line's typed-so-far
+	// substring; `inputValue` stays reserved for real user input so the two
+	// never collide. `bootPhase` tracks where the boot clock is: "typing"
+	// (pinned line has the cursor, `bootTyped` is live), "printing" (typing
+	// done, the welcome output is staggering in below it), "done" (the
+	// bottom active prompt has taken over the cursor). `promptReady` is the
+	// data-attribute flag that gates the bottom prompt's CSS reveal — see
+	// `finishBoot` below for when it's set.
+	const [bootPhase, setBootPhase] = useState<"typing" | "printing" | "done">(
+		"typing",
+	);
+	const [bootTyped, setBootTyped] = useState("");
+	const [promptReady, setPromptReady] = useState(false);
 
 	// Exactly one command group (prompt + output) is displayed at a time.
 	// Running a new command swaps it out; `clear` empties it back to null.
@@ -118,6 +150,13 @@ export function TerminalSession() {
 	const idRef = useRef(0);
 	const reducedRef = useRef(false);
 	const startedRef = useRef(false);
+	// Mirrors `bootPhase` for synchronous reads inside `fastForward` (a
+	// `useCallback` that would otherwise close over a stale value).
+	const bootPhaseRef = useRef<"typing" | "printing" | "done">("typing");
+	// Holds the pending "reveal the active prompt" timeout so fast-forwarding
+	// mid-boot can cancel the wait and jump straight to it instead of the
+	// timer firing later on top of an already-fast-forwarded session.
+	const revealTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const currentRef = useRef<Entry | null>(null);
 	const commandHistoryRef = useRef<string[]>([]);
 	const historyPointerRef = useRef<number | null>(null);
@@ -138,13 +177,21 @@ export function TerminalSession() {
 		}
 	}, []);
 
-	/** Types `text` char-by-char at the active prompt. Bumping gen fast-forwards. */
+	/** Types `text` char-by-char, writing each prefix through `onChar` —
+	 * `setInputValue` for a real command typed at the active prompt,
+	 * `setBootTyped` for the boot beat typing at the pinned prompt line
+	 * instead. Bumping gen fast-forwards (the loop just bails). */
 	const typeAtPrompt = useCallback(
-		async (text: string, gen: number, delay: number) => {
+		async (
+			text: string,
+			gen: number,
+			delay: number,
+			onChar: (value: string) => void,
+		) => {
 			if (reducedRef.current) return;
 			for (let i = 1; i <= text.length; i++) {
 				if (genRef.current !== gen) return;
-				setInputValue(text.slice(0, i));
+				onChar(text.slice(0, i));
 				await sleep(jitter(delay));
 			}
 		},
@@ -186,7 +233,7 @@ export function TerminalSession() {
 			}
 
 			if (typeIt) {
-				await typeAtPrompt(raw, gen, CHIP_CHAR_DELAY_MS);
+				await typeAtPrompt(raw, gen, CHIP_CHAR_DELAY_MS, setInputValue);
 			}
 			setInputValue("");
 
@@ -227,21 +274,43 @@ export function TerminalSession() {
 		[focusInput, setCurrentEntry, typeAtPrompt],
 	);
 
-	// Opening beat: auto-type one short `welcome` command (~1s), then hand
-	// the prompt over. `setBooted(true)` below is t=0 of this same clock —
-	// the prompt-reveal and chip-stagger CSS animations in globals.css are
-	// gated on the `[data-booted]` attribute this sets on the root element,
-	// with their `animation-delay`s measured from here (350ms for the
-	// prompt, ~965ms+ for the chips) rather than from stylesheet-load time.
-	// That keeps every beat on one clock: on a slow device, hydration (and
+	// Reaches the last beat of the boot clock: the bottom active prompt gets
+	// its cursor and fades in (`data-prompt-ready`), and the boot is over.
+	// Called either by the natural timer below (real welcome-line stagger
+	// has settled) or immediately by `fastForward` (mid-boot click/Enter) —
+	// either way this is the single place that flips everything to the
+	// "done" state.
+	const finishBoot = useCallback(() => {
+		revealTimeoutRef.current = null;
+		bootPhaseRef.current = "done";
+		setBootPhase("done");
+		setPromptReady(true);
+		setAnimating(false);
+		focusInput();
+	}, [focusInput]);
+
+	// Opening beat: auto-type one short `welcome` command (~1s) at the PINNED
+	// prompt line (top of the session, not the bottom active one), let the
+	// welcome output print below it, then hand a fresh prompt over at the
+	// bottom — strictly top to bottom, like a real terminal. `setBooted(true)`
+	// below is t=0 of this same clock — the pinned-prompt-reveal and
+	// chip-stagger CSS animations in globals.css are gated on the
+	// `[data-booted]` attribute this sets on the root element, with their
+	// `animation-delay`s measured from here (350ms for the pinned prompt,
+	// ~1600ms+ for the chips) rather than from stylesheet-load time. That
+	// keeps every beat on one clock: on a slow device, hydration (and
 	// therefore this effect) can lag well behind the CSS-only window fade,
 	// but once it does run, the prompt/typing/chips still land in the same
 	// relative order instead of the CSS beats racing ahead of typing that
 	// hasn't started yet. Un-strandable fallback: globals.css also keeps a
 	// bare (ungated) copy of both rules with a long ~3s delay, so if JS
-	// never runs at all the prompt and chips still eventually appear rather
-	// than staying invisible forever. With prefers-reduced-motion the output
-	// appears instantly and the cursor holds steady.
+	// never runs at all the pinned prompt and chips still eventually appear
+	// rather than staying invisible forever. The bottom active prompt, by
+	// contrast, is gated on `data-prompt-ready` — a second flag this effect
+	// sets later, once typing AND the full welcome-line print stagger have
+	// actually finished, rather than off a guessed fixed delay — see
+	// `finishBoot`. With prefers-reduced-motion the whole sequence appears
+	// instantly, same order, and the cursor holds steady.
 	useEffect(() => {
 		if (startedRef.current) return;
 		startedRef.current = true;
@@ -254,6 +323,9 @@ export function TerminalSession() {
 		if (reducedRef.current) {
 			setCursorBlink(false);
 			setWelcomeRevealed(true);
+			bootPhaseRef.current = "done";
+			setBootPhase("done");
+			setPromptReady(true);
 			focusInput();
 			return;
 		}
@@ -262,13 +334,22 @@ export function TerminalSession() {
 			setAnimating(true);
 			const gen = ++genRef.current;
 			await sleep(500);
-			await typeAtPrompt("welcome", gen, WELCOME_CHAR_DELAY_MS);
-			setInputValue("");
+			if (genRef.current !== gen) return; // fast-forwarded before typing even started
+			await typeAtPrompt("welcome", gen, WELCOME_CHAR_DELAY_MS, setBootTyped);
+			if (genRef.current !== gen) return; // fast-forwarded mid-type; fastForward already snapped to done
+
+			setBootTyped("");
 			setWelcomeRevealed(true);
-			setAnimating(false);
-			focusInput();
+			bootPhaseRef.current = "printing";
+			setBootPhase("printing");
+
+			const tailMs =
+				WELCOME_LAST_LINE_DELAY_MS +
+				WELCOME_LAST_LINE_DURATION_MS +
+				PROMPT_READY_TAIL_MS;
+			revealTimeoutRef.current = setTimeout(finishBoot, tailMs);
 		})();
-	}, [focusInput, typeAtPrompt]);
+	}, [focusInput, typeAtPrompt, finishBoot]);
 
 	// Outputs can run commands too (e.g. the trigger chips inside the destiny
 	// section) — same path as a suggestion-chip click, typing included, and
@@ -372,7 +453,21 @@ export function TerminalSession() {
 
 	const fastForward = useCallback(() => {
 		genRef.current++;
-	}, []);
+		// Only the boot beat needs special handling here: it has its own
+		// pending "reveal the active prompt" timer (see `finishBoot`) that a
+		// bare gen bump doesn't interrupt. Once boot is over, every other
+		// in-flight animation (a typed command, a leave/enter transition)
+		// already bails out on its own next gen check, exactly like before.
+		if (bootPhaseRef.current !== "done") {
+			if (revealTimeoutRef.current != null) {
+				clearTimeout(revealTimeoutRef.current);
+				revealTimeoutRef.current = null;
+			}
+			setBootTyped("");
+			setWelcomeRevealed(true);
+			finishBoot();
+		}
+	}, [finishBoot]);
 
 	function handleContainerClick() {
 		if (animating) {
@@ -468,23 +563,36 @@ export function TerminalSession() {
 			role="log"
 			aria-label="Terminal session"
 			data-booted={booted ? "" : undefined}
+			data-prompt-ready={promptReady ? "" : undefined}
 			className="terminal-session relative font-mono text-[13px] leading-relaxed sm:text-[14px]"
 			onClick={handleContainerClick}
 		>
 			<LastLogin />
 
-			<div
-				className="mt-5"
-				style={welcomeStyle()}
-				data-welcome-revealed={welcomeRevealed ? "" : undefined}
-				aria-hidden={welcomeRevealed ? undefined : true}
-			>
-				<div className="welcome-line welcome-line-1">
-					<PromptLine input={welcomeEntry.command} active={false} />
+			<div className="mt-5">
+				{/* The pinned welcome block's OWN prompt line — appears here, at
+				    the top of the session, with the block cursor, and `welcome`
+				    types into it directly (via `bootTyped`). Once typing finishes
+				    this becomes a static line showing the same "welcome" text
+				    (`welcomeEntry.command`), no cursor — the cursor moves down to
+				    the bottom active prompt once that beat is reached. */}
+				<div className="terminal-active-prompt-in">
+					<PromptLine
+						input={bootPhase === "typing" ? bootTyped : welcomeEntry.command}
+						cursor={bootPhase === "typing"}
+						cursorBlink={cursorBlink}
+						active={false}
+					/>
 				</div>
-				{welcomeEntry.output && (
-					<div className="mt-1.5">{welcomeEntry.output}</div>
-				)}
+				<div
+					style={welcomeStyle()}
+					data-welcome-revealed={welcomeRevealed ? "" : undefined}
+					aria-hidden={welcomeRevealed ? undefined : true}
+				>
+					{welcomeEntry.output && (
+						<div className="mt-1.5">{welcomeEntry.output}</div>
+					)}
+				</div>
 			</div>
 
 			<div
@@ -500,7 +608,12 @@ export function TerminalSession() {
 				)}
 			</div>
 
-			<div ref={activePromptRef} className="terminal-active-prompt-in mt-5">
+			{/* The ACTIVE prompt — the fresh one a real shell hands you once the
+			    pinned welcome output above has fully printed. Gated on
+			    `data-prompt-ready` (see `finishBoot`), not visible during
+			    "typing"/"printing" so the eye never has to jump back up to a
+			    block that appears above it later. */}
+			<div ref={activePromptRef} className="terminal-prompt-ready-in mt-5">
 				<PromptLine input={inputValue} cursor cursorBlink={cursorBlink} />
 			</div>
 

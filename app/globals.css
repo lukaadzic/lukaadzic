@@ -561,10 +561,16 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 		both;
 }
 
-/* The live prompt + blinking cursor — the third beat, fading in while the
-   "Last login" line is still settling, just before the typed `welcome` beat
-   (see terminal-session.tsx) begins. Plays once on mount; the prompt is
-   never remounted afterward, so this never replays mid-session. */
+/* The PINNED welcome block's own prompt line + blinking cursor — the second
+   beat, fading in (with the cursor) directly under "Last login" while that
+   line is still settling, just before the typed `welcome` beat (see
+   terminal-session.tsx) types into it. Plays once on mount; this line is
+   never remounted afterward, so this never replays mid-session. Formerly
+   this beat belonged to the BOTTOM active prompt, with `welcome` typing
+   there instead — that read as the eye jumping bottom-to-top once the
+   pinned block later materialized above it. The bottom active prompt now
+   has its own later beat, `.terminal-prompt-ready-in` below, gated on
+   `data-prompt-ready` once the pinned block has fully printed. */
 @keyframes terminal-active-prompt-in {
 	from {
 		opacity: 0;
@@ -611,6 +617,51 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 [data-booted] .terminal-active-prompt-in {
 	animation: terminal-active-prompt-in 260ms cubic-bezier(0.16, 1, 0.3, 1) 350ms
 		both;
+}
+
+/* The BOTTOM active prompt's own beat — the fresh prompt a real shell hands
+   you once the pinned welcome output above it has fully printed. Unlike the
+   pinned prompt above (timed off a fixed `[data-booted]` delay, since
+   nothing before it varies in length), this one's timing genuinely depends
+   on how long `welcome` took to type plus the welcome-line print stagger —
+   so instead of guessing a fixed delay, `terminal-session.tsx` sets
+   `data-prompt-ready` on the session root itself only once that has
+   actually finished (`finishBoot`), and this rule needs no further CSS
+   delay of its own. */
+@keyframes terminal-prompt-ready-in {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Same keyframe, distinct name — see the matching comment on
+   terminal-active-prompt-in-fallback above: guarantees a clean restart
+   (delay included) once `[data-prompt-ready]` starts matching. */
+@keyframes terminal-prompt-ready-in-fallback {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Un-strandable fallback: same guarantee as the pinned prompt's above — if
+   JS never runs, the bottom prompt still reveals eventually. */
+.terminal-prompt-ready-in {
+	animation: terminal-prompt-ready-in-fallback 260ms
+		cubic-bezier(0.16, 1, 0.3, 1) 3000ms both;
+}
+
+[data-prompt-ready] .terminal-prompt-ready-in {
+	animation: terminal-prompt-ready-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* Authentic Terminal.app block cursor. */
@@ -839,13 +890,17 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	border-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Chips row — the closing beat: a gentle staggered fade-in tuned to land
-   ~80ms after the *typical* typed-"welcome" completion (500ms typing start +
-   ~385ms average typed duration), overlapping the welcome block's own rise
-   rather than waiting for it to finish, so the whole sequence reads as one
-   continuous motion. Un-strandable fallback below covers JS never running;
-   `[data-booted]` re-times these delays to the real hydration clock. `both`
-   keeps chips hidden only during their own animation delay either way. */
+/* Chips row — the closing beat, landing just after the bottom active prompt
+   appears: a gentle staggered fade-in tuned to land ~90ms after the
+   *typical* active-prompt reveal (500ms typing start + ~385ms average typed
+   duration = ~885ms typical typing completion, + the welcome-line print
+   stagger settling at 280ms delay + 240ms duration + a 100ms tail = ~1505ms
+   typical `data-prompt-ready` landing), overlapping the active prompt's own
+   rise rather than waiting for it to finish, so the whole sequence reads as
+   one continuous motion. Un-strandable fallback below covers JS never
+   running; `[data-booted]` re-times these delays to the real hydration
+   clock. `both` keeps chips hidden only during their own animation delay
+   either way. */
 @keyframes terminal-chip-in {
 	from {
 		opacity: 0;
@@ -905,18 +960,19 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	}
 }
 
-/* Welcome block prints line by line, top to bottom, like a real terminal —
-   prompt line, banner, greeting, hint — once the typed `welcome` finishes
+/* Welcome OUTPUT prints line by line, top to bottom, like a real terminal —
+   banner, greeting, hint — once the typed `welcome` finishes
    (`data-welcome-revealed` lands with the same state change that makes the
-   container visible). No stranding risk: the whole container is JS-gated
-   anyway, so these children only ever exist behind that same gate. */
+   container visible). The pinned block's own prompt line (the "welcome"
+   command text) isn't part of this cascade — it has its own earlier,
+   `[data-booted]`-timed beat (`.terminal-active-prompt-in` above) since it's
+   visible and being typed into well before this reveals. No stranding risk:
+   the whole container is JS-gated anyway, so these children only ever exist
+   behind that same gate. */
 [data-welcome-revealed] .welcome-line {
 	animation: terminal-output-in 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-[data-welcome-revealed] .welcome-line-1 {
-	animation-delay: 0ms;
-}
 [data-welcome-revealed] .welcome-line-2 {
 	animation-delay: 90ms;
 }
@@ -947,34 +1003,36 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 }
 
 /* Once JS boots (see the matching prompt-reveal comment above), re-time the
-   staggered ripple to the real hydration clock: ~80ms after the welcome
-   block's own rise begins, ~40ms apart per chip. Higher specificity than
-   the bare class above, so it fully replaces the fallback whenever JS is
+   staggered ripple to the real hydration clock: ~90ms after the bottom
+   active prompt's own rise begins (retimed from the old bottom-typing
+   design so chips still land right after the active prompt, not the
+   pinned block's rise), ~40ms apart per chip. Higher specificity than the
+   bare class above, so it fully replaces the fallback whenever JS is
    running. */
 [data-booted] .terminal-chip-row > * {
 	animation: terminal-chip-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 [data-booted] .terminal-chip-row > *:nth-child(1) {
-	animation-delay: 965ms;
+	animation-delay: 1600ms;
 }
 [data-booted] .terminal-chip-row > *:nth-child(2) {
-	animation-delay: 1005ms;
+	animation-delay: 1640ms;
 }
 [data-booted] .terminal-chip-row > *:nth-child(3) {
-	animation-delay: 1045ms;
+	animation-delay: 1680ms;
 }
 [data-booted] .terminal-chip-row > *:nth-child(4) {
-	animation-delay: 1085ms;
+	animation-delay: 1720ms;
 }
 [data-booted] .terminal-chip-row > *:nth-child(5) {
-	animation-delay: 1125ms;
+	animation-delay: 1760ms;
 }
 [data-booted] .terminal-chip-row > *:nth-child(6) {
-	animation-delay: 1165ms;
+	animation-delay: 1800ms;
 }
 [data-booted] .terminal-chip-row > *:nth-child(7) {
-	animation-delay: 1205ms;
+	animation-delay: 1840ms;
 }
 /* 8th chip (today: `help`, the last of about/projects/github/socials/cv/
    pets/love/help) — without its own delay it fell back to the base rule's
@@ -982,7 +1040,7 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
    entire stagger. Caught while re-timing this block onto the `data-booted`
    clock; add another rule here if a 9th chip ever ships. */
 [data-booted] .terminal-chip-row > *:nth-child(8) {
-	animation-delay: 1245ms;
+	animation-delay: 1880ms;
 }
 
 /* Wraps the single displayed command group. Its height is driven entirely
@@ -1104,6 +1162,8 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 		animation: terminal-appear 1ms both;
 	}
 
+	/* The pinned block's own prompt line (was the bottom prompt pre-redesign,
+	   see the non-RM comment above `.terminal-active-prompt-in`). */
 	.terminal-active-prompt-in {
 		animation: terminal-appear-fallback 1ms 3000ms both;
 		transform: none;
@@ -1119,6 +1179,21 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 		opacity: 1;
 	}
 
+	/* The bottom active prompt's own later beat. `data-prompt-ready` lands in
+	   the same reduced-motion branch as `data-booted`/`data-welcome-revealed`
+	   (all synchronous, no real typing to wait out), so the 220ms delay here
+	   is purely to keep the encoded ORDER (after the 180ms last welcome line,
+	   before the 300ms chips) rather than a real elapsed wait. */
+	.terminal-prompt-ready-in {
+		animation: terminal-appear-fallback 1ms 3000ms both;
+		transform: none;
+	}
+
+	[data-prompt-ready] .terminal-prompt-ready-in {
+		animation: terminal-appear 1ms 220ms both;
+		transform: none;
+	}
+
 	.terminal-chip-row > * {
 		animation: terminal-appear-fallback 1ms 3200ms both;
 		transform: none;
@@ -1129,7 +1204,7 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 		transform: none;
 	}
 
-	/* Welcome lines keep their print ORDER under reduced motion too —
+	/* Welcome output lines keep their print ORDER under reduced motion too —
 	   motionless 1ms appears with tiny cascading delays. */
 	[data-welcome-revealed] .welcome-line {
 		animation: terminal-appear 1ms both;
