@@ -105,6 +105,28 @@ body {
 	padding: 0;
 }
 
+/* App-style viewport lock. Fullscreen is the default (and the common mobile
+   state), so the page itself must behave like a native app screen — fixed,
+   no scroll, no rubber-band bounce — with only the terminal's own content
+   area scrolling internally when output runs long. Scoped via :has() so
+   floating mode (green light) and /404 (which never sets
+   data-mode="fullscreen") keep ordinary page-centered scroll; without :has
+   support the page just scrolls as it used to, a graceful fallback. Locking
+   height+overflow on html/body as well as the stage covers browsers where
+   one alone leaves a hair of rubber-band room (e.g. from vh/dvh rounding). */
+html:has(.terminal-window-frame[data-mode="fullscreen"]),
+html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
+	height: 100dvh;
+	overflow: hidden;
+	overscroll-behavior: none;
+}
+
+.terminal-stage:has(.terminal-window-frame[data-mode="fullscreen"]) {
+	height: 100dvh;
+	min-height: 100dvh;
+	overflow: hidden;
+}
+
 /* macOS zoom — the window is fullscreen by default; the green traffic light
    toggles the floating windowed look. Both ends are lengths/percentages so
    max-width, min-height, and border-radius interpolate smoothly. */
@@ -141,28 +163,46 @@ body {
 		min-height 350ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
+/* Fullscreen is a real app-style layout: the chrome is locked to exactly
+   100dvh (min + max pin it, rather than a plain `height`, so the existing
+   `min-height 350ms` transition on the base rule still animates the
+   floating<->fullscreen zoom smoothly) and laid out as a flex column —
+   title bar, then a single scrolling content area. Nothing here scrolls the
+   page; long output (e.g. ./everything.sh) scrolls inside
+   .terminal-window-content instead, like a native terminal. */
 [data-mode="fullscreen"] > .terminal-window-chrome {
+	display: flex;
+	flex-direction: column;
 	min-height: 100dvh;
+	max-height: 100dvh;
 	border-radius: 0;
 	border-color: transparent;
 	box-shadow: none;
-	/* `overflow: hidden` here would swallow the sticky title bar — the
-	   nearest scroll container must stay the viewport. */
-	overflow: visible;
+	overflow: hidden;
 }
 
-/* Fullscreen title bar pins to the viewport top while long output (e.g.
-   ./everything.sh) scrolls; it gets a near-opaque backing so scrolled
-   content reads through the blur, not through the bar. */
+/* The title bar is just the first flex child of the locked column now — no
+   sticky-positioning hack needed, since it's the content area that scrolls,
+   not the page. The near-opaque backing stays so scrolled content reads
+   through the blur, not through the bar. */
 [data-mode="fullscreen"] .terminal-window-titlebar {
-	position: sticky;
-	top: 0;
+	flex-shrink: 0;
 	z-index: 20;
 	background-color: rgba(30, 30, 32, 0.88);
 }
 
-/* Fullscreen content padding — comfortable, safe-area aware. */
+/* The internal scroll container. `overscroll-behavior: contain` stops
+   scrolling past its own top/bottom from chaining into a page bounce (the
+   page can't scroll anyway once locked, but this also keeps iOS's rubber-
+   band effect confined to the content area itself). `overflow-x: hidden` is
+   a hard backstop against any stray wide child causing sideways scroll. */
 [data-mode="fullscreen"] .terminal-window-content {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+	overflow-x: hidden;
+	overscroll-behavior: contain;
+	-webkit-overflow-scrolling: touch;
 	padding: 20px max(16px, env(safe-area-inset-right))
 		max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
 }
