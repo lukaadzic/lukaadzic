@@ -41,6 +41,35 @@ export const SITE = {
 	},
 	githubUsername: "lukaadzic",
 	resumePath: "/ADZIC_LUKA_RESUME.pdf",
+	workLinks: {
+		c4r: "https://www.c4r.io/",
+		wharton: "https://www.wharton.upenn.edu/",
+	},
 } as const;
 
 export type Site = typeof SITE;
+
+/** One segment of a copy string that's rendered with some words linked out —
+ * `href` marks the segments that become `ExternalLink`s, plain segments
+ * render as text. `tagline` and `work` above stay plain strings for
+ * text-only contexts (SEO block, `whoami`'s fallback); these part lists are
+ * the single source for the linked renders in `welcome-output.tsx` and
+ * `about-output.tsx`, so the org names never get hardcoded twice. */
+export type CopyPart = { text: string; href?: string };
+
+/** Renders as `SITE.tagline` — used by the pinned `welcome` greeting. */
+export const TAGLINE_PARTS: readonly CopyPart[] = [
+	{ text: "SWE @ " },
+	{ text: "C4R", href: SITE.workLinks.c4r },
+	{ text: " · Student @ " },
+	{ text: "Wharton", href: SITE.workLinks.wharton },
+	{ text: " · Philadelphia" },
+];
+
+/** Renders as `SITE.work` — used by the `about` card's `work` row. */
+export const WORK_PARTS: readonly CopyPart[] = [
+	{ text: "SWE @ " },
+	{ text: "Community for Rigor", href: SITE.workLinks.c4r },
+	{ text: " · AI research @ " },
+	{ text: "Wharton", href: SITE.workLinks.wharton },
+];

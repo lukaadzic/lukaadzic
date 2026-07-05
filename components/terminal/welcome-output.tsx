@@ -1,4 +1,11 @@
-import { SITE } from "@/lib/site";
+import { ExternalLink } from "@/components/shared/external-link";
+import { SITE, TAGLINE_PARTS } from "@/lib/site";
+
+/** Subtle by design — foreground text, a faint underline, and only the
+ * hover state hints these are links, so they don't compete with the
+ * greeting for attention. */
+const TAGLINE_LINK_CLASS =
+	"text-foreground underline decoration-white/20 underline-offset-4 transition-colors duration-200 hover:text-accent";
 
 /** Tiny 5-row pixel-font glyphs — just enough letters to spell the name. */
 const GLYPHS: Record<string, readonly string[]> = {
@@ -58,7 +65,21 @@ export function WelcomeOutput() {
 			</pre>
 
 			<p className="mt-2 text-foreground">
-				Hi, I&apos;m {FIRST_NAME} — {SITE.tagline}.
+				Hi, I&apos;m {FIRST_NAME} —{" "}
+				{TAGLINE_PARTS.map((part, index) =>
+					part.href ? (
+						<ExternalLink
+							key={`${part.text}-${index}`}
+							href={part.href}
+							className={TAGLINE_LINK_CLASS}
+						>
+							{part.text}
+						</ExternalLink>
+					) : (
+						<span key={`${part.text}-${index}`}>{part.text}</span>
+					),
+				)}
+				.
 			</p>
 			<p className="text-faint">type a command, or tap one below.</p>
 		</div>
