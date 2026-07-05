@@ -863,6 +863,28 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	}
 }
 
+/* Welcome block prints line by line, top to bottom, like a real terminal —
+   prompt line, banner, greeting, hint — once the typed `welcome` finishes
+   (`data-welcome-revealed` lands with the same state change that makes the
+   container visible). No stranding risk: the whole container is JS-gated
+   anyway, so these children only ever exist behind that same gate. */
+[data-welcome-revealed] .welcome-line {
+	animation: terminal-output-in 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+[data-welcome-revealed] .welcome-line-1 {
+	animation-delay: 0ms;
+}
+[data-welcome-revealed] .welcome-line-2 {
+	animation-delay: 90ms;
+}
+[data-welcome-revealed] .welcome-line-3 {
+	animation-delay: 190ms;
+}
+[data-welcome-revealed] .welcome-line-4 {
+	animation-delay: 280ms;
+}
+
 /* `pets` command — portraits stagger in the same pure-CSS way as the
    suggestion chips (no JS gate, so they can never be stranded invisible).
    Specificity-ordered ahead of the `[data-booted]` chip rules below (lower
@@ -1063,6 +1085,23 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	[data-booted] .terminal-chip-row > * {
 		animation: terminal-appear 1ms 300ms both;
 		transform: none;
+	}
+
+	/* Welcome lines keep their print ORDER under reduced motion too —
+	   motionless 1ms appears with tiny cascading delays. */
+	[data-welcome-revealed] .welcome-line {
+		animation: terminal-appear 1ms both;
+		transform: none;
+	}
+
+	[data-welcome-revealed] .welcome-line-2 {
+		animation-delay: 60ms;
+	}
+	[data-welcome-revealed] .welcome-line-3 {
+		animation-delay: 120ms;
+	}
+	[data-welcome-revealed] .welcome-line-4 {
+		animation-delay: 180ms;
 	}
 
 	.pets-portrait-row > * {

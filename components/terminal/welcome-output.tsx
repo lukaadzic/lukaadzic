@@ -48,7 +48,7 @@ export function WelcomeOutput() {
 			{/* >=640px: the full name as a single-line pixel-font banner. */}
 			<pre
 				aria-hidden="true"
-				className="hidden select-none whitespace-pre font-mono text-[11px] leading-[1.15] text-[#5fd75f] sm:block md:text-[12px]"
+				className="welcome-line welcome-line-2 hidden select-none whitespace-pre font-mono text-[11px] leading-[1.15] text-[#5fd75f] sm:block md:text-[12px]"
 			>
 				{BANNER_FULL}
 			</pre>
@@ -57,14 +57,14 @@ export function WelcomeOutput() {
 			    stays large without ever overflowing narrow screens. */}
 			<pre
 				aria-hidden="true"
-				className="select-none whitespace-pre font-mono text-[10px] leading-[1.15] text-[#5fd75f] sm:hidden"
+				className="welcome-line welcome-line-2 select-none whitespace-pre font-mono text-[10px] leading-[1.15] text-[#5fd75f] sm:hidden"
 			>
 				{BANNER_FIRST}
 				{"\n\n"}
 				{BANNER_LAST}
 			</pre>
 
-			<p className="mt-2 text-foreground">
+			<p className="welcome-line welcome-line-3 mt-2 text-foreground">
 				Hi, I&apos;m {FIRST_NAME} —{" "}
 				{TAGLINE_PARTS.map((part, index) =>
 					part.href ? (
@@ -81,7 +81,9 @@ export function WelcomeOutput() {
 				)}
 				.
 			</p>
-			<p className="text-faint">type a command, or tap one below.</p>
+			<p className="welcome-line welcome-line-4 text-faint">
+				type a command, or tap one below.
+			</p>
 		</div>
 	);
 }
