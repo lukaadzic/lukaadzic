@@ -296,9 +296,18 @@ export function TerminalSession() {
 		const raf = requestAnimationFrame(() => {
 			if (hasLock) {
 				const newHeight = container.scrollHeight;
-				container.style.overflow = "hidden";
-				container.style.transition = `height ${GROUP_HEIGHT_MS}ms ${GROUP_HEIGHT_EASING}`;
-				container.style.height = `${newHeight}px`;
+				const lockedHeight = Number.parseFloat(container.style.height);
+				if (Math.abs(newHeight - lockedHeight) < 1) {
+					// Same height — no transition will fire, so transitionend
+					// would never release the lock. Release immediately.
+					container.style.height = "";
+					container.style.overflow = "";
+					container.style.transition = "";
+				} else {
+					container.style.overflow = "hidden";
+					container.style.transition = `height ${GROUP_HEIGHT_MS}ms ${GROUP_HEIGHT_EASING}`;
+					container.style.height = `${newHeight}px`;
+				}
 			} else {
 				container.style.height = "";
 			}
