@@ -351,6 +351,82 @@ body {
 	padding: 8px 16px;
 }
 
+/* Pressed state on top of the shared chip scale(0.97). */
+.penalty-chip:active:not(:disabled) {
+	background: rgba(255, 255, 255, 0.12);
+	border-color: rgba(255, 255, 255, 0.22);
+}
+
+/* `penalty` reveal beats — the ball/glove pop into their goal zones, the
+   verdict flashes in just after, the newest scoreline icon pops, the phase
+   label crossfades, and the suspense line breathes while the stadium waits.
+   All CSS-only; the reduced-motion block at the bottom disables every one. */
+@keyframes penalty-pop-in {
+	from {
+		opacity: 0;
+		transform: scale(0.3) translateY(-6px);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
+}
+
+.penalty-ball-in {
+	display: inline-block;
+	animation: penalty-pop-in 250ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.penalty-glove-in {
+	display: inline-block;
+	animation: penalty-pop-in 250ms cubic-bezier(0.16, 1, 0.3, 1) 80ms both;
+}
+
+@keyframes penalty-fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+.penalty-result-in {
+	animation: penalty-fade-in 200ms ease-out 180ms both;
+}
+
+.penalty-fade {
+	animation: penalty-fade-in 200ms ease-out both;
+}
+
+@keyframes penalty-icon-pop {
+	from {
+		transform: scale(1.15);
+	}
+	to {
+		transform: scale(1);
+	}
+}
+
+.penalty-icon-pop {
+	display: inline-block;
+	animation: penalty-icon-pop 180ms ease-out both;
+}
+
+@keyframes penalty-breath {
+	0%,
+	100% {
+		opacity: 0.35;
+	}
+	50% {
+		opacity: 0.85;
+	}
+}
+
+.penalty-suspense {
+	animation: penalty-breath 900ms ease-in-out infinite;
+}
+
 /* The "run it all" chip gets a hint of the accent color at rest. */
 .terminal-chip-accent {
 	color: var(--color-accent);
@@ -467,6 +543,17 @@ body {
 	}
 
 	.terminal-chip:active:not(:disabled) {
+		transform: none;
+	}
+
+	.penalty-ball-in,
+	.penalty-glove-in,
+	.penalty-result-in,
+	.penalty-fade,
+	.penalty-icon-pop,
+	.penalty-suspense {
+		animation: none;
+		opacity: 1;
 		transform: none;
 	}
 }
