@@ -587,6 +587,29 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 		both;
 }
 
+/* The boot beat's pinned command line ("lukaadzic ~ % welcome") collapses
+   away in place once it's had its moment (see terminal-session.tsx): a
+   max-height ceiling comfortably above the tallest a single prompt line ever
+   renders at either breakpoint (so no JS measurement is needed here, unlike
+   the group container's FLIP) transitions to 0 alongside a quicker opacity
+   fade, and the welcome output below rises up to fill the gap as an
+   ordinary consequence of the layout reflow — no separate "shift up" step
+   needed. Once the transition ends, terminal-session.tsx stops rendering
+   this line entirely, so the settled DOM has no `welcome` command line. */
+.boot-command-line {
+	max-height: 40px;
+	overflow: hidden;
+	opacity: 1;
+	transition:
+		max-height 220ms cubic-bezier(0.16, 1, 0.3, 1),
+		opacity 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.boot-command-line-leaving {
+	max-height: 0;
+	opacity: 0;
+}
+
 /* The BOTTOM active prompt's own beat — the fresh prompt a real shell hands
    you once the pinned welcome output above it has fully printed. Unlike the
    pinned prompt above (timed off a fixed `[data-booted]` delay, since
@@ -1144,6 +1167,15 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	.terminal-cursor-blink {
 		animation: none;
 		opacity: 1;
+	}
+
+	/* Belt-and-suspenders: terminal-session.tsx already skips the animated
+	   collapse entirely under reduced motion (the command line is removed
+	   instantly, same tick as everything else settling), so this transition
+	   never actually has anything to animate — kept disabled here too in case
+	   that ever changes. */
+	.boot-command-line {
+		transition: none;
 	}
 
 	/* The bottom active prompt's own later beat. `data-prompt-ready` lands in
