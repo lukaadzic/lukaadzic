@@ -24,7 +24,10 @@ slugs), `echo <text>`, `date` (client-evaluated, never SSR'd), `history`
 (this session's commands), a `sudo` easter egg, `clear`, and command history
 via arrow keys — plus Tab-completion of partial input against known
 commands. Unknown commands occasionally get a sassier
-`command not found` message (1-in-3). The pinned `welcome` block opens with
+`command not found` message (1-in-3). A handful of personality easter eggs
+(`giveon`/`beloved`, `vatreni`, `modric`) hide as dotfiles discoverable via
+`ls -la`; their content lives in `lib/easter-eggs.ts` and must stay verified
+fact, never invented. The pinned `welcome` block opens with
 a block-letter ASCII banner of the FULL name (built from a tiny per-letter
 glyph map in `welcome-output.tsx`, `aria-hidden` with an `sr-only` text
 alternative); below 640px the banner stays block-letter but stacks
