@@ -4,14 +4,25 @@
 
 Luka Adzic's personal portfolio. One page (`/`) plus a `/404`. The UI is a
 faithful, interactive macOS Terminal window built around **prompt-driven
-discovery**. The window is **fullscreen by default** (edge-to-edge, square
-corners, content capped to a readable ~900px column); the
-green traffic light zooms it down to the floating windowed look and back,
-remembered per tab via `sessionStorage`. `/404` reuses this same fullscreen
-chrome (`TerminalWindow`'s `simpleControls` prop) but keeps its own old,
-simple traffic-light behaviors instead of the home page's dock/alert — red
-shakes + toasts, yellow does the plain bounce-back, green is a no-op (no
-floating mode to zoom into on a page with no session engine). It plays a
+discovery**. The window is **fullscreen-only now** (edge-to-edge, square
+corners, content capped to a readable ~900px column) — there's no floating
+windowed mode anymore, so `data-mode="fullscreen"` on `.terminal-window-frame`
+is a fixed literal, not state. The green traffic light used to zoom the
+window down to a floating look; it now opens the **expanding universe**
+easter egg instead (`universe-overlay.tsx`, opened/closed from
+`terminal-window.tsx`): a full-viewport dark cosmos of his goals as a
+clickable constellation, content in `lib/universe.ts` (luka-editable, marked
+as seed placeholders). The window itself scales down slightly and fades,
+then hides (`visibility: hidden`, never unmounted — state and any playing
+music survive) while the cosmos is up; Esc closes an open star card first,
+then exits the universe (crossfade back, focus returns to the green light).
+The green glyph itself (outward triangles) no longer flips with a mode —
+it's always outward now, read as "expand the universe." `/404` reuses this
+same fullscreen chrome (`TerminalWindow`'s `simpleControls` prop) but keeps
+its own old, simple traffic-light behaviors instead of the home page's
+dock/alert/universe — red shakes + toasts, yellow does the plain
+bounce-back, green is a no-op (no universe to expand into on a page with no
+session engine). It plays a
 small self-contained typed sequence (no input engine, no registry): `cd
 <requested-path>`, a `zsh: no such file` line, a beat, then goal art in the
 `penalty` minigame's visual language — the ⚽ sailing in above the crossbar
@@ -21,11 +32,10 @@ Fullscreen is app-style, not a scrolling page: the title bar is a plain flex
 row pinned to the top of a `100dvh` column and only the content area below it
 scrolls internally (`overflow-y: auto`, `overscroll-behavior: contain`) when
 output runs long (e.g. the penalty game) — the page itself
-(`html`/`body`/`.terminal-stage`) is locked to `100dvh`/`overflow: hidden` so
-there's no scroll or rubber-band bounce on mobile, scoped via `:has()` so it
-only applies when `.terminal-window-frame[data-mode="fullscreen"]` is
-present. Floating mode (green light, home page only) never sets
-`data-mode="fullscreen"`, so it keeps ordinary page-centered scroll. On
+(`html`/`body`/`.terminal-stage`) is locked to `100dvh`/`overflow: hidden`,
+scoped via `:has()` so it only applies when
+`.terminal-window-frame[data-mode="fullscreen"]` is present (always true
+now). On
 load only a short `welcome` greeting types out at a pinned prompt line, then
 that typed command line clears itself away (fade + collapse, the greeting
 shifting up smoothly into its place) before the greeting content prints and
@@ -165,9 +175,12 @@ app/
 components/
   terminal/           window chrome (terminal-window.tsx), the typing/session
                        engine (terminal-session.tsx), the command registry +
-                       renderers (commands.tsx), and one output component per
+                       renderers (commands.tsx), one output component per
                        command (about-output, whoami-output, projects-output,
-                       socials-output, github-output, help-output, ...)
+                       socials-output, github-output, help-output, ...), the
+                       minimize splash (minimize-dock.tsx) and the green
+                       light's expanding-universe overlay
+                       (universe-overlay.tsx)
   shared/              components reused across terminal outputs (e.g.
                        external-link.tsx)
 lib/                   single source of truth for all content
@@ -176,6 +189,8 @@ lib/                   single source of truth for all content
   projects.ts          project list
   socials.ts           social links
   github-contributions.ts   contribution-level + fallback-data helpers
+  universe.ts          the expanding-universe constellation data (goal-stars
+                       + links) — luka-editable, marked as seed placeholders
 ```
 
 **Data flow:** `lib/*.ts` -> server-rendered `page.tsx` (window chrome + an
@@ -218,12 +233,10 @@ that same registry, so every path renders identical output.
   previous is still finishing (~60-70% through it) rather than waiting, so
   it reads as continuous motion, not a slideshow — total time to interactive
   is ~2.3-2.6s:
-  1. `0-280ms` — the window fades in. In fullscreen (the default, and the
-     common mobile state — `/404` is always fullscreen too) that's opacity +
-     a small `translateY` only, since scaling a full-viewport element forces
-     a whole-page repaint every frame — floating mode (home page only),
-     being a small element, keeps the original ~350ms scale(0.98→1) + fade
-     (`cubic-bezier(0.32, 0.72, 0, 1)`).
+  1. `0-280ms` — the window fades in. Fullscreen is the only mode now (both
+     `/` and `/404`), so that's opacity + a small `translateY` only, since
+     scaling a full-viewport element forces a whole-page repaint every
+     frame.
   2. `~200ms` — the "Last login" line reveals (`last-login.tsx`). It's
      computed in a `useLayoutEffect` (not `useEffect`), so the real value is
      already in place before the browser paints the hydrated tree; combined
@@ -355,7 +368,10 @@ that same registry, so every path renders identical output.
   execute their commands and show the active one as brighter (never
   dimmed), typed commands + history work, the github sparkline spans the full content
   width at desktop and ~390px with no horizontal scroll,
-  `prefers-reduced-motion` disables typing animation and cursor blink.
+  `prefers-reduced-motion` disables typing animation and cursor blink; the
+  green light opens the expanding universe (stars fade in, lines draw, a
+  star card opens/closes, Esc closes the card then exits, music and
+  LiveAge keep running underneath, focus returns to the green light).
 - Manual pass of `/404`.
 - `curl` the API route: a valid username returns 200 with `Cache-Control`
   set; an invalid/mismatched username returns 400.
