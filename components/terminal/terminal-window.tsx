@@ -303,8 +303,22 @@ export function TerminalWindow({
 							onClick={handleClose}
 							className="relative flex h-3 w-3 items-center justify-center rounded-full bg-[#ff5f57] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.15)]"
 						>
-							<span className="select-none text-[8px] leading-none text-black/60 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-								×
+							<span className="select-none opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+								{/* macOS close: thin diagonal cross */}
+								<svg
+									aria-hidden="true"
+									width="8"
+									height="8"
+									viewBox="0 0 8 8"
+									className="block"
+								>
+									<path
+										d="M1.7 1.7 L6.3 6.3 M6.3 1.7 L1.7 6.3"
+										stroke="rgba(0,0,0,0.55)"
+										strokeWidth="1.1"
+										strokeLinecap="round"
+									/>
+								</svg>
 							</span>
 						</button>
 						<button
@@ -314,8 +328,22 @@ export function TerminalWindow({
 							onClick={handleMinimize}
 							className="relative flex h-3 w-3 items-center justify-center rounded-full bg-[#febc2e] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.15)]"
 						>
-							<span className="select-none text-[8px] leading-none text-black/60 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-								−
+							<span className="select-none opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+								{/* macOS minimize: single horizontal bar */}
+								<svg
+									aria-hidden="true"
+									width="8"
+									height="8"
+									viewBox="0 0 8 8"
+									className="block"
+								>
+									<path
+										d="M1.4 4 L6.6 4"
+										stroke="rgba(0,0,0,0.55)"
+										strokeWidth="1.3"
+										strokeLinecap="round"
+									/>
+								</svg>
 							</span>
 						</button>
 						<button
@@ -324,8 +352,41 @@ export function TerminalWindow({
 							onClick={handleZoom}
 							className="relative flex h-3 w-3 items-center justify-center rounded-full bg-[#28c840] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.15)]"
 						>
-							<span className="select-none text-[8px] leading-none text-black/60 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-								+
+							<span className="select-none opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+								{/* macOS zoom: two diagonal fullscreen triangles — pointing
+								    inward (exit) while fullscreen, outward (enter) while
+								    floating, exactly like the real green light. */}
+								<svg
+									aria-hidden="true"
+									width="8"
+									height="8"
+									viewBox="0 0 8 8"
+									className="block"
+								>
+									{fullscreen ? (
+										<>
+											<path
+												d="M4.2 3.8 L7.4 3.8 L4.2 0.6 Z"
+												fill="rgba(0,0,0,0.55)"
+											/>
+											<path
+												d="M3.8 4.2 L0.6 4.2 L3.8 7.4 Z"
+												fill="rgba(0,0,0,0.55)"
+											/>
+										</>
+									) : (
+										<>
+											<path
+												d="M7.2 0.8 L7.2 4.2 L3.8 0.8 Z"
+												fill="rgba(0,0,0,0.55)"
+											/>
+											<path
+												d="M0.8 7.2 L0.8 3.8 L4.2 7.2 Z"
+												fill="rgba(0,0,0,0.55)"
+											/>
+										</>
+									)}
+								</svg>
 							</span>
 						</button>
 					</div>

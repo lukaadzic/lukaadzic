@@ -3,9 +3,9 @@
 import { ShaderGradient, ShaderGradientCanvas } from "@shadergradient/react";
 
 /**
- * The minimize splash's animated backdrop — a slow, dark gradient tuned to
- * the same deep blue/purple wash as `.terminal-stage`'s wallpaper
- * (`app/globals.css`), never a bright/rainbow preset. This file is the ONLY
+ * The minimize splash's animated backdrop — ShaderGradient's "Nighty night"
+ * preset (Luka's pick), values lifted verbatim from the package's own preset
+ * table so it matches shadergradient.co's 04 exactly. This file is the ONLY
  * place `@shadergradient/react` (and, transitively, three.js /
  * `@react-three/fiber`) gets imported anywhere in the app —
  * `minimize-dock.tsx` reaches it exclusively through
@@ -14,10 +14,9 @@ import { ShaderGradient, ShaderGradientCanvas } from "@shadergradient/react";
  * window, never on page load (verified against `next build`'s output for
  * `/` — see CLAUDE.md).
  *
- * `lightType="3d"` deliberately skips `envPreset`, which pulls an HDRI
- * environment map from a remote CDN at runtime — everything here renders
- * from local shader math and a couple of plain 3D lights, so there's
- * nothing here for the CSP to need an entry for.
+ * `lightType="3d"` means the preset's `envPreset` is never used, so no
+ * remote HDRI is fetched — everything renders from local shader math, and
+ * the CSP needs no entry for it.
  */
 export default function MinimizeSplashShader() {
 	return (
@@ -31,28 +30,29 @@ export default function MinimizeSplashShader() {
 				control="props"
 				type="waterPlane"
 				animate="on"
-				uSpeed={0.08}
-				uStrength={1.1}
-				uDensity={1.3}
-				uFrequency={5.5}
+				uTime={8}
+				uSpeed={0.3}
+				uStrength={1.5}
+				uDensity={1.5}
+				uFrequency={0}
 				uAmplitude={0}
-				color1="#12132c"
-				color2="#241338"
-				color3="#050508"
+				color1="#606080"
+				color2="#8d7dca"
+				color3="#212121"
 				reflection={0.1}
-				brightness={0.55}
-				grain="off"
+				brightness={1}
+				grain="on"
 				lightType="3d"
 				cAzimuthAngle={180}
-				cPolarAngle={90}
-				cDistance={3.2}
-				cameraZoom={1}
+				cPolarAngle={80}
+				cDistance={2.8}
+				cameraZoom={9.1}
 				positionX={0}
 				positionY={0}
 				positionZ={0}
-				rotationX={0}
+				rotationX={50}
 				rotationY={0}
-				rotationZ={0}
+				rotationZ={-60}
 				wireframe={false}
 			/>
 		</ShaderGradientCanvas>
