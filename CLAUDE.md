@@ -7,7 +7,16 @@ faithful, interactive macOS Terminal window built around **prompt-driven
 discovery**. The window is **fullscreen by default** (edge-to-edge, square
 corners, content capped to a readable ~900px column); the
 green traffic light zooms it down to the floating windowed look and back,
-remembered per tab via `sessionStorage` (the `/404` card always floats).
+remembered per tab via `sessionStorage`. `/404` reuses this same fullscreen
+chrome (`TerminalWindow`'s `simpleControls` prop) but keeps its own old,
+simple traffic-light behaviors instead of the home page's dock/alert — red
+shakes + toasts, yellow does the plain bounce-back, green is a no-op (no
+floating mode to zoom into on a page with no session engine). It plays a
+small self-contained typed sequence (no input engine, no registry): `cd
+<requested-path>`, a `zsh: no such file` line, a beat, then goal art in the
+`penalty` minigame's visual language — the ⚽ sailing in above the crossbar
+(missed entirely) while 🧤 Livaković stands untroubled — followed by the
+verdict lines and a single `cd ~` chip home.
 Fullscreen is app-style, not a scrolling page: the title bar is a plain flex
 row pinned to the top of a `100dvh` column and only the content area below it
 scrolls internally (`overflow-y: auto`, `overscroll-behavior: contain`) when
@@ -15,8 +24,8 @@ output runs long (e.g. the penalty game) — the page itself
 (`html`/`body`/`.terminal-stage`) is locked to `100dvh`/`overflow: hidden` so
 there's no scroll or rubber-band bounce on mobile, scoped via `:has()` so it
 only applies when `.terminal-window-frame[data-mode="fullscreen"]` is
-present. Floating mode (green light) and `/404` never set
-`data-mode="fullscreen"`, so they keep ordinary page-centered scroll. On
+present. Floating mode (green light, home page only) never sets
+`data-mode="fullscreen"`, so it keeps ordinary page-centered scroll. On
 load only a short `welcome` greeting types out at a pinned prompt line, then
 that typed command line clears itself away (fade + collapse, the greeting
 shifting up smoothly into its place) before the greeting content prints and
@@ -69,7 +78,7 @@ On the home page the red traffic light refuses to
 close: a macOS-style "don't leave." alert opens over the window with
 Giveon's DON'T LEAVE autoplaying inside it, and `leave anyway` loses its
 nerve twice before conceding — all alert copy is original, never verbatim
-lyrics; the `/404` card keeps the plain shake + toast. The yellow light on
+lyrics; the `/404` page keeps the plain shake + toast. The yellow light on
 the home page (`terminal-window.tsx` + `minimize-dock.tsx`) really
 minimizes: the window shrinks toward its own center and hides
 (`visibility: hidden`, never unmounted, so a playing Spotify embed and the
@@ -101,7 +110,7 @@ permanently stripped once its animation first finishes (`hasEntered`) —
 left in place, it silently became the winning `animation` declaration again
 every time `restoring`'s class came back off, replaying the fade-in-from-
 scratch on every single restore (a real, reproduced jostle) right after the
-crossfade had already finished. The `/404` card keeps the old plain
+crossfade had already finished. The `/404` page keeps the old plain
 bounce-back instead. So the
 track starts
 the instant the alert opens rather than after a script fetch,
@@ -210,11 +219,11 @@ that same registry, so every path renders identical output.
   it reads as continuous motion, not a slideshow — total time to interactive
   is ~2.3-2.6s:
   1. `0-280ms` — the window fades in. In fullscreen (the default, and the
-     common mobile state) that's opacity + a small `translateY` only, since
-     scaling a full-viewport element forces a whole-page repaint every
-     frame — floating mode and the `/404` card, being small elements, keep
-     the original ~350ms scale(0.98→1) + fade (`cubic-bezier(0.32, 0.72, 0,
-     1)`).
+     common mobile state — `/404` is always fullscreen too) that's opacity +
+     a small `translateY` only, since scaling a full-viewport element forces
+     a whole-page repaint every frame — floating mode (home page only),
+     being a small element, keeps the original ~350ms scale(0.98→1) + fade
+     (`cubic-bezier(0.32, 0.72, 0, 1)`).
   2. `~200ms` — the "Last login" line reveals (`last-login.tsx`). It's
      computed in a `useLayoutEffect` (not `useEffect`), so the real value is
      already in place before the browser paints the hydrated tree; combined
