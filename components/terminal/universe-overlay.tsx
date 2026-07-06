@@ -212,6 +212,18 @@ export function UniverseOverlay({
 		setActiveId(star.id);
 	}
 
+	// Same exit flow as Esc (see the keydown listener above): a card open
+	// closes first, only a second tap with nothing open actually leaves.
+	// Esc doesn't exist on phones, so this is the real, only-guaranteed-
+	// reachable exit — the corner text used to be passive; now it's this.
+	function handleExitTap() {
+		if (activeId) {
+			setActiveId(null);
+			return;
+		}
+		onRequestExit();
+	}
+
 	const activeStar = activeId ? (STAR_BY_ID.get(activeId) ?? null) : null;
 
 	return createPortal(
@@ -286,12 +298,18 @@ export function UniverseOverlay({
 			>
 				{UNIVERSE_HEADER}
 			</p>
-			<p
-				className="universe-hint universe-chrome-in absolute bottom-4 right-4 select-none font-mono text-[11px] text-faint sm:bottom-6 sm:right-6"
+			<button
+				type="button"
+				onClick={handleExitTap}
+				aria-label="Return to earth"
+				className="universe-exit-chip terminal-chip universe-chrome-in select-none font-mono text-[11px]"
 				style={{ animationDelay: "140ms" }}
 			>
+				<span aria-hidden="true" className="universe-exit-esc text-faint">
+					esc ·{" "}
+				</span>
 				{UNIVERSE_HINT}
-			</p>
+			</button>
 
 			{STARS.map((star, i) => (
 				<button

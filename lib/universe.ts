@@ -127,4 +127,8 @@ export const STARS: readonly Star[] = [
 ] as const;
 
 export const UNIVERSE_HEADER = "luka@universe — the whole picture";
-export const UNIVERSE_HINT = "esc to return to earth";
+/** The exit control's visible label (`universe-overlay.tsx` renders it as a
+ * real tappable button, not passive text, since Esc doesn't exist on
+ * phones) — desktop prefixes a faint "esc · " before it, kept inline in the
+ * component since it's a keyboard affordance, not content. */
+export const UNIVERSE_HINT = "return to earth";

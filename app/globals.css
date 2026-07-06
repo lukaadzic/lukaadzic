@@ -1348,6 +1348,38 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	animation: universe-chrome-in 400ms ease-out both;
 }
 
+/* The universe's exit control — Esc doesn't exist on phones, so the corner
+   hint is a real `.terminal-chip`-styled button, not passive text (tapping
+   runs the same exit flow as Esc: closes an open card first, then leaves).
+   Positioned bottom-right like the old text was, padded clear of any home
+   indicator/notch via `env(safe-area-inset-*)`, same pattern as
+   `.terminal-window-content`'s own edge padding. */
+.universe-exit-chip {
+	position: absolute;
+	right: max(16px, env(safe-area-inset-right));
+	bottom: max(16px, env(safe-area-inset-bottom));
+	display: inline-flex;
+	min-height: 44px;
+	align-items: center;
+	gap: 2px;
+	padding: 10px 14px;
+}
+
+@media (min-width: 640px) {
+	.universe-exit-chip {
+		right: max(24px, env(safe-area-inset-right));
+		bottom: max(24px, env(safe-area-inset-bottom));
+	}
+}
+
+/* The "esc · " prefix is a desktop-only nicety — on touch devices (where Esc
+   doesn't exist at all) the button just reads "return to earth" on its own. */
+@media (pointer: coarse), (max-width: 480px) {
+	.universe-exit-esc {
+		display: none;
+	}
+}
+
 /* Goal-stars — real buttons, sized as a comfortable tap target (28px) with
    the visible glow (`.universe-star-core`) and label centered exactly on
    the star's `x`/`y` percentage point regardless of that padding, since
