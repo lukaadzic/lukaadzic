@@ -692,12 +692,11 @@ export function TerminalSession() {
 						{command}
 					</button>
 				))}
-				{/* Mobile/touch-only — hidden on desktop via `.terminal-clear-chip`'s
-				    own media query in globals.css (fine pointer never sees it).
-				    Only rendered at all while a command group is showing, and
-				    appended as the row's last element so existing chips never
-				    shift when it appears or disappears. Runs through the exact
-				    same submit() path as typing `clear` at the prompt. */}
+				{/* Shown on every pointer type. Only rendered at all while a command
+				    group is showing, and appended as the row's last element so
+				    existing chips never shift when it appears or disappears. Runs
+				    through the exact same submit() path as typing `clear` at the
+				    prompt. */}
 				{current && (
 					<button
 						type="button"
