@@ -1,8 +1,8 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { CosmosSky } from "@/components/terminal/cosmos-sky";
 
 type MinimizeDockProps = {
 	kidPhotoSrc: string;
@@ -36,24 +36,6 @@ const PROGRESS_TICK_MS = 130;
 
 function reducedMotion(): boolean {
 	return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
-/** WebGL feature probe, cached module-wide (cheap after the first call — a
- * browser without WebGL never even requests the shader chunk below, and
- * repeated minimizes never re-probe). */
-let webglSupport: boolean | null = null;
-function supportsWebGL(): boolean {
-	if (webglSupport !== null) return webglSupport;
-	try {
-		const canvas = document.createElement("canvas");
-		webglSupport = !!(
-			window.WebGLRenderingContext &&
-			(canvas.getContext("webgl2") || canvas.getContext("webgl"))
-		);
-	} catch {
-		webglSupport = false;
-	}
-	return webglSupport;
 }
 
 /** Renders `compiling ▓▓▓▓▓░░░░░ 47%` for the given 0-99 percent. */
@@ -94,32 +76,22 @@ function SplashPhoto({ src }: { src: string }) {
 	);
 }
 
-/** Lazy-loaded ONLY here, `ssr: false` — see minimize-splash-shader.tsx for
- * why. `loading: () => null` renders nothing while the chunk (and its own
- * WebGL init) is still in flight, so `.minimize-splash-backdrop` (the plain
- * CSS wallpaper, always present underneath) is what's visible the instant
- * the splash opens — never a flash of flat black waiting on three.js. */
-const MinimizeSplashShader = dynamic(
-	() => import("@/components/terminal/minimize-splash-shader"),
-	{ ssr: false, loading: () => null },
-);
-
 /**
  * The full-viewport "still compiling" splash the yellow light minimizes the
- * terminal into — baby-Luka's icon centered over a slow, dark shader wash
- * (tuned to the same wallpaper palette as `.terminal-stage`), boot-screen
- * style for `luka_early_build.app`, because the terminal really is still
- * running (its state and any playing music survive under
- * `visibility: hidden`). A tiny `setInterval` drives a fake compile progress
- * bar that crawls up, stalls near 99%, and drops back — it's v0.1, still
- * compiling, and it never finishes; that's the joke. Always mounted
- * (portaled to `document.body`, same pattern as `DestinyEasterEgg`) but
- * renders nothing while `open` is false — the terminal window itself stays
- * mounted throughout, so no state is ever lost. Clicking anywhere on the
- * splash (or Enter/Space on the focused icon, or Esc from anywhere)
- * immediately hands off to `onRequestRestore`, which is what actually starts
- * both this splash's fade-out and the window's fade-in, at the same moment
- * (see `terminal-window.tsx`).
+ * terminal into — baby-Luka's icon centered over the same cosmos starfield
+ * as the green light's expanding-universe egg (`CosmosSky`, shared — one
+ * cosmos for both eggs), boot-screen style for `luka_early_build.app`,
+ * because the terminal really is still running (its state and any playing
+ * music survive under `visibility: hidden`). A tiny `setInterval` drives a
+ * fake compile progress bar that crawls up, stalls near 99%, and drops
+ * back — it's v0.1, still compiling, and it never finishes; that's the joke.
+ * Always mounted (portaled to `document.body`, same pattern as
+ * `DestinyEasterEgg`) but renders nothing while `open` is false — the
+ * terminal window itself stays mounted throughout, so no state is ever lost.
+ * Clicking anywhere on the splash (or Enter/Space on the focused icon, or Esc
+ * from anywhere) immediately hands off to `onRequestRestore`, which is what
+ * actually starts both this splash's fade-out and the window's fade-in, at
+ * the same moment (see `terminal-window.tsx`).
  */
 export function MinimizeDock({
 	kidPhotoSrc,
@@ -131,18 +103,13 @@ export function MinimizeDock({
 	const buttonRef = useRef<HTMLButtonElement>(null);
 	const [bouncing, setBouncing] = useState(false);
 	const [percent, setPercent] = useState(12);
-	const [shaderEligible, setShaderEligible] = useState(false);
 
 	// Fresh appearance each time the splash comes up, and focus lands on the
 	// icon — the restore-side counterpart to the yellow light losing focus.
-	// Whether the shader is even worth loading is decided once per opening
-	// too: reduced motion skips it outright, and a browser without WebGL
-	// never requests the chunk at all.
 	useEffect(() => {
 		if (!open) return;
 		setBouncing(false);
 		setPercent(12);
-		setShaderEligible(!reducedMotion() && supportsWebGL());
 		buttonRef.current?.focus();
 	}, [open]);
 
@@ -220,12 +187,7 @@ export function MinimizeDock({
 				}
 			}}
 		>
-			<div aria-hidden="true" className="minimize-splash-backdrop" />
-			{shaderEligible && (
-				<div aria-hidden="true" className="minimize-splash-shader-layer">
-					<MinimizeSplashShader />
-				</div>
-			)}
+			<CosmosSky />
 			<div aria-hidden="true" className="minimize-splash-vignette" />
 
 			<button

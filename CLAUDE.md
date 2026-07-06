@@ -12,7 +12,11 @@ window down to a floating look; it now opens the **expanding universe**
 easter egg instead (`universe-overlay.tsx`, opened/closed from
 `terminal-window.tsx`): a full-viewport dark cosmos of his real life trajectory as a
 clickable constellation, content in `lib/universe.ts` (luka-editable, marked
-as seed placeholders). The window itself scales down slightly and fades,
+as seed placeholders). The cosmos backdrop itself (near-black base gradient +
+three layers of twinkling/drifting starfield dust) is a shared component,
+`cosmos-sky.tsx` — the yellow light's minimize splash uses the exact same
+one, so both eggs read as one product at different zoom levels rather than
+two different backdrops. The window itself scales down slightly and fades,
 then hides (`visibility: hidden`, never unmounted — state and any playing
 music survive) while the cosmos is up; Esc closes an open star card first,
 then exits the universe (crossfade back, focus returns to the green light).
@@ -93,23 +97,21 @@ verbatim lyrics. The yellow light
 minimizes: the window shrinks toward its own center and hides
 (`visibility: hidden`, never unmounted, so a playing Spotify embed and the
 ticking live-age both survive), and a full-viewport centered "still
-compiling" splash fades up in its place over a slow, dark `ShaderGradient`
-backdrop (`@shadergradient/react`, tuned to the same deep blue/purple wash
-as `.terminal-stage`'s own wallpaper gradient — never a bright preset) —
-baby-Luka's photo icon (`public/images/luka-kid.jpg`, green-`L` fallback),
-the name `luka_early_build.app`, and a fake terminal compile progress line
-(`compiling ▓▓▓▓▓░░░░░ 47%`) that crawls, stalls near 99%, and drops back on
-a loop that never finishes — it's v0.1, still compiling, that's the joke —
-under a faint `click anywhere to restore` hint. The shader (and,
-transitively, three.js/`@react-three/fiber`) is lazy-loaded from exactly one
-place, `minimize-splash-shader.tsx`, reached only via
-`next/dynamic(..., { ssr: false })` inside `minimize-dock.tsx` — the chunk
-is fetched the first time someone actually minimizes, never on page load, so
-`/`'s First Load JS is unaffected (verified against `next build` output). A
-static CSS echo of the wallpaper (`.minimize-splash-backdrop`) is always the
-base layer, so there's no flash while the chunk loads and a silent,
-on-brand fallback for reduced motion, no WebGL, or a browser that never
-finishes loading the chunk at all. Click anywhere on the splash (or
+compiling" splash fades up in its place over the same `CosmosSky` starfield
+backdrop the expanding-universe egg uses (see above) — one cosmos, two
+eggs, instead of a separate shader stack just for the splash — with a soft
+dark vignette pooling behind the centered content for contrast. The splash
+shows baby-Luka's photo icon (`public/images/luka-kid.jpg`, green-`L`
+fallback), the name `luka_early_build.app`, and a fake terminal compile
+progress line (`compiling ▓▓▓▓▓░░░░░ 47%`) that crawls, stalls near 99%, and
+drops back on a loop that never finishes — it's v0.1, still compiling,
+that's the joke — under a faint `click anywhere to restore` hint. No
+constellation stars or labels show on the splash, just the ambient
+starfield — the constellation is the universe's alone. `CosmosSky` is plain
+CSS (no WebGL, no lazy-loaded chunk), so it paints instantly and needs no
+loading fallback; `prefers-reduced-motion` gives both eggs a static
+starfield (no twinkle, no drift) via the same CSS rules. Click anywhere on
+the splash (or
 Enter/Space on the focused icon, or Esc from anywhere) restores — as a real
 crossfade: the splash's own fade-out and the window's fade-in both start on
 the same tick and run the same 200ms/easing (`MinimizeDock`'s `dismissing`
@@ -179,7 +181,8 @@ components/
                        socials-output, github-output, help-output, ...), the
                        minimize splash (minimize-dock.tsx) and the green
                        light's expanding-universe overlay
-                       (universe-overlay.tsx)
+                       (universe-overlay.tsx), sharing one starfield cosmos
+                       backdrop between them (cosmos-sky.tsx)
   shared/              components reused across terminal outputs (e.g.
                        external-link.tsx)
 lib/                   single source of truth for all content
@@ -323,13 +326,10 @@ that same registry, so every path renders identical output.
   `sr-only` server-rendered block with the full content (name, about,
   project links, social links, email, resume) derived from `lib/`. Keep it
   in sync when adding content sections.
-- **No new dependencies without a strong reason.** Currently 9 runtime deps:
-  `next`, `react`, `react-dom`, `@vercel/analytics`, plus
-  `@shadergradient/react` + `@react-three/fiber` + `three` +
-  `camera-controls` + `three-stdlib` (peer dep of shadergradient) for the
-  minimize splash's shader backdrop (`minimize-splash-shader.tsx`) — the
-  shader stack is lazy-loaded via `next/dynamic(..., { ssr: false })` from
-  that one file, so it never ships in the main bundle. Justify any addition.
+- **No new dependencies without a strong reason.** Currently 4 runtime deps:
+  `next`, `react`, `react-dom`, `@vercel/analytics`. Both the minimize
+  splash and the expanding-universe cosmos backdrops are plain CSS
+  (`cosmos-sky.tsx`) — no shader/WebGL stack. Justify any addition.
 
 ## Git & attribution
 
@@ -376,5 +376,9 @@ that same registry, so every path renders identical output.
   DON'T LEAVE autoplay, yellow minimizes to the splash and restores back to
   the `cd <path>` / crossbar content intact, green opens the expanding
   universe and Esc returns.
+- The minimize splash and the expanding universe share the same `CosmosSky`
+  starfield backdrop — check them side by side and confirm it reads as one
+  cosmos, just zoomed differently (no constellation stars/labels on the
+  splash).
 - `curl` the API route: a valid username returns 200 with `Cache-Control`
   set; an invalid/mismatched username returns 400.

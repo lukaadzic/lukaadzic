@@ -3,11 +3,11 @@
 import {
 	type MouseEvent as ReactMouseEvent,
 	useEffect,
-	useMemo,
 	useRef,
 	useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { CosmosSky } from "@/components/terminal/cosmos-sky";
 import {
 	LINKS,
 	STARS,
@@ -54,39 +54,6 @@ const CARD_WIDTH = 280;
 const CARD_HEIGHT_ESTIMATE = 176;
 const EDGE_MARGIN = 16;
 
-type Dust = {
-	left: number;
-	top: number;
-	size: number;
-	delay: number;
-	duration: number;
-};
-
-/** A layer of tiny starfield dots. Positions are randomized per mount (this
- * component only ever renders client-side, inside a portal, so there's no
- * SSR mismatch to worry about) but held stable for the overlay's lifetime
- * via `useMemo` below — reopening the universe reshuffles the sky, same
- * spirit as the minimize splash's fresh-each-open state. */
-function makeDustLayer(
-	count: number,
-	sizeRange: [number, number],
-	durationRange: [number, number],
-): Dust[] {
-	const dust: Dust[] = [];
-	for (let i = 0; i < count; i++) {
-		dust.push({
-			left: Math.random() * 100,
-			top: Math.random() * 100,
-			size: sizeRange[0] + Math.random() * (sizeRange[1] - sizeRange[0]),
-			delay: Math.random() * 4000,
-			duration:
-				durationRange[0] +
-				Math.random() * (durationRange[1] - durationRange[0]),
-		});
-	}
-	return dust;
-}
-
 /** Positions the star's card near the clicked star, clamped to the
  * viewport. Uses an estimated card height rather than a post-render
  * measure-and-reposition pass — the blurbs are short enough (1-2 sentences)
@@ -125,13 +92,13 @@ const STAR_BY_ID = new Map(STARS.map((star) => [star.id, star]));
 
 /**
  * "Expand the universe" — the green light's destination. His goals as a
- * constellation over a dark cosmos: a CSS-only starfield (no three.js —
- * this is a different easter egg from the minimize splash's shader), the
- * goal-stars from `lib/universe.ts` connected by faint drawn-in lines, each
- * one a real `<button>` that opens a small site-surface card with its
- * blurb. Portaled to `document.body`, same pattern as `MinimizeDock` and
- * `DestinyEasterEgg` — mounted only while `open`, so its random starfield
- * regenerates fresh each time the universe opens.
+ * constellation over the shared cosmos backdrop (`CosmosSky`, also used by
+ * the minimize splash — one starfield for both eggs), the goal-stars from
+ * `lib/universe.ts` connected by faint drawn-in lines, each one a real
+ * `<button>` that opens a small site-surface card with its blurb. Portaled to
+ * `document.body`, same pattern as `MinimizeDock` and `DestinyEasterEgg` —
+ * mounted only while `open`, so `CosmosSky`'s random starfield regenerates
+ * fresh each time the universe opens.
  */
 export function UniverseOverlay({
 	open,
@@ -146,15 +113,6 @@ export function UniverseOverlay({
 		width: number;
 	} | null>(null);
 	const starButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
-
-	const dustLayers = useMemo(
-		() => [
-			makeDustLayer(90, [1, 1.6], [2600, 5200]),
-			makeDustLayer(50, [1.4, 2.2], [3400, 6200]),
-			makeDustLayer(22, [1.6, 2.6], [7000, 12000]),
-		],
-		[],
-	);
 
 	// Fresh state each time the sky opens, focus lands on the first star —
 	// the universe's counterpart to the minimize splash focusing its icon.
@@ -235,62 +193,34 @@ export function UniverseOverlay({
 				if (event.animationName === "universe-overlay-out") onExited();
 			}}
 		>
-			<div aria-hidden="true" className="universe-sky absolute inset-0">
-				{dustLayers.map((layer, layerIndex) => (
-					<div
-						key={`layer-${
-							// biome-ignore lint/suspicious/noArrayIndexKey: static-length decorative layers, never reordered.
-							layerIndex
-						}`}
-						className={`universe-dust-layer universe-dust-layer-${layerIndex}`}
-					>
-						{layer.map((dot, dotIndex) => (
-							<span
-								key={`dot-${
-									// biome-ignore lint/suspicious/noArrayIndexKey: static-length decorative dots, never reordered.
-									dotIndex
-								}`}
-								className="universe-dot"
-								style={{
-									left: `${dot.left}%`,
-									top: `${dot.top}%`,
-									width: dot.size,
-									height: dot.size,
-									animationDelay: `${dot.delay}ms`,
-									animationDuration: `${dot.duration}ms`,
-								}}
-							/>
-						))}
-					</div>
-				))}
+			<CosmosSky />
 
-				<svg
-					aria-hidden="true"
-					className="universe-links absolute inset-0 h-full w-full"
-					preserveAspectRatio="none"
-					viewBox="0 0 100 100"
-				>
-					{LINKS.map(([fromId, toId], i) => {
-						const from = STAR_BY_ID.get(fromId);
-						const to = STAR_BY_ID.get(toId);
-						if (!from || !to) return null;
-						return (
-							<line
-								key={`${fromId}-${toId}`}
-								x1={from.x}
-								y1={from.y}
-								x2={to.x}
-								y2={to.y}
-								pathLength={1}
-								className="universe-line"
-								style={{
-									animationDelay: `${LINE_START_MS + i * LINE_STAGGER_MS}ms`,
-								}}
-							/>
-						);
-					})}
-				</svg>
-			</div>
+			<svg
+				aria-hidden="true"
+				className="universe-links absolute inset-0 h-full w-full"
+				preserveAspectRatio="none"
+				viewBox="0 0 100 100"
+			>
+				{LINKS.map(([fromId, toId], i) => {
+					const from = STAR_BY_ID.get(fromId);
+					const to = STAR_BY_ID.get(toId);
+					if (!from || !to) return null;
+					return (
+						<line
+							key={`${fromId}-${toId}`}
+							x1={from.x}
+							y1={from.y}
+							x2={to.x}
+							y2={to.y}
+							pathLength={1}
+							className="universe-line"
+							style={{
+								animationDelay: `${LINE_START_MS + i * LINE_STAGGER_MS}ms`,
+							}}
+						/>
+					);
+				})}
+			</svg>
 
 			<p
 				className="universe-header universe-chrome-in absolute left-4 top-4 select-none font-mono text-[11px] text-faint sm:left-6 sm:top-6"
