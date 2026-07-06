@@ -79,9 +79,12 @@ function skippedKicksNote(state: ShootoutState, winner: Kicker): string | null {
 		: "Croatia's remaining kicks can't save them — they never happen.";
 }
 
-const GOAL_TOP = "┌───────┬───────┬───────┐";
-const GOAL_BOTTOM = "└───────┴───────┴───────┘";
-const EMPTY_CELL = "       ";
+/** Exported so the `/404` page can reuse the exact same goalmouth frame for
+ * its "over the crossbar" art instead of redrawing its own box-drawing
+ * constants. */
+export const GOAL_TOP = "┌───────┬───────┬───────┐";
+export const GOAL_BOTTOM = "└───────┴───────┴───────┘";
+export const EMPTY_CELL = "       ";
 
 /** One zone of the goalmouth; the emoji pops in via CSS when present. */
 function zoneCell(present: boolean, emoji: string, animClass: string) {
