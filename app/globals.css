@@ -461,11 +461,21 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	inset: 0;
 	z-index: 2;
 	pointer-events: none;
-	background: radial-gradient(
-		ellipse at center,
-		rgba(0, 0, 0, 0) 40%,
-		rgba(5, 5, 8, 0.55) 100%
-	);
+	/* Two jobs: darken the frame edges AND pool soft darkness behind the
+	   centered content so the name/progress/hint stay readable over the
+	   brighter Nighty Night purples. */
+	background:
+		radial-gradient(
+			ellipse 46% 42% at center,
+			rgba(4, 4, 8, 0.6) 0%,
+			rgba(4, 4, 8, 0.35) 55%,
+			rgba(0, 0, 0, 0) 100%
+		),
+		radial-gradient(
+			ellipse at center,
+			rgba(0, 0, 0, 0) 40%,
+			rgba(5, 5, 8, 0.6) 100%
+		);
 }
 
 /* Entrance cascade — icon, name, progress line, then hint, ~80ms apart (see
