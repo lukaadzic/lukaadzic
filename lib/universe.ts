@@ -38,15 +38,14 @@ export type Star = {
 };
 
 /** A faint line drawn between two star ids — the constellation is the real
- * chronological chain: roots, childhood abroad, back home, school, current
- * work, and the ambition it's pointed at. `c4r` branches off `purm` instead
- * of sitting in-line — a real fork, not a straight line to Pennyone.
- * `destiny` is deliberately unlinked — the fixed star everything else
- * orbits, not a waypoint on the trajectory. */
+ * chronological chain: roots, childhood abroad, school, current work, and
+ * the ambition it's pointed at. `c4r` branches off `purm` instead of sitting
+ * in-line — a real fork, not a straight line to Pennyone. `destiny` is
+ * deliberately unlinked — the fixed star everything else orbits, not a
+ * waypoint on the trajectory. */
 export const LINKS: readonly (readonly [string, string])[] = [
 	["roots", "china"],
-	["china", "home"],
-	["home", "wharton"],
+	["china", "wharton"],
 	["wharton", "sydney"],
 	["sydney", "purm"],
 	["purm", "pennyone"],
@@ -57,41 +56,33 @@ export const STARS: readonly Star[] = [
 	{
 		id: "roots",
 		label: "croatia · montenegro",
-		x: 12,
-		y: 84,
+		x: 10,
+		y: 82,
 		labelSide: "right",
 		accent: "#e0645a",
-		blurb: "born of croatia and montenegro. where everything starts.",
+		blurb: "born to croatian x montenegrin parents. where everything starts.",
 	},
 	{
 		id: "china",
 		label: "china",
-		x: 22,
-		y: 71,
+		x: 26,
+		y: 68,
 		labelSide: "right",
 		blurb: "moved to china at 2. grew up between worlds.",
 	},
 	{
-		id: "home",
-		label: "home",
-		x: 32,
-		y: 58,
-		labelSide: "right",
-		blurb: "back at 13 — middle school and high school at home.",
-	},
-	{
 		id: "wharton",
 		label: "wharton",
-		x: 44,
-		y: 46,
+		x: 42,
+		y: 54,
 		labelSide: "right",
-		blurb: "university of pennsylvania, the wharton school. early decision.",
+		blurb: "admitted early decision to wharton as an international student.",
 	},
 	{
 		id: "sydney",
 		label: "sydney",
-		x: 56,
-		y: 35,
+		x: 58,
+		y: 40,
 		labelSide: "right",
 		blurb:
 			"penn grip, summer 2025 — quantitative research at the university of sydney.",
@@ -99,16 +90,16 @@ export const STARS: readonly Star[] = [
 	{
 		id: "purm",
 		label: "purm 2026",
-		x: 68,
-		y: 24,
+		x: 74,
+		y: 26,
 		labelSide: "top",
 		blurb: "purm research at wharton — agentic ai for statistical genetics.",
 	},
 	{
 		id: "c4r",
 		label: "c4r",
-		x: 78,
-		y: 38,
+		x: 84,
+		y: 44,
 		labelSide: "bottom",
 		blurb:
 			"software engineer at community for rigor — teaching scientific rigor at scale.",
@@ -116,8 +107,8 @@ export const STARS: readonly Star[] = [
 	{
 		id: "pennyone",
 		label: "pennyone",
-		x: 86,
-		y: 14,
+		x: 90,
+		y: 12,
 		labelSide: "left",
 		size: 8,
 		accent: "#ffe9b8",
