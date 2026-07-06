@@ -382,59 +382,16 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	overflow: hidden;
 }
 
-/* Base layer, always present — a static echo of `.terminal-stage`'s own
-   wallpaper gradient (identical stops), so the splash reads as the same
-   product floating over the same desktop rather than a flat black panel.
-   This is what's visible the instant the splash opens (the shader chunk
-   below is fetched lazily and may take a beat), and it's the entire splash
-   in three cases: reduced motion, no WebGL, or the shader chunk failing to
-   load — in every case, a silent, on-brand fallback, never a blank void. */
-.minimize-splash-backdrop {
-	position: absolute;
-	inset: 0;
-	z-index: 0;
-	pointer-events: none;
-	background:
-		radial-gradient(
-			ellipse 60% 50% at 18% 12%,
-			rgba(70, 90, 210, 0.16),
-			transparent 60%
-		),
-		radial-gradient(
-			ellipse 65% 55% at 88% 85%,
-			rgba(130, 70, 150, 0.14),
-			transparent 60%
-		),
-		radial-gradient(
-			ellipse 80% 60% at 50% 15%,
-			rgba(255, 255, 255, 0.05),
-			transparent 60%
-		), #0a0a0c;
-}
+/* The splash's backdrop is `CosmosSky` (`cosmos-sky.tsx`) — the same
+   starfield cosmos the green light's expanding-universe egg uses (`.cosmos-
+   sky`/`.cosmos-dust-layer`/`.cosmos-dot` below), so the two eggs read as one
+   consistent product rather than two different backdrops. It's plain CSS —
+   no chunk to lazy-load, nothing to fall back from — so it's simply always
+   there, painted the instant the splash opens.
 
-/* The shader canvas (ShaderGradient, lazy-loaded — see minimize-dock.tsx)
-   fades in gently over the backdrop once its chunk has actually mounted, so
-   there's never an abrupt pop once three.js finishes booting. */
-@keyframes minimize-splash-shader-in {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: 1;
-	}
-}
-
-.minimize-splash-shader-layer {
-	position: absolute;
-	inset: 0;
-	z-index: 1;
-	pointer-events: none;
-	animation: minimize-splash-shader-in 900ms ease-out both;
-}
-
-/* A soft dark vignette over the shader/backdrop, same spirit as
-   `.terminal-stage`'s own vignette wash — keeps the centered text/icon
-   reading clearly no matter what the gradient is doing underneath. */
+   A soft dark vignette pools over it, same spirit as `.terminal-stage`'s own
+   vignette wash — keeps the centered text/icon reading clearly no matter
+   what the starfield is doing underneath. */
 .minimize-splash-vignette {
 	position: absolute;
 	inset: 0;
@@ -1241,12 +1198,14 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	animation: universe-overlay-out 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* The sky — near-black, same color family as `.terminal-stage`'s own
-   wallpaper wash (deep blue/purple radials) so the easter egg still reads
-   as this site, just zoomed all the way out. */
-.universe-sky {
+/* The shared cosmos backdrop (`cosmos-sky.tsx`) — near-black, same color
+   family as `.terminal-stage`'s own wallpaper wash (deep blue/purple
+   radials), used by BOTH the universe overlay and the minimize splash so the
+   two eggs read as one consistent product, just at different zoom levels. */
+.cosmos-sky {
 	position: absolute;
 	inset: 0;
+	z-index: 0;
 	overflow: hidden;
 	background:
 		radial-gradient(
@@ -1262,25 +1221,25 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 }
 
 /* Starfield dust — three layers of tiny dots (counts/sizes/durations set in
-   universe-overlay.tsx), each dot twinkling on its own randomized delay and
+   cosmos-sky.tsx), each dot twinkling on its own randomized delay and
    duration (inline style). Only the farthest layer also drifts, very
    slowly, via the wrapper's own transform. */
-.universe-dust-layer {
+.cosmos-dust-layer {
 	position: absolute;
 	inset: 0;
 	pointer-events: none;
 }
 
-.universe-dot {
+.cosmos-dot {
 	position: absolute;
 	border-radius: 9999px;
 	background: rgba(255, 255, 255, 0.85);
-	animation-name: universe-twinkle;
+	animation-name: cosmos-twinkle;
 	animation-timing-function: ease-in-out;
 	animation-iteration-count: infinite;
 }
 
-@keyframes universe-twinkle {
+@keyframes cosmos-twinkle {
 	0%,
 	100% {
 		opacity: 0.25;
@@ -1290,7 +1249,7 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	}
 }
 
-@keyframes universe-drift {
+@keyframes cosmos-drift {
 	from {
 		transform: translate3d(0, 0, 0);
 	}
@@ -1299,8 +1258,8 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	}
 }
 
-.universe-dust-layer-2 {
-	animation: universe-drift 70s ease-in-out infinite alternate;
+.cosmos-dust-layer-2 {
+	animation: cosmos-drift 70s ease-in-out infinite alternate;
 }
 
 /* The constellation lines — one SVG layer, `pathLength="1"` on every line
@@ -1531,17 +1490,26 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 		transform: none;
 	}
 
-	/* The universe overlay: everything appears instantly, in the same order
-	   (stars, then lines, then chrome) — no twinkle, no drift, lines already
-	   drawn. Same "remove movement, keep order" rule as the rest of the
-	   site's reduced-motion handling. */
+	/* The shared cosmos backdrop (both eggs): a static starfield, no twinkle,
+	   no drift. */
+	.cosmos-dot,
+	.cosmos-dust-layer-2 {
+		animation: none;
+	}
+
+	.cosmos-dot {
+		opacity: 0.55;
+	}
+
+	/* The universe overlay: everything else appears instantly, in the same
+	   order (stars, then lines, then chrome) — lines already drawn. Same
+	   "remove movement, keep order" rule as the rest of the site's
+	   reduced-motion handling. */
 	.universe-overlay,
 	.universe-overlay-out,
 	.universe-star-in,
 	.universe-chrome-in,
-	.universe-card-in,
-	.universe-dot,
-	.universe-dust-layer-2 {
+	.universe-card-in {
 		animation: none;
 	}
 
@@ -1563,10 +1531,6 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	.universe-line {
 		stroke-dashoffset: 0;
 		opacity: 1;
-	}
-
-	.universe-dot {
-		opacity: 0.55;
 	}
 
 	.terminal-output-in {
