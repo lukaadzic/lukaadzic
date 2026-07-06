@@ -10,7 +10,7 @@ windowed mode anymore, so `data-mode="fullscreen"` on `.terminal-window-frame`
 is a fixed literal, not state. The green traffic light used to zoom the
 window down to a floating look; it now opens the **expanding universe**
 easter egg instead (`universe-overlay.tsx`, opened/closed from
-`terminal-window.tsx`): a full-viewport dark cosmos of his goals as a
+`terminal-window.tsx`): a full-viewport dark cosmos of his real life trajectory as a
 clickable constellation, content in `lib/universe.ts` (luka-editable, marked
 as seed placeholders). The window itself scales down slightly and fades,
 then hides (`visibility: hidden`, never unmounted — state and any playing
@@ -189,8 +189,8 @@ lib/                   single source of truth for all content
   projects.ts          project list
   socials.ts           social links
   github-contributions.ts   contribution-level + fallback-data helpers
-  universe.ts          the expanding-universe constellation data (goal-stars
-                       + links) — luka-editable, marked as seed placeholders
+  universe.ts          the expanding-universe constellation data (his real
+                       trajectory as stars + links) — luka-editable
 ```
 
 **Data flow:** `lib/*.ts` -> server-rendered `page.tsx` (window chrome + an

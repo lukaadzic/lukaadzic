@@ -1,13 +1,14 @@
 /**
  * Content for the "expanding universe" easter egg — the home page's green
- * traffic light now zooms all the way out into a dark cosmos of goal-stars
+ * traffic light now zooms all the way out into a dark cosmos of stars
  * instead of toggling floating/fullscreen (`universe-overlay.tsx` renders
  * it, `terminal-window.tsx` opens it). Same rule as every other file in
- * `lib/`: single source of truth, only verified facts — ambitions are
- * phrased as trajectory, never invented achievements.
+ * `lib/`: single source of truth, only verified facts.
  *
- * luka: these are seed placeholders grounded in your real trajectory —
- * rewrite the labels/blurbs in your own words.
+ * This is Luka's real trajectory, chronological: roots, then the places he
+ * grew up, then school, then what he's building now, ending on the
+ * ambition it's all pointed at. `destiny` is the one deliberate exception —
+ * not a waypoint, the fixed star everything else orbits.
  */
 
 export type Star = {
@@ -18,74 +19,116 @@ export type Star = {
 	 * (roughly 8-92 on x, 10-85 on y) so labels never clip at 390px. */
 	x: number;
 	y: number;
+	/** Which side of the star the label sits on. Defaults to "right" in
+	 * `universe-overlay.tsx` when omitted. Chosen per star (not derived from
+	 * position) so the whole chain can be laid out without any label ever
+	 * touching another label, a star, or a constellation line. */
+	labelSide?: "left" | "right" | "top" | "bottom";
 	/** Core dot diameter in px. Defaults applied by `universe-overlay.tsx`
-	 * when omitted. */
+	 * when omitted. `pennyone` is deliberately the largest — the endpoint of
+	 * the chain. */
 	size?: number;
-	/** Glow/core color. Defaults to a muted white when omitted — only
-	 * `destiny` and `hrvatska` get a named-color exception below. */
+	/** Glow/core color. Defaults to a muted white when omitted. `destiny`
+	 * keeps the one reserved named-color exception (`#f0a6ca`); `roots` gets
+	 * a subtle red tint for the homeland, `pennyone` a bright warm glow as
+	 * the brightest star. */
 	accent?: string;
 	/** 1-2 sentences, lowercase, shown in the star's card on click. */
 	blurb: string;
 };
 
-/** A faint line drawn between two star ids — the constellation is roughly
- * chronological: roots, first thing built from zero, current work, the
- * ambition it's pointed at, and where that's headed. `destiny` is
- * deliberately unlinked — the fixed star everything else orbits, not a
- * waypoint on the trajectory. */
+/** A faint line drawn between two star ids — the constellation is the real
+ * chronological chain: roots, childhood abroad, back home, school, current
+ * work, and the ambition it's pointed at. `c4r` branches off `purm` instead
+ * of sitting in-line — a real fork, not a straight line to Pennyone.
+ * `destiny` is deliberately unlinked — the fixed star everything else
+ * orbits, not a waypoint on the trajectory. */
 export const LINKS: readonly (readonly [string, string])[] = [
-	["hrvatska", "maritime"],
-	["maritime", "c4r"],
-	["c4r", "agentic-ai"],
-	["agentic-ai", "the-fund"],
-];
+	["roots", "china"],
+	["china", "home"],
+	["home", "wharton"],
+	["wharton", "sydney"],
+	["sydney", "purm"],
+	["purm", "pennyone"],
+	["purm", "c4r"],
+] as const;
 
 export const STARS: readonly Star[] = [
 	{
-		id: "hrvatska",
-		label: "hrvatska",
+		id: "roots",
+		label: "croatia · montenegro",
 		x: 12,
-		y: 72,
+		y: 84,
+		labelSide: "right",
 		accent: "#e0645a",
-		blurb: "the roots. everything traces back here.",
+		blurb: "born of croatia and montenegro. where everything starts.",
 	},
 	{
-		id: "maritime",
-		label: "maritime@penn",
-		x: 27,
-		y: 44,
+		id: "china",
+		label: "china",
+		x: 22,
+		y: 71,
+		labelSide: "right",
+		blurb: "moved to china at 2. grew up between worlds.",
+	},
+	{
+		id: "home",
+		label: "home",
+		x: 32,
+		y: 58,
+		labelSide: "right",
+		blurb: "back at 13 — middle school and high school at home.",
+	},
+	{
+		id: "wharton",
+		label: "wharton",
+		x: 44,
+		y: 46,
+		labelSide: "right",
+		blurb: "university of pennsylvania, the wharton school. early decision.",
+	},
+	{
+		id: "sydney",
+		label: "sydney",
+		x: 56,
+		y: 35,
+		labelSide: "right",
 		blurb:
-			"founded penn's first maritime club at 19. 100+ members. first of many things built from zero.",
+			"penn grip, summer 2025 — quantitative research at the university of sydney.",
+	},
+	{
+		id: "purm",
+		label: "purm 2026",
+		x: 68,
+		y: 24,
+		labelSide: "top",
+		blurb: "purm research at wharton — agentic ai for statistical genetics.",
 	},
 	{
 		id: "c4r",
 		label: "c4r",
-		x: 47,
-		y: 26,
+		x: 78,
+		y: 38,
+		labelSide: "bottom",
 		blurb:
-			"teaching scientific rigor at scale, shipping the platform that does it.",
+			"software engineer at community for rigor — teaching scientific rigor at scale.",
 	},
 	{
-		id: "agentic-ai",
-		label: "agentic ai",
-		x: 66,
-		y: 18,
-		blurb:
-			"already building it at wharton: agents that generate hypotheses and run analyses in statistical genetics.",
-	},
-	{
-		id: "the-fund",
-		label: "the fund",
-		x: 85,
-		y: 32,
-		blurb:
-			"markets since day one: a live trading system with real capital at 20. the ambition is obvious.",
+		id: "pennyone",
+		label: "pennyone",
+		x: 86,
+		y: 14,
+		labelSide: "left",
+		size: 8,
+		accent: "#ffe9b8",
+		blurb: "building pennyone — the new generation of ai assistant.",
 	},
 	{
 		id: "destiny",
 		label: "destiny",
-		x: 50,
-		y: 80,
+		x: 52,
+		y: 78,
+		labelSide: "right",
 		size: 4,
 		accent: "#f0a6ca",
 		blurb: "the fixed star. everything else orbits.",
