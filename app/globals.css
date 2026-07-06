@@ -1191,6 +1191,283 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	animation: github-contributions-in 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Green light — "expand the universe" (universe-overlay.tsx). The window
+   frame itself zooms out slightly and fades as the cosmos takes over,
+   mirroring the minimize splash's fly-out/restore pair but subtler (a
+   "step back to see the whole picture", not a dock-and-vanish): scale only
+   drops to 0.96, never far enough to feel like the window is being
+   destroyed. Same compound-selector specificity trick as
+   `terminal-minimize-fly`/`terminal-restore-in` above, for the same reason
+   — it needs to beat `[data-mode="fullscreen"].terminal-window-in` if that
+   entrance class is somehow still present. */
+@keyframes terminal-universe-out {
+	from {
+		transform: scale(1);
+		opacity: 1;
+	}
+	to {
+		transform: scale(0.96);
+		opacity: 0;
+	}
+}
+
+.terminal-window-frame.terminal-universe-out {
+	animation: terminal-universe-out 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes terminal-universe-in {
+	from {
+		transform: scale(0.96);
+		opacity: 0;
+	}
+	to {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+
+.terminal-window-frame.terminal-universe-in {
+	animation: terminal-universe-in 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* The universe overlay itself (portaled to `document.body`, above the now-
+   hidden window frame) — see universe-overlay.tsx for the full component
+   comment. Fades in as one layer; `.universe-overlay-out` (declared after,
+   so it wins the tie) reverses it for the exit crossfade, 200ms to match
+   `terminal-universe-in` exactly, same discipline as the minimize splash's
+   restore pair. */
+@keyframes universe-overlay-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+.universe-overlay {
+	animation: universe-overlay-in 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes universe-overlay-out {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+.universe-overlay-out {
+	animation: universe-overlay-out 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* The sky — near-black, same color family as `.terminal-stage`'s own
+   wallpaper wash (deep blue/purple radials) so the easter egg still reads
+   as this site, just zoomed all the way out. */
+.universe-sky {
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+	background:
+		radial-gradient(
+			ellipse 70% 55% at 20% 12%,
+			rgba(80, 60, 150, 0.22),
+			transparent 60%
+		),
+		radial-gradient(
+			ellipse 65% 55% at 85% 82%,
+			rgba(40, 70, 140, 0.18),
+			transparent 60%
+		), #07070a;
+}
+
+/* Starfield dust — three layers of tiny dots (counts/sizes/durations set in
+   universe-overlay.tsx), each dot twinkling on its own randomized delay and
+   duration (inline style). Only the farthest layer also drifts, very
+   slowly, via the wrapper's own transform. */
+.universe-dust-layer {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+.universe-dot {
+	position: absolute;
+	border-radius: 9999px;
+	background: rgba(255, 255, 255, 0.85);
+	animation-name: universe-twinkle;
+	animation-timing-function: ease-in-out;
+	animation-iteration-count: infinite;
+}
+
+@keyframes universe-twinkle {
+	0%,
+	100% {
+		opacity: 0.25;
+	}
+	50% {
+		opacity: 0.9;
+	}
+}
+
+@keyframes universe-drift {
+	from {
+		transform: translate3d(0, 0, 0);
+	}
+	to {
+		transform: translate3d(-2.5%, 1.5%, 0);
+	}
+}
+
+.universe-dust-layer-2 {
+	animation: universe-drift 70s ease-in-out infinite alternate;
+}
+
+/* The constellation lines — one SVG layer, `pathLength="1"` on every line
+   so `stroke-dasharray`/an opacity+dashoffset keyframe can "draw" each one
+   in without computing real path lengths. `vector-effect: non-scaling-
+   stroke` keeps the line thickness constant even though the viewBox
+   (0-100, matching the stars' percentage coordinates) doesn't match the
+   viewport's real aspect ratio. */
+.universe-links {
+	pointer-events: none;
+}
+
+@keyframes universe-line-in {
+	from {
+		stroke-dashoffset: 1;
+		opacity: 0.25;
+	}
+	to {
+		stroke-dashoffset: 0;
+		opacity: 1;
+	}
+}
+
+.universe-line {
+	fill: none;
+	stroke: rgba(255, 255, 255, 0.28);
+	stroke-width: 1;
+	vector-effect: non-scaling-stroke;
+	stroke-dasharray: 1;
+	animation: universe-line-in 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Header/hint chrome — lowercase mono, same faint tone as everywhere else
+   on the site. */
+@keyframes universe-chrome-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+.universe-chrome-in {
+	animation: universe-chrome-in 400ms ease-out both;
+}
+
+/* Goal-stars — real buttons, sized as a comfortable tap target (28px) with
+   the visible glow (`.universe-star-core`) and label centered exactly on
+   the star's `x`/`y` percentage point regardless of that padding, since
+   both children are absolutely centered on the button's own midpoint
+   rather than laid out in flow. */
+.universe-star {
+	display: block;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	margin: 0;
+	border: none;
+	background: transparent;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.universe-star-core {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	border-radius: 9999px;
+	pointer-events: none;
+}
+
+.universe-star-label {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(14px, -50%);
+	/* `width: max-content` matters here, not just cosmetically — with `width`
+	   left at its `auto` default, an absolutely positioned box with `left`
+	   set and `right` unset sizes itself via shrink-to-fit against the
+	   *containing block's* remaining width (the 28px star button, not the
+	   viewport), which collapsed every label to a couple of characters per
+	   line. `max-content` sizes to the text instead, and `max-width` still
+	   caps it so long labels wrap normally rather than overflowing. */
+	width: max-content;
+	max-width: 108px;
+	overflow-wrap: anywhere;
+	font-family: var(--font-mono);
+	font-size: 11px;
+	line-height: 1.3;
+	color: var(--color-muted);
+	pointer-events: none;
+}
+
+/* Stars past the sky's midline flip their label to the other side so it
+   never runs off the right edge at narrow widths. */
+.universe-star-label-left {
+	transform: translate(calc(-100% - 14px), -50%);
+	text-align: right;
+}
+
+@keyframes universe-star-in {
+	from {
+		opacity: 0;
+		transform: translate(-50%, -50%) scale(0.35);
+	}
+	to {
+		opacity: 1;
+		transform: translate(-50%, -50%) scale(1);
+	}
+}
+
+.universe-star-in {
+	animation: universe-star-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* The star's card — same surface language as the close alert
+   (`.close-alert-surface`), positioned near the clicked star and clamped to
+   the viewport (`universe-overlay.tsx`'s `computeCardPosition`). The
+   backdrop is a plain full-viewport click target, not a dimming scrim —
+   dimming the sky would fight the whole point of "zoom out and see the
+   whole picture". */
+.universe-card-backdrop {
+	z-index: 1;
+}
+
+.universe-card {
+	z-index: 2;
+}
+
+@keyframes universe-card-in {
+	from {
+		opacity: 0;
+		transform: translateY(6px) scale(0.98);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+.universe-card-in {
+	animation: universe-card-in 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.terminal-window-in,
 	[data-mode="fullscreen"].terminal-window-in {
@@ -1222,6 +1499,8 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	   on specificity, not just source order. */
 	.terminal-window-frame.terminal-minimize-fly,
 	.terminal-window-frame.terminal-restore-in,
+	.terminal-window-frame.terminal-universe-out,
+	.terminal-window-frame.terminal-universe-in,
 	.minimize-splash-icon,
 	.minimize-splash-name,
 	.minimize-splash-progress,
@@ -1231,6 +1510,44 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 		animation: none;
 		opacity: 1;
 		transform: none;
+	}
+
+	/* The universe overlay: everything appears instantly, in the same order
+	   (stars, then lines, then chrome) — no twinkle, no drift, lines already
+	   drawn. Same "remove movement, keep order" rule as the rest of the
+	   site's reduced-motion handling. */
+	.universe-overlay,
+	.universe-overlay-out,
+	.universe-star-in,
+	.universe-chrome-in,
+	.universe-card-in,
+	.universe-dot,
+	.universe-dust-layer-2 {
+		animation: none;
+	}
+
+	.universe-overlay,
+	.universe-star-in,
+	.universe-chrome-in,
+	.universe-card-in {
+		opacity: 1;
+	}
+
+	.universe-star-in {
+		transform: translate(-50%, -50%);
+	}
+
+	.universe-card-in {
+		transform: none;
+	}
+
+	.universe-line {
+		stroke-dashoffset: 0;
+		opacity: 1;
+	}
+
+	.universe-dot {
+		opacity: 0.55;
 	}
 
 	.terminal-output-in {
