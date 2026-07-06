@@ -36,6 +36,7 @@ function PetPortrait({ pet }: { pet: (typeof PETS)[number] }) {
 				<p className="font-medium" style={{ color: pet.nameColor }}>
 					{pet.name}
 				</p>
+				<p className="mt-0.5 font-mono text-[11px] text-faint">{pet.species}</p>
 				<p className="mt-0.5 max-w-[9.5rem] text-[11px] text-faint">
 					{pet.caption}
 				</p>
