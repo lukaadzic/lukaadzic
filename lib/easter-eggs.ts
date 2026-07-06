@@ -197,6 +197,9 @@ export type Pet = {
 	/** Accent color for the name line — Destiny-style named-color exception,
 	 * scoped to this one command. */
 	nameColor: string;
+	/** What the pet is, in plain terms — a faint identifier line, distinct
+	 * from `caption`'s personality-driven copy. */
+	species: string;
 	caption: string;
 	bornLine?: string;
 	palette: Record<string, string>;
@@ -209,13 +212,14 @@ export type Pet = {
  * pattern are shared; only the palette (fur tone, stripe tone, eye color,
  * paw color — the distinguishing feature) differs between them.
  * `b` body, `t` stripe, `w` white chin/chest, `d` ear-notch shade,
- * `e` eye, `p` nose, `x` paw. */
+ * `e` eye (green outer), `k` pupil (black, toward the nose), `p` nose,
+ * `x` paw. */
 const TABBY_KITTEN_GRID = [
 	"...b........b...",
 	"..bdb......bdb..",
 	".bdbb......bbdb.",
 	".bbtbbbttbbbtbb.",
-	".bbeebbbbbbeebb.",
+	".bbekbbbbbbkebb.",
 	".bbbbbbbbbbbbbb.",
 	".tbbbbbppbbbbbt.",
 	"..bbbbwwwwbbbb..",
@@ -253,6 +257,7 @@ export const PETS: readonly Pet[] = [
 		id: "modro",
 		name: "modro",
 		nameColor: "#6bc7f5",
+		species: "domestic shorthair",
 		caption:
 			"soft boy, loves to eat, follows his brother's mischief. named after luka modrić.",
 		bornLine: "born apr 13, 2026",
@@ -263,6 +268,7 @@ export const PETS: readonly Pet[] = [
 			w: "#ece5d8",
 			d: "#14171b",
 			e: "#a3b060",
+			k: "#0d0d0d",
 			p: "#d99aa8",
 			x: "#3a3227",
 		},
@@ -272,6 +278,7 @@ export const PETS: readonly Pet[] = [
 		id: "vida",
 		name: "vida",
 		nameColor: "#efe6d8",
+		species: "domestic shorthair",
 		caption:
 			"wild rascal — always jumping, always wrestling his brother. white paws. named after domagoj vida.",
 		bornLine: "born apr 13, 2026",
@@ -282,6 +289,7 @@ export const PETS: readonly Pet[] = [
 			w: "#f4efe6",
 			d: "#14171b",
 			e: "#84bd6e",
+			k: "#0d0d0d",
 			p: "#d99aa8",
 			x: "#f4efe6",
 		},
@@ -291,6 +299,7 @@ export const PETS: readonly Pet[] = [
 		id: "baby",
 		name: "baby",
 		nameColor: "#c98a4b",
+		species: "beagle",
 		caption: "best beagle alive. she knows it.",
 		bornLine: "born apr 30, 2021",
 		palette: {
