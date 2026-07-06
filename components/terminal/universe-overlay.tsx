@@ -36,6 +36,15 @@ type UniverseOverlayProps = {
 const DEFAULT_ACCENT = "#c7d0da";
 const DEFAULT_SIZE = 3;
 
+/** Maps a star's `labelSide` to the CSS class that positions its label —
+ * "right" is the default base style (`.universe-star-label` itself), so it
+ * needs no extra class. */
+const LABEL_SIDE_CLASS: Record<string, string> = {
+	left: "universe-star-label-left",
+	top: "universe-star-label-top",
+	bottom: "universe-star-label-bottom",
+};
+
 const STAR_START_MS = 260;
 const STAR_STAGGER_MS = 70;
 const LINE_START_MS = STAR_START_MS + STARS.length * STAR_STAGGER_MS + 200;
@@ -317,7 +326,7 @@ export function UniverseOverlay({
 					<span
 						aria-hidden="true"
 						className={`universe-star-label ${
-							star.x > 68 ? "universe-star-label-left" : ""
+							LABEL_SIDE_CLASS[star.labelSide ?? "right"] ?? ""
 						}`}
 					>
 						{star.label}
