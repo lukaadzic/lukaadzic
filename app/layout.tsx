@@ -52,6 +52,22 @@ const personSchema = {
 	"@type": "Person",
 	name: SITE.name,
 	url: SITE.url,
+	email: `mailto:${SITE.email}`,
+	description: SITE.description,
+	address: {
+		"@type": "PostalAddress",
+		addressLocality: SITE.location,
+	},
+	worksFor: {
+		"@type": "Organization",
+		name: "Community for Rigor",
+		url: SITE.workLinks.c4r,
+	},
+	alumniOf: {
+		"@type": "CollegeOrUniversity",
+		name: SITE.school,
+		url: SITE.workLinks.wharton,
+	},
 	sameAs: SOCIALS.map((social) => social.url),
 };
 
