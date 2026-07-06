@@ -302,13 +302,13 @@ that same registry, so every path renders identical output.
   `sr-only` server-rendered block with the full content (name, about,
   project links, social links, email, resume) derived from `lib/`. Keep it
   in sync when adding content sections.
-- **No new dependencies without a strong reason.** Currently 8 runtime deps:
+- **No new dependencies without a strong reason.** Currently 9 runtime deps:
   `next`, `react`, `react-dom`, `@vercel/analytics`, plus
   `@shadergradient/react` + `@react-three/fiber` + `three` +
-  `camera-controls` for the minimize splash's shader backdrop
-  (`minimize-splash-shader.tsx`) — all four are lazy-loaded via
-  `next/dynamic(..., { ssr: false })` from that one file, so they never ship
-  in the main bundle. Justify any addition.
+  `camera-controls` + `three-stdlib` (peer dep of shadergradient) for the
+  minimize splash's shader backdrop (`minimize-splash-shader.tsx`) — the
+  shader stack is lazy-loaded via `next/dynamic(..., { ssr: false })` from
+  that one file, so it never ships in the main bundle. Justify any addition.
 
 ## Git & attribution
 
