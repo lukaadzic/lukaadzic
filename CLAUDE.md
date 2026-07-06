@@ -18,12 +18,12 @@ music survive) while the cosmos is up; Esc closes an open star card first,
 then exits the universe (crossfade back, focus returns to the green light).
 The green glyph itself (outward triangles) no longer flips with a mode —
 it's always outward now, read as "expand the universe." `/404` reuses this
-same fullscreen chrome (`TerminalWindow`'s `simpleControls` prop) but keeps
-its own old, simple traffic-light behaviors instead of the home page's
-dock/alert/universe — red shakes + toasts, yellow does the plain
-bounce-back, green is a no-op (no universe to expand into on a page with no
-session engine). It plays a
-small self-contained typed sequence (no input engine, no registry): `cd
+exact same fullscreen chrome AND the exact same traffic-light behaviors as
+the home page — `TerminalWindow` no longer branches on a page type at all;
+red opens the same "don't leave." alert (DON'T LEAVE autoplay included),
+yellow really minimizes to the same splash, green opens the same expanding
+universe. `NotFoundTerminal` (the content `TerminalWindow` wraps on `/404`)
+is a small self-contained typed sequence (no input engine, no registry): `cd
 <requested-path>`, a `zsh: no such file` line, a beat, then goal art in the
 `penalty` minigame's visual language — the ⚽ sailing in above the crossbar
 (missed entirely) while 🧤 Livaković stands untroubled — followed by the
@@ -84,12 +84,12 @@ styles, dormant until something calls `openDestiny` with them again.
 deliberate named-color exception in the app, same idea as the green prompt.
 Not listed in `help`, the suggestion chips, or `ls -la` — konami plus
 curiosity are enough.
-On the home page the red traffic light refuses to
-close: a macOS-style "don't leave." alert opens over the window with
-Giveon's DON'T LEAVE autoplaying inside it, and `leave anyway` loses its
-nerve twice before conceding — all alert copy is original, never verbatim
-lyrics; the `/404` page keeps the plain shake + toast. The yellow light on
-the home page (`terminal-window.tsx` + `minimize-dock.tsx`) really
+The red traffic light refuses to
+close, on every page: a macOS-style "don't leave." alert opens over the
+window with Giveon's DON'T LEAVE autoplaying inside it, and `leave anyway`
+loses its nerve twice before conceding — all alert copy is original, never
+verbatim lyrics. The yellow light
+(`terminal-window.tsx` + `minimize-dock.tsx`) really
 minimizes: the window shrinks toward its own center and hides
 (`visibility: hidden`, never unmounted, so a playing Spotify embed and the
 ticking live-age both survive), and a full-viewport centered "still
@@ -120,8 +120,7 @@ permanently stripped once its animation first finishes (`hasEntered`) —
 left in place, it silently became the winning `animation` declaration again
 every time `restoring`'s class came back off, replaying the fade-in-from-
 scratch on every single restore (a real, reproduced jostle) right after the
-crossfade had already finished. The `/404` page keeps the old plain
-bounce-back instead. So the
+crossfade had already finished. So the
 track starts
 the instant the alert opens rather than after a script fetch,
 `terminal-window.tsx` warms Spotify's iFrame API script during idle time
@@ -372,6 +371,10 @@ that same registry, so every path renders identical output.
   green light opens the expanding universe (stars fade in, lines draw, a
   star card opens/closes, Esc closes the card then exits, music and
   LiveAge keep running underneath, focus returns to the green light).
-- Manual pass of `/404`.
+- Manual pass of `/404`: same `TerminalWindow` chrome as `/`, so the same
+  traffic-light checks apply — red opens the "don't leave." alert with
+  DON'T LEAVE autoplay, yellow minimizes to the splash and restores back to
+  the `cd <path>` / crossbar content intact, green opens the expanding
+  universe and Esc returns.
 - `curl` the API route: a valid username returns 200 with `Cache-Control`
   set; an invalid/mismatched username returns 400.
