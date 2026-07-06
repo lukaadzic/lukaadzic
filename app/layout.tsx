@@ -21,14 +21,6 @@ export const metadata: Metadata = {
 		description: SITE.description,
 		url: SITE.url,
 		siteName: SITE.title,
-		images: [
-			{
-				url: "/icon.ico",
-				width: 800,
-				height: 800,
-				alt: SITE.name,
-			},
-		],
 		locale: "en_US",
 		type: "website",
 	},
@@ -36,7 +28,6 @@ export const metadata: Metadata = {
 		card: "summary_large_image",
 		title: SITE.title,
 		description: SITE.description,
-		images: ["/icon.ico"],
 	},
 	alternates: {
 		canonical: SITE.url,
