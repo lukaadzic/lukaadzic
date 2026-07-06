@@ -385,9 +385,8 @@ that same registry, so every path renders identical output.
   starfield backdrop — check them side by side and confirm it reads as one
   cosmos, just zoomed differently (no constellation stars/labels on the
   splash).
-- At ~390px with a coarse pointer, a faint `clear` chip appears at the end of
-  the suggestion row only while a command's output is showing, runs `clear`
-  when tapped, and disappears once the screen is cleared; it's never visible
-  on a fine-pointer/desktop viewport.
+- A faint `clear` chip appears at the end of the suggestion row (any pointer
+  type, any viewport) only while a command's output is showing, runs `clear`
+  when tapped, and disappears once the screen is cleared.
 - `curl` the API route: a valid username returns 200 with `Cache-Control`
   set; an invalid/mismatched username returns 400.

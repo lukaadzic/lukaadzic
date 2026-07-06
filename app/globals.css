@@ -732,30 +732,20 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	}
 }
 
-/* The mobile-only `clear` chip (terminal-session.tsx) — appended at the end
-   of the suggestion row only while a command's output is showing, so touch
-   users get a fast way back to the welcome state without reaching for a
-   keyboard. Desktop already has `clear` as a typed command and doesn't need
-   a dedicated control cluttering the row, so this is hidden by default and
-   only shown back in via the same touch/small-screen media pattern as the
-   universe's `esc ·` prefix (`universe-exit-esc`) — just inverted (shown on
-   touch, not hidden). Subtler than the other chips — a faint utility action,
-   not a section to explore — so it overrides `.terminal-chip`'s border/text
-   colors rather than reusing the resting look verbatim. */
+/* The `clear` chip (terminal-session.tsx) — appended at the end of the
+   suggestion row only while a command's output is showing, so anyone gets a
+   fast way back to the welcome state without reaching for a keyboard.
+   Subtler than the other chips — a faint utility action, not a section to
+   explore — so it overrides `.terminal-chip`'s border/text colors rather
+   than reusing the resting look verbatim. */
 .terminal-clear-chip {
-	display: none;
+	display: inline-flex;
 	border-color: rgba(255, 255, 255, 0.08);
 	color: var(--color-faint);
 }
 
 .terminal-clear-chip:hover:not(:disabled) {
 	color: var(--color-muted);
-}
-
-@media (pointer: coarse), (max-width: 480px) {
-	.terminal-clear-chip {
-		display: inline-flex;
-	}
 }
 
 /* `penalty` game buttons — same chip look, but always a comfortable tap
