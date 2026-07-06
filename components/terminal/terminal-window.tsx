@@ -15,10 +15,14 @@ import { CLOSE_ALERT } from "@/lib/easter-eggs";
 type TerminalWindowProps = {
 	children: ReactNode;
 	/**
-	 * The 404 card is too small to fill the screen — it always floats, and
-	 * the green light nudges its width like the old zoom behavior.
+	 * The `/404` page reuses this exact fullscreen chrome (same layout as the
+	 * home page) but keeps its own old, simple traffic-light behaviors
+	 * instead of the home page's dock/alert: red shakes + toasts, yellow
+	 * does the old plain bounce-back, green is a no-op — there's no floating
+	 * mode to zoom into on a page with no session engine, so there's nothing
+	 * to remember per tab either.
 	 */
-	floatingOnly?: boolean;
+	simpleControls?: boolean;
 };
 
 const TITLE = "lukaadzic — -zsh — 80×24";
@@ -29,15 +33,16 @@ const KID_PHOTO_SRC = "/images/luka-kid.jpg";
 
 export function TerminalWindow({
 	children,
-	floatingOnly = false,
+	simpleControls = false,
 }: TerminalWindowProps) {
-	// Fullscreen is the default; the green traffic light zooms down to the
-	// floating windowed look and back, remembered per tab.
-	const [fullscreen, setFullscreen] = useState(!floatingOnly);
-	const [maximized, setMaximized] = useState(false);
+	// Fullscreen is the default everywhere; the green traffic light zooms it
+	// down to the floating windowed look and back on the home page,
+	// remembered per tab. `/404` never leaves fullscreen (green is a no-op
+	// there), so this just stays true for it.
+	const [fullscreen, setFullscreen] = useState(true);
 	const [shaking, setShaking] = useState(false);
-	// The old bounce-back minimize — kept only for the /404 card
-	// (`floatingOnly`), which has no desktop to dock an icon onto.
+	// The old bounce-back minimize — kept only for `/404`'s simple controls,
+	// which has no desktop to dock an icon onto.
 	const [minimizing, setMinimizing] = useState(false);
 	// The real minimize-to-dock, home page only. `flyingOut` plays the
 	// shrink-fly animation on the window frame; once that finishes,
@@ -90,8 +95,9 @@ export function TerminalWindow({
 	}, []);
 
 	// Restore this tab's zoom choice (default: fullscreen on first visit).
+	// `/404` has no floating mode to restore into, so it skips this entirely.
 	useEffect(() => {
-		if (floatingOnly) return;
+		if (simpleControls) return;
 		try {
 			if (window.sessionStorage.getItem(MODE_STORAGE_KEY) === "floating") {
 				setFullscreen(false);
@@ -99,24 +105,24 @@ export function TerminalWindow({
 		} catch {
 			// sessionStorage unavailable (e.g. blocked) — keep the default.
 		}
-	}, [floatingOnly]);
+	}, [simpleControls]);
 
-	// The 404 card never opens the "don't leave." alert, so it never needs
+	// The 404 page never opens the "don't leave." alert, so it never needs
 	// the Spotify iFrame API — only the home page warms it.
 	const warmSpotify = useCallback(() => {
-		if (floatingOnly) return;
+		if (simpleControls) return;
 		// Cheap no-op once the script is cached — safe to call repeatedly.
 		loadSpotifyIframeApi().catch(() => {
 			// Blocked/offline: the click path just retries later, same as today.
 		});
-	}, [floatingOnly]);
+	}, [simpleControls]);
 
 	// Warm the Spotify iFrame API during idle time, well before anyone's
 	// touched the red light — so by the time "don't leave." opens, the
 	// script is already cached and the embedded player boots instantly
 	// instead of paying for a fresh script fetch after the popup appears.
 	useEffect(() => {
-		if (floatingOnly) return;
+		if (simpleControls) return;
 		const idleWindow = window as Window & {
 			requestIdleCallback?: (
 				callback: IdleRequestCallback,
@@ -134,7 +140,7 @@ export function TerminalWindow({
 
 		const timeout = setTimeout(warmSpotify, 2500);
 		return () => clearTimeout(timeout);
-	}, [floatingOnly, warmSpotify]);
+	}, [simpleControls, warmSpotify]);
 
 	function handleClose() {
 		setShaking(false);
@@ -144,10 +150,10 @@ export function TerminalWindow({
 		if (shakeTimeout.current) clearTimeout(shakeTimeout.current);
 		shakeTimeout.current = setTimeout(() => setShaking(false), 420);
 
-		// The 404 card keeps the plain toast. The home terminal can't let
+		// The 404 page keeps the plain toast. The home terminal can't let
 		// go: a macOS-style "don't leave." alert opens with DON'T LEAVE
 		// already playing inside it.
-		if (floatingOnly) {
+		if (simpleControls) {
 			setShowNiceTry(true);
 			if (toastTimeout.current) clearTimeout(toastTimeout.current);
 			toastTimeout.current = setTimeout(() => setShowNiceTry(false), 1400);
@@ -171,9 +177,9 @@ export function TerminalWindow({
 	}
 
 	function handleMinimize() {
-		// The 404 card keeps the old bounce-back — it's a small floating card
-		// with no desktop behind it to dock an icon onto.
-		if (floatingOnly) {
+		// The 404 page keeps the old bounce-back — it has no desktop behind it
+		// to dock an icon onto.
+		if (simpleControls) {
 			if (minimizing) return;
 			setMinimizing(true);
 			// The reset normally happens on animationend, but reduced-motion
@@ -239,10 +245,8 @@ export function TerminalWindow({
 	}, [windowHidden]);
 
 	function handleZoom() {
-		if (floatingOnly) {
-			setMaximized((prev) => !prev);
-			return;
-		}
+		// `/404` has no floating mode to zoom into — green is a no-op there.
+		if (simpleControls) return;
 		setFullscreen((prev) => {
 			const next = !prev;
 			try {
@@ -257,18 +261,10 @@ export function TerminalWindow({
 		});
 	}
 
-	const frameClass = floatingOnly
-		? `mx-auto transition-[max-width] duration-300 ease-out ${
-				maximized ? "max-w-[960px]" : "max-w-[720px]"
-			}`
-		: "terminal-window-frame mx-auto";
-
 	return (
 		<div
-			data-mode={
-				floatingOnly ? undefined : fullscreen ? "fullscreen" : "floating"
-			}
-			className={`${hasEntered ? "" : "terminal-window-in"} relative w-full ${frameClass} ${
+			data-mode={fullscreen ? "fullscreen" : "floating"}
+			className={`${hasEntered ? "" : "terminal-window-in"} relative w-full terminal-window-frame mx-auto ${
 				shaking ? "terminal-shake" : ""
 			} ${minimizing ? "terminal-minimize" : ""} ${
 				flyingOut ? "terminal-minimize-fly" : ""
@@ -368,7 +364,7 @@ export function TerminalWindow({
 				/>
 			)}
 
-			{!floatingOnly && (
+			{!simpleControls && (
 				<MinimizeDock
 					kidPhotoSrc={KID_PHOTO_SRC}
 					open={dockOpen}
