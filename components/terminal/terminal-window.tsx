@@ -15,14 +15,6 @@ import { CLOSE_ALERT } from "@/lib/easter-eggs";
 
 type TerminalWindowProps = {
 	children: ReactNode;
-	/**
-	 * The `/404` page reuses this exact fullscreen chrome (same layout as the
-	 * home page) but keeps its own old, simple traffic-light behaviors
-	 * instead of the home page's dock/alert: red shakes + toasts, yellow
-	 * does the old plain bounce-back, green is a no-op — there's no universe
-	 * to expand into on a page with no session engine.
-	 */
-	simpleControls?: boolean;
 };
 
 const TITLE = "lukaadzic — -zsh — 80×24";
@@ -34,19 +26,13 @@ function reducedMotion(): boolean {
 	return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-export function TerminalWindow({
-	children,
-	simpleControls = false,
-}: TerminalWindowProps) {
+export function TerminalWindow({ children }: TerminalWindowProps) {
 	// Fullscreen is the only window mode now — the green traffic light used
 	// to zoom this down to a floating windowed look (remembered per tab via
 	// sessionStorage); it now opens the expanding-universe overlay instead
 	// (below), so `data-mode` is a fixed literal, not state.
 	const [shaking, setShaking] = useState(false);
-	// The old bounce-back minimize — kept only for `/404`'s simple controls,
-	// which has no desktop to dock an icon onto.
-	const [minimizing, setMinimizing] = useState(false);
-	// The real minimize-to-dock, home page only. `flyingOut` plays the
+	// The real minimize-to-dock. `flyingOut` plays the
 	// shrink-fly animation on the window frame; once that finishes,
 	// `windowHidden` hides the frame and `dockOpen` mounts the splash.
 	// Restoring used to be "wait for the splash's own fade-out to finish,
@@ -72,16 +58,14 @@ export function TerminalWindow({
 	// restore was replaying the page-load fade-in (a real, reproduced
 	// jostle) right after the crossfade had already finished.
 	const [hasEntered, setHasEntered] = useState(false);
-	const [showNiceTry, setShowNiceTry] = useState(false);
-	// Red light on the home page: a "don't leave." alert instead of a toast.
-	// closeAttempts doubles as "has the alert ever been mounted" — the alert
-	// stays mounted after the first open so its Spotify iframe (and the
-	// music) survives dismissal.
+	// The red light: a "don't leave." alert instead of a toast. closeAttempts
+	// doubles as "has the alert ever been mounted" — the alert stays mounted
+	// after the first open so its Spotify iframe (and the music) survives
+	// dismissal.
 	const [closeAttempts, setCloseAttempts] = useState(0);
 	const [alertOpen, setAlertOpen] = useState(false);
 	const [showStayNote, setShowStayNote] = useState(false);
 	const shakeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-	const toastTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const stayNoteTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const closeButtonRef = useRef<HTMLButtonElement>(null);
 	const minimizeButtonRef = useRef<HTMLButtonElement>(null);
@@ -109,27 +93,22 @@ export function TerminalWindow({
 	useEffect(() => {
 		return () => {
 			if (shakeTimeout.current) clearTimeout(shakeTimeout.current);
-			if (toastTimeout.current) clearTimeout(toastTimeout.current);
 			if (stayNoteTimeout.current) clearTimeout(stayNoteTimeout.current);
 		};
 	}, []);
 
-	// The 404 page never opens the "don't leave." alert, so it never needs
-	// the Spotify iFrame API — only the home page warms it.
 	const warmSpotify = useCallback(() => {
-		if (simpleControls) return;
 		// Cheap no-op once the script is cached — safe to call repeatedly.
 		loadSpotifyIframeApi().catch(() => {
 			// Blocked/offline: the click path just retries later, same as today.
 		});
-	}, [simpleControls]);
+	}, []);
 
 	// Warm the Spotify iFrame API during idle time, well before anyone's
 	// touched the red light — so by the time "don't leave." opens, the
 	// script is already cached and the embedded player boots instantly
 	// instead of paying for a fresh script fetch after the popup appears.
 	useEffect(() => {
-		if (simpleControls) return;
 		const idleWindow = window as Window & {
 			requestIdleCallback?: (
 				callback: IdleRequestCallback,
@@ -147,7 +126,7 @@ export function TerminalWindow({
 
 		const timeout = setTimeout(warmSpotify, 2500);
 		return () => clearTimeout(timeout);
-	}, [simpleControls, warmSpotify]);
+	}, [warmSpotify]);
 
 	function handleClose() {
 		setShaking(false);
@@ -157,15 +136,8 @@ export function TerminalWindow({
 		if (shakeTimeout.current) clearTimeout(shakeTimeout.current);
 		shakeTimeout.current = setTimeout(() => setShaking(false), 420);
 
-		// The 404 page keeps the plain toast. The home terminal can't let
-		// go: a macOS-style "don't leave." alert opens with DON'T LEAVE
-		// already playing inside it.
-		if (simpleControls) {
-			setShowNiceTry(true);
-			if (toastTimeout.current) clearTimeout(toastTimeout.current);
-			toastTimeout.current = setTimeout(() => setShowNiceTry(false), 1400);
-			return;
-		}
+		// The terminal can't let go: a macOS-style "don't leave." alert opens
+		// with DON'T LEAVE already playing inside it.
 		setCloseAttempts((attempts) => attempts + 1);
 		setAlertOpen(true);
 	}
@@ -184,20 +156,6 @@ export function TerminalWindow({
 	}
 
 	function handleMinimize() {
-		// The 404 page keeps the old bounce-back — it has no desktop behind it
-		// to dock an icon onto.
-		if (simpleControls) {
-			if (minimizing) return;
-			setMinimizing(true);
-			// The reset normally happens on animationend, but reduced-motion
-			// disables the keyframes entirely — reset immediately so the button
-			// doesn't get stuck as a permanent no-op.
-			if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-				setMinimizing(false);
-			}
-			return;
-		}
-
 		if (flyingOut || dockOpen) return;
 		setFlyingOut(true);
 		// The entrance animation is long finished by the time anyone can
@@ -265,9 +223,6 @@ export function TerminalWindow({
 	}, [universeHidden]);
 
 	function handleUniverseOpen() {
-		// `/404` has no universe to expand into — green is a no-op there, same
-		// as the old floating-mode toggle used to be.
-		if (simpleControls) return;
 		// Don't stack with the close alert, and the green light isn't reachable
 		// at all while minimized (the whole frame is `visibility: hidden`) —
 		// belt-and-suspenders in case it's ever reachable another way.
@@ -311,19 +266,17 @@ export function TerminalWindow({
 			data-mode="fullscreen"
 			className={`${hasEntered ? "" : "terminal-window-in"} relative w-full terminal-window-frame mx-auto ${
 				shaking ? "terminal-shake" : ""
-			} ${minimizing ? "terminal-minimize" : ""} ${
-				flyingOut ? "terminal-minimize-fly" : ""
-			} ${restoring ? "terminal-restore-in" : ""} ${
-				universeShrinking ? "terminal-universe-out" : ""
-			} ${universeRestoring ? "terminal-universe-in" : ""} ${
+			} ${flyingOut ? "terminal-minimize-fly" : ""} ${
+				restoring ? "terminal-restore-in" : ""
+			} ${universeShrinking ? "terminal-universe-out" : ""} ${
+				universeRestoring ? "terminal-universe-in" : ""
+			} ${
 				(windowHidden && !restoring) || (universeHidden && !universeRestoring)
 					? "terminal-window-hidden"
 					: ""
 			}`}
 			onAnimationEnd={(event) => {
-				if (event.animationName === "terminal-minimize") {
-					setMinimizing(false);
-				} else if (event.animationName === "terminal-minimize-fly") {
+				if (event.animationName === "terminal-minimize-fly") {
 					setFlyingOut(false);
 					setWindowHidden(true);
 					setDockOpen(true);
@@ -438,15 +391,6 @@ export function TerminalWindow({
 						{TITLE}
 					</p>
 
-					{showNiceTry && (
-						<span
-							aria-hidden="true"
-							className="terminal-toast absolute left-3 top-full mt-1.5 rounded-md bg-black/80 px-2 py-1 text-[11px] text-white/80"
-						>
-							nice try 🙂
-						</span>
-					)}
-
 					{showStayNote && (
 						<output className="terminal-toast absolute left-3 top-full z-30 mt-1.5 rounded-md bg-black/80 px-2 py-1 text-[11px] text-white/60">
 							{CLOSE_ALERT.dismissNote}
@@ -468,24 +412,20 @@ export function TerminalWindow({
 				/>
 			)}
 
-			{!simpleControls && (
-				<MinimizeDock
-					kidPhotoSrc={KID_PHOTO_SRC}
-					open={dockOpen}
-					dismissing={restoring}
-					onRequestRestore={handleRestore}
-					onDismissed={handleDockDismissed}
-				/>
-			)}
+			<MinimizeDock
+				kidPhotoSrc={KID_PHOTO_SRC}
+				open={dockOpen}
+				dismissing={restoring}
+				onRequestRestore={handleRestore}
+				onDismissed={handleDockDismissed}
+			/>
 
-			{!simpleControls && (
-				<UniverseOverlay
-					open={universeOpen}
-					dismissing={universeRestoring}
-					onRequestExit={handleUniverseExitRequest}
-					onExited={handleUniverseExited}
-				/>
-			)}
+			<UniverseOverlay
+				open={universeOpen}
+				dismissing={universeRestoring}
+				onRequestExit={handleUniverseExitRequest}
+				onExited={handleUniverseExited}
+			/>
 		</div>
 	);
 }
