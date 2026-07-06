@@ -1417,11 +1417,23 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	pointer-events: none;
 }
 
-/* Stars past the sky's midline flip their label to the other side so it
-   never runs off the right edge at narrow widths. */
+/* Which side a label sits on is data-driven now (`Star.labelSide` in
+   `lib/universe.ts`), chosen per star so the hand-placed constellation never
+   overlaps a label, a star, or a line — not derived from position. Default
+   (no modifier class) is "right", matching `.universe-star-label` above. */
 .universe-star-label-left {
 	transform: translate(calc(-100% - 14px), -50%);
 	text-align: right;
+}
+
+.universe-star-label-top {
+	transform: translate(-50%, calc(-100% - 14px));
+	text-align: center;
+}
+
+.universe-star-label-bottom {
+	transform: translate(-50%, 14px);
+	text-align: center;
 }
 
 @keyframes universe-star-in {
