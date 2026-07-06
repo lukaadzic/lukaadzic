@@ -119,6 +119,18 @@ export const PENALTY_END_MESSAGES = {
 export const DESTINY_PHOTO = "/images/destiny.jpg";
 export const DESTINY_CLASSIFIED_PHOTO = "/images/destiny-classified.jpg";
 
+/**
+ * `destiny` — her section plays our song: "EVERYTHING HALLELUJAH - Acoustic"
+ * by Justin Bieber, from SWAG Live From Coachella (Weekend I). ID verified
+ * via open.spotify.com/oembed.
+ */
+export const DESTINY_SONG = {
+	title: "EVERYTHING HALLELUJAH - Acoustic",
+	artist: "Justin Bieber",
+	album: "SWAG Live From Coachella (Weekend I)",
+	spotifyTrackId: "638TcmE5UMW9IhXGs1as4u",
+} as const;
+
 export const DESTINY = {
 	lovedOnes: {
 		intro: "reading /etc/loved-ones...",
