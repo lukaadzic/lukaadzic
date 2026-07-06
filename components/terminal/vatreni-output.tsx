@@ -1,4 +1,5 @@
-import { VATRENI } from "@/lib/easter-eggs";
+import { SpotifyPlayer } from "@/components/terminal/spotify-player";
+import { VATRENI, VATRENI_SONG } from "@/lib/easter-eggs";
 
 const CHECKER_ROWS = 5;
 const CHECKER_COLS = 8;
@@ -19,7 +20,8 @@ const CHECKER_CELLS = Array.from(
 	},
 );
 
-/** `vatreni` / `hrvatska` / `croatia` — a compact šahovnica + Modrić-era stats. */
+/** `vatreni` / `hrvatska` / `croatia` — a compact šahovnica + Modrić-era
+ * stats. Plays the anthem, "Moja Domovina," via the shared SpotifyPlayer. */
 export function VatreniOutput() {
 	return (
 		<div className="leading-relaxed">
@@ -38,6 +40,10 @@ export function VatreniOutput() {
 			<p className="mt-2 text-foreground">{VATRENI.heading}</p>
 			<p className="text-muted">{VATRENI.summary}</p>
 			<p className="text-faint">{VATRENI.closer}</p>
+			<p className="mt-3 text-faint">♫ moja domovina</p>
+			<div className="mt-1.5 max-w-[420px]">
+				<SpotifyPlayer trackId={VATRENI_SONG.spotifyTrackId} height={80} />
+			</div>
 			<p className="mt-2 text-faint">
 				4 straight world cup shootout wins ('18, '22) — try `penalty`
 			</p>
