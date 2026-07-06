@@ -929,6 +929,26 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	border-color: rgba(240, 166, 202, 0.4);
 }
 
+/* `/404` — the goal art (crossbar + ball + keeper) draws in as one block,
+   a beat after the `zsh: no such file` line prints; the ball and keeper
+   inside it then pop via the same `penalty-ball-in`/`penalty-glove-in`
+   beats as the minigame. Disabled under reduced motion below, same as every
+   other entrance piece on the page. */
+@keyframes notfound-art-in {
+	from {
+		opacity: 0;
+		transform: translateY(6px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.notfound-art-in {
+	animation: notfound-art-in 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 /* The "run it all" chip gets a hint of the accent color at rest. */
 .terminal-chip-accent {
 	color: var(--color-accent);
@@ -1314,7 +1334,8 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 	.penalty-suspense,
 	.close-alert-backdrop,
 	.close-alert-panel,
-	.close-alert-line {
+	.close-alert-line,
+	.notfound-art-in {
 		animation: none;
 		opacity: 1;
 		transform: none;
