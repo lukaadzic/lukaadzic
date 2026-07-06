@@ -10,6 +10,7 @@ import {
 import { CloseAlert } from "@/components/terminal/close-alert";
 import { MinimizeDock } from "@/components/terminal/minimize-dock";
 import { loadSpotifyIframeApi } from "@/components/terminal/spotify-iframe-api";
+import { UniverseOverlay } from "@/components/terminal/universe-overlay";
 import { CLOSE_ALERT } from "@/lib/easter-eggs";
 
 type TerminalWindowProps = {
@@ -18,28 +19,29 @@ type TerminalWindowProps = {
 	 * The `/404` page reuses this exact fullscreen chrome (same layout as the
 	 * home page) but keeps its own old, simple traffic-light behaviors
 	 * instead of the home page's dock/alert: red shakes + toasts, yellow
-	 * does the old plain bounce-back, green is a no-op — there's no floating
-	 * mode to zoom into on a page with no session engine, so there's nothing
-	 * to remember per tab either.
+	 * does the old plain bounce-back, green is a no-op — there's no universe
+	 * to expand into on a page with no session engine.
 	 */
 	simpleControls?: boolean;
 };
 
 const TITLE = "lukaadzic — -zsh — 80×24";
-const MODE_STORAGE_KEY = "terminal-window-mode";
 // Doesn't exist yet — MinimizeDock falls back to a green `L` mark via
 // `onError` until this file is dropped into `public/images/`.
 const KID_PHOTO_SRC = "/images/luka-kid.jpg";
+
+function reducedMotion(): boolean {
+	return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
 
 export function TerminalWindow({
 	children,
 	simpleControls = false,
 }: TerminalWindowProps) {
-	// Fullscreen is the default everywhere; the green traffic light zooms it
-	// down to the floating windowed look and back on the home page,
-	// remembered per tab. `/404` never leaves fullscreen (green is a no-op
-	// there), so this just stays true for it.
-	const [fullscreen, setFullscreen] = useState(true);
+	// Fullscreen is the only window mode now — the green traffic light used
+	// to zoom this down to a floating windowed look (remembered per tab via
+	// sessionStorage); it now opens the expanding-universe overlay instead
+	// (below), so `data-mode` is a fixed literal, not state.
 	const [shaking, setShaking] = useState(false);
 	// The old bounce-back minimize — kept only for `/404`'s simple controls,
 	// which has no desktop to dock an icon onto.
@@ -83,7 +85,25 @@ export function TerminalWindow({
 	const stayNoteTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const closeButtonRef = useRef<HTMLButtonElement>(null);
 	const minimizeButtonRef = useRef<HTMLButtonElement>(null);
+	const zoomButtonRef = useRef<HTMLButtonElement>(null);
 	const skipRestoreFocusRef = useRef(true);
+	const skipUniverseFocusRef = useRef(true);
+
+	// Green light on the home page: "expand the universe" — his goals as a
+	// constellation, full-viewport, dark. `universeOpen` is the overlay's
+	// mount gate (like `dockOpen`), staying true through the exit crossfade.
+	// `universeShrinking` plays the window frame's own zoom-out (scale+fade)
+	// the instant the universe is requested; once that finishes,
+	// `universeHidden` hides the frame the same way minimizing does
+	// (`visibility: hidden`, never unmounted — the window, its state, and any
+	// playing music all survive underneath). `universeRestoring` is the
+	// counterpart to `restoring` above: it starts the frame's fade/scale back
+	// in at the exact tick the overlay's own fade-out begins, a real
+	// crossfade rather than a sequential swap.
+	const [universeOpen, setUniverseOpen] = useState(false);
+	const [universeShrinking, setUniverseShrinking] = useState(false);
+	const [universeHidden, setUniverseHidden] = useState(false);
+	const [universeRestoring, setUniverseRestoring] = useState(false);
 
 	// Pending timers must not fire into an unmounted component.
 	useEffect(() => {
@@ -93,19 +113,6 @@ export function TerminalWindow({
 			if (stayNoteTimeout.current) clearTimeout(stayNoteTimeout.current);
 		};
 	}, []);
-
-	// Restore this tab's zoom choice (default: fullscreen on first visit).
-	// `/404` has no floating mode to restore into, so it skips this entirely.
-	useEffect(() => {
-		if (simpleControls) return;
-		try {
-			if (window.sessionStorage.getItem(MODE_STORAGE_KEY) === "floating") {
-				setFullscreen(false);
-			}
-		} catch {
-			// sessionStorage unavailable (e.g. blocked) — keep the default.
-		}
-	}, [simpleControls]);
 
 	// The 404 page never opens the "don't leave." alert, so it never needs
 	// the Spotify iFrame API — only the home page warms it.
@@ -244,32 +251,74 @@ export function TerminalWindow({
 		}
 	}, [windowHidden]);
 
-	function handleZoom() {
-		// `/404` has no floating mode to zoom into — green is a no-op there.
+	// Same idea, for the green light: once the universe overlay has actually
+	// handed focus back (the frame's `visibility: hidden` lifted), it lands
+	// on the green light — not on mount.
+	useEffect(() => {
+		if (skipUniverseFocusRef.current) {
+			skipUniverseFocusRef.current = false;
+			return;
+		}
+		if (!universeHidden) {
+			zoomButtonRef.current?.focus();
+		}
+	}, [universeHidden]);
+
+	function handleUniverseOpen() {
+		// `/404` has no universe to expand into — green is a no-op there, same
+		// as the old floating-mode toggle used to be.
 		if (simpleControls) return;
-		setFullscreen((prev) => {
-			const next = !prev;
-			try {
-				window.sessionStorage.setItem(
-					MODE_STORAGE_KEY,
-					next ? "fullscreen" : "floating",
-				);
-			} catch {
-				// Persistence is best-effort only.
-			}
-			return next;
-		});
+		// Don't stack with the close alert, and the green light isn't reachable
+		// at all while minimized (the whole frame is `visibility: hidden`) —
+		// belt-and-suspenders in case it's ever reachable another way.
+		if (alertOpen || windowHidden || dockOpen) return;
+		if (universeOpen || universeShrinking) return;
+		setUniverseOpen(true);
+		setUniverseShrinking(true);
+		// The entrance animation is long finished by the time anyone can reach
+		// this button — belt-and-suspenders, same as handleMinimize.
+		setHasEntered(true);
+		if (reducedMotion()) {
+			setUniverseShrinking(false);
+			setUniverseHidden(true);
+		}
+	}
+
+	// The counterpart to handleUniverseOpen — called by the overlay the
+	// instant an exit is requested (second Esc, once no star card is open),
+	// not after any animation of its own. Same crossfade discipline as
+	// handleRestore: unhiding the frame and starting its fade/scale back in
+	// here, the same tick `universeRestoring` flips (which the overlay also
+	// receives as `dismissing`, starting its own fade-out).
+	function handleUniverseExitRequest() {
+		if (universeRestoring) return;
+		setUniverseHidden(false);
+		setUniverseRestoring(true);
+		if (reducedMotion()) {
+			setUniverseRestoring(false);
+			setUniverseOpen(false);
+		}
+	}
+
+	// The overlay's own fade-out has actually finished (non-reduced-motion
+	// path only — the reduced-motion branch above already dropped it).
+	function handleUniverseExited() {
+		setUniverseOpen(false);
 	}
 
 	return (
 		<div
-			data-mode={fullscreen ? "fullscreen" : "floating"}
+			data-mode="fullscreen"
 			className={`${hasEntered ? "" : "terminal-window-in"} relative w-full terminal-window-frame mx-auto ${
 				shaking ? "terminal-shake" : ""
 			} ${minimizing ? "terminal-minimize" : ""} ${
 				flyingOut ? "terminal-minimize-fly" : ""
 			} ${restoring ? "terminal-restore-in" : ""} ${
-				windowHidden && !restoring ? "terminal-window-hidden" : ""
+				universeShrinking ? "terminal-universe-out" : ""
+			} ${universeRestoring ? "terminal-universe-in" : ""} ${
+				(windowHidden && !restoring) || (universeHidden && !universeRestoring)
+					? "terminal-window-hidden"
+					: ""
 			}`}
 			onAnimationEnd={(event) => {
 				if (event.animationName === "terminal-minimize") {
@@ -280,6 +329,11 @@ export function TerminalWindow({
 					setDockOpen(true);
 				} else if (event.animationName === "terminal-restore-in") {
 					setRestoring(false);
+				} else if (event.animationName === "terminal-universe-out") {
+					setUniverseShrinking(false);
+					setUniverseHidden(true);
+				} else if (event.animationName === "terminal-universe-in") {
+					setUniverseRestoring(false);
 				} else if (
 					event.animationName === "terminal-window-in" ||
 					event.animationName === "terminal-window-in-flat"
@@ -347,15 +401,19 @@ export function TerminalWindow({
 							</span>
 						</button>
 						<button
+							ref={zoomButtonRef}
 							type="button"
-							aria-label="Zoom"
-							onClick={handleZoom}
+							aria-label="Expand the universe"
+							onClick={handleUniverseOpen}
 							className="relative flex h-3 w-3 items-center justify-center rounded-full bg-[#28c840] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.15)]"
 						>
 							<span className="select-none opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-								{/* macOS zoom: two diagonal fullscreen triangles — pointing
-								    inward (exit) while fullscreen, outward (enter) while
-								    floating, exactly like the real green light. */}
+								{/* macOS zoom glyph: two diagonal outward-pointing triangles.
+								    This used to flip inward/outward with the floating<->
+								    fullscreen toggle it drove; now that fullscreen is the
+								    only window mode, it stays outward always — read poetically
+								    as "expand the universe", which is exactly what clicking
+								    it does. */}
 								<svg
 									aria-hidden="true"
 									width="8"
@@ -363,31 +421,14 @@ export function TerminalWindow({
 									viewBox="0 0 85.4 85.4"
 									className="block"
 								>
-									{fullscreen ? (
-										<>
-											<path
-												d="M31.2 20.8h26.7c3.6 0 6.5 2.9 6.5 6.5V54z"
-												fill="#2a6218"
-												transform="rotate(180 53.3 32.2)"
-											/>
-											<path
-												d="M54.4 64.5H27.6c-3.6 0-6.5-2.9-6.5-6.5V31.2z"
-												fill="#2a6218"
-												transform="rotate(180 32.1 53.2)"
-											/>
-										</>
-									) : (
-										<>
-											<path
-												d="M31.2 20.8h26.7c3.6 0 6.5 2.9 6.5 6.5V54z"
-												fill="#2a6218"
-											/>
-											<path
-												d="M54.4 64.5H27.6c-3.6 0-6.5-2.9-6.5-6.5V31.2z"
-												fill="#2a6218"
-											/>
-										</>
-									)}
+									<path
+										d="M31.2 20.8h26.7c3.6 0 6.5 2.9 6.5 6.5V54z"
+										fill="#2a6218"
+									/>
+									<path
+										d="M54.4 64.5H27.6c-3.6 0-6.5-2.9-6.5-6.5V31.2z"
+										fill="#2a6218"
+									/>
 								</svg>
 							</span>
 						</button>
@@ -434,6 +475,15 @@ export function TerminalWindow({
 					dismissing={restoring}
 					onRequestRestore={handleRestore}
 					onDismissed={handleDockDismissed}
+				/>
+			)}
+
+			{!simpleControls && (
+				<UniverseOverlay
+					open={universeOpen}
+					dismissing={universeRestoring}
+					onRequestExit={handleUniverseExitRequest}
+					onExited={handleUniverseExited}
 				/>
 			)}
 		</div>
