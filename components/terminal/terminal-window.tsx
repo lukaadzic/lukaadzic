@@ -314,7 +314,7 @@ export function TerminalWindow({
 								>
 									<path
 										d="M1.7 1.7 L6.3 6.3 M6.3 1.7 L1.7 6.3"
-										stroke="rgba(0,0,0,0.55)"
+										stroke="#460804"
 										strokeWidth="1.1"
 										strokeLinecap="round"
 									/>
@@ -339,7 +339,7 @@ export function TerminalWindow({
 								>
 									<path
 										d="M1.4 4 L6.6 4"
-										stroke="rgba(0,0,0,0.55)"
+										stroke="#90591d"
 										strokeWidth="1.3"
 										strokeLinecap="round"
 									/>
@@ -360,29 +360,31 @@ export function TerminalWindow({
 									aria-hidden="true"
 									width="8"
 									height="8"
-									viewBox="0 0 8 8"
+									viewBox="0 0 85.4 85.4"
 									className="block"
 								>
 									{fullscreen ? (
 										<>
 											<path
-												d="M4.2 3.8 L7.4 3.8 L4.2 0.6 Z"
-												fill="rgba(0,0,0,0.55)"
+												d="M31.2 20.8h26.7c3.6 0 6.5 2.9 6.5 6.5V54z"
+												fill="#2a6218"
+												transform="rotate(180 53.3 32.2)"
 											/>
 											<path
-												d="M3.8 4.2 L0.6 4.2 L3.8 7.4 Z"
-												fill="rgba(0,0,0,0.55)"
+												d="M54.4 64.5H27.6c-3.6 0-6.5-2.9-6.5-6.5V31.2z"
+												fill="#2a6218"
+												transform="rotate(180 32.1 53.2)"
 											/>
 										</>
 									) : (
 										<>
 											<path
-												d="M7.2 0.8 L7.2 4.2 L3.8 0.8 Z"
-												fill="rgba(0,0,0,0.55)"
+												d="M31.2 20.8h26.7c3.6 0 6.5 2.9 6.5 6.5V54z"
+												fill="#2a6218"
 											/>
 											<path
-												d="M0.8 7.2 L0.8 3.8 L4.2 7.2 Z"
-												fill="rgba(0,0,0,0.55)"
+												d="M54.4 64.5H27.6c-3.6 0-6.5-2.9-6.5-6.5V31.2z"
+												fill="#2a6218"
 											/>
 										</>
 									)}
