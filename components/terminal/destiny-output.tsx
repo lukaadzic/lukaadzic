@@ -3,21 +3,20 @@
 import Image from "next/image";
 import { useState } from "react";
 import { openDestiny } from "@/components/terminal/destiny-easter-egg";
-import { DESTINY_PHOTO } from "@/lib/easter-eggs";
-
-/** Runs a command through the session, exactly like tapping a suggestion chip. */
-function runCommand(command: string) {
-	window.dispatchEvent(new CustomEvent("terminal:run", { detail: command }));
-}
+import { SpotifyPlayer } from "@/components/terminal/spotify-player";
+import { DESTINY_PHOTO, DESTINY_SONG } from "@/lib/easter-eggs";
 
 const TRIGGER_CHIP_CLASS =
 	"terminal-chip border-[#f0a6ca]/25 text-[#f0a6ca]/80 hover:border-[#f0a6ca]/45 hover:text-[#f0a6ca]";
 
 /**
- * `destiny` — her own section, easily accessible (chip + help). The three
- * playful reveals are one tap away via the pink trigger chips below (the
- * konami chip fires the sequence directly — phones can't press ↑↑↓↓←→←→ba).
- * Pink (#f0a6ca) is her color, the one deliberate exception to the palette.
+ * `destiny` — her own section, easily accessible (chip + help). Plays our
+ * song via the shared SpotifyPlayer, autoplay included. The classified
+ * konami reveal is one tap away via the pink trigger chip below (it fires
+ * the sequence directly — phones can't press ↑↑↓↓←→←→ba); `cat
+ * /etc/loved-ones` and `git log` still work when typed, they just don't get
+ * their own chips here anymore. Pink (#f0a6ca) is her color, the one
+ * deliberate exception to the palette.
  */
 export function DestinyOutput() {
 	// The box is already reserved via the explicit width/height below — this
@@ -45,28 +44,16 @@ export function DestinyOutput() {
 			<p className="text-muted">
 				entry is read-only. cannot be edited or deleted.
 			</p>
-			<p className="mt-3 text-faint">there's more — tap one:</p>
+			<p className="mt-3 text-[#f0a6ca]">♫ our song</p>
+			<p className="mb-2 text-foreground">{DESTINY_SONG.title}</p>
+			<div className="max-w-[420px]">
+				<SpotifyPlayer trackId={DESTINY_SONG.spotifyTrackId} height={80} />
+			</div>
+			<p className="mt-1.5 text-faint">
+				{DESTINY_SONG.artist} · {DESTINY_SONG.album}
+			</p>
+			<p className="mt-3 text-faint">there's more —</p>
 			<div className="mt-1.5 flex flex-wrap gap-2">
-				<button
-					type="button"
-					className={TRIGGER_CHIP_CLASS}
-					onClick={(event) => {
-						event.stopPropagation();
-						runCommand("cat /etc/loved-ones");
-					}}
-				>
-					cat /etc/loved-ones
-				</button>
-				<button
-					type="button"
-					className={TRIGGER_CHIP_CLASS}
-					onClick={(event) => {
-						event.stopPropagation();
-						runCommand("git log");
-					}}
-				>
-					git log
-				</button>
 				<button
 					type="button"
 					className={TRIGGER_CHIP_CLASS}
