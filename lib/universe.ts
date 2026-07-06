@@ -55,12 +55,12 @@ export const LINKS: readonly (readonly [string, string])[] = [
 export const STARS: readonly Star[] = [
 	{
 		id: "roots",
-		label: "croatia · montenegro",
+		label: "croatia",
 		x: 10,
 		y: 82,
 		labelSide: "right",
 		accent: "#e0645a",
-		blurb: "born to croatian x montenegrin parents. where everything starts.",
+		blurb: "the roots. where everything starts.",
 	},
 	{
 		id: "china",
