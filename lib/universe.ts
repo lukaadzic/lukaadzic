@@ -93,7 +93,8 @@ export const STARS: readonly Star[] = [
 		x: 74,
 		y: 26,
 		labelSide: "top",
-		blurb: "purm research at wharton — agentic ai for statistical genetics.",
+		blurb:
+			"penn undergraduate research mentorship @ wharton — an ml pipeline over uk biobank's 500k profiles, predicting who reaches the top of finance and using llms to explain why.",
 	},
 	{
 		id: "c4r",
@@ -102,7 +103,7 @@ export const STARS: readonly Star[] = [
 		y: 44,
 		labelSide: "bottom",
 		blurb:
-			"software engineer at community for rigor — teaching scientific rigor at scale.",
+			"building interactive stats education — react, next.js, d3 — on a research-backed platform serving students across 7+ institutions.",
 	},
 	{
 		id: "pennyone",
