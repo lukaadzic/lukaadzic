@@ -65,19 +65,24 @@ commands. Unknown commands occasionally get a sassier
 `command not found` message (1-in-3). A handful of personality easter eggs
 (`giveon`/`beloved`, `vatreni`, `modric`) hide as dotfiles discoverable via
 `ls -la`; their content lives in `lib/easter-eggs.ts` and must stay verified
-fact, never invented. `pets` (visible command, in `help`) renders pixel-art
+fact, never invented. `vatreni`/`hrvatska`/`croatia` plays the anthem, "Moja
+Domovina" (Hrvatski Band Aid), via the shared `SpotifyPlayer`
+(`VATRENI_SONG` in `lib/easter-eggs.ts`), after the šahovnica/summary lines.
+`pets` (visible command, in `help`) renders pixel-art
 portraits of Modro, Vida & Baby (`pets-output.tsx`) using the same colored-
 cell-grid technique as the `vatreni` šahovnica — grids, palettes, and
 captions live in `lib/easter-eggs.ts` as `PETS`. Luka's girlfriend Destiny has her own FIRST-CLASS
 section: the `destiny` command (visible chip, in `help`)
 renders her photo + card inline (`destiny-output.tsx`, photo path from
-`DESTINY_PHOTO` in `lib/easter-eggs.ts`), with its own trigger chips below —
-`cat /etc/loved-ones`, `git log`, and the konami chip (no `pets` chip here
-anymore; `pets` is a main tab of its own now, so it stayed off this list).
-`cat /etc/loved-ones` and `git log --oneline` still stagger their lines in
-the same way, but no longer auto-open anything on their own — the classic
-konami code (`↑↑↓↓←→←→ba`), typed anywhere or tapped as the chip in
-`destiny`'s section, is the only door into the "classified" dossier reveal
+`DESTINY_PHOTO` in `lib/easter-eggs.ts`), plays "our song" underneath via the
+shared `SpotifyPlayer` (`DESTINY_SONG` in `lib/easter-eggs.ts` — Justin
+Bieber's "EVERYTHING HALLELUJAH - Acoustic"), then the konami chip is the
+only trigger chip left below that (no `pets` chip here anymore; `pets` is a
+main tab of its own now, so it stayed off this list). `cat /etc/loved-ones`
+and `git log --oneline` still work when typed and still stagger their lines
+the same way, they just no longer get their own chips — the classic konami
+code (`↑↑↓↓←→←→ba`), typed anywhere or tapped as the chip in `destiny`'s
+section, is the only door into the "classified" dossier reveal
 (`destiny-easter-egg.tsx`, portaled to `document.body`). The dossier uses its
 own photo, `DESTINY_CLASSIFIED_PHOTO` (`destiny-classified.jpg` — the Croatia
 jersey, making a heart), distinct from `DESTINY_PHOTO` used everywhere else.

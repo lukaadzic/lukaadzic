@@ -74,6 +74,17 @@ export const VATRENI = {
 	closer: "idemo!",
 } as const;
 
+/**
+ * `vatreni` / `hrvatska` / `croatia` — the section plays the anthem: "Moja
+ * Domovina" by Hrvatski Band Aid, the 1991 charity single ("My Homeland").
+ * ID verified via open.spotify.com/oembed.
+ */
+export const VATRENI_SONG = {
+	title: "Moja Domovina",
+	artist: "Hrvatski Band Aid",
+	spotifyTrackId: "5lYhnRrhgSsFjnG1FEVXvs",
+} as const;
+
 export const MODRIC = {
 	headline: "Luka Modrić — #10",
 	stats:
