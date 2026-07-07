@@ -18,6 +18,7 @@ import { SocialsOutput } from "@/components/terminal/socials-output";
 import { VatreniOutput } from "@/components/terminal/vatreni-output";
 import { WelcomeOutput } from "@/components/terminal/welcome-output";
 import { WhoamiOutput } from "@/components/terminal/whoami-output";
+import { WorkOutput } from "@/components/terminal/work-output";
 import { DESTINY, FEATURED_TRACKS } from "@/lib/easter-eggs";
 import { SITE } from "@/lib/site";
 
@@ -120,6 +121,7 @@ const lsHome: Renderer = () => ({ output: <LsHomeOutput /> });
 const lsHomeHidden: Renderer = () => ({ output: <LsHomeOutput showHidden /> });
 const lsProjects: Renderer = () => ({ output: <LsProjectsOutput /> });
 const projects: Renderer = () => ({ output: <ProjectsOutput /> });
+const work: Renderer = () => ({ output: <WorkOutput /> });
 const github: Renderer = () => ({ output: <GithubOutput /> });
 const socials: Renderer = () => ({ output: <SocialsOutput /> });
 
@@ -206,6 +208,7 @@ const REGISTRY: Record<string, Renderer> = {
 	"ls -a": lsHomeHidden,
 	"open ~/projects --verbose": projects,
 	projects,
+	work,
 	"github --contributions": github,
 	github,
 	"open socials/": socials,
@@ -242,6 +245,7 @@ const REGISTRY: Record<string, Renderer> = {
 
 export const SUGGESTED_COMMANDS = [
 	"about",
+	"work",
 	"projects",
 	"github",
 	"socials",
@@ -258,6 +262,7 @@ export const SUGGESTED_COMMANDS = [
 export const COMMAND_HELP: Array<[string, string]> = [
 	["whoami", "who am I"],
 	["about", "neofetch-style info card"],
+	["work", "where I've worked"],
 	["projects", "things I've built"],
 	["ls", "list the home directory"],
 	["socials", "where to find me online"],
@@ -280,6 +285,7 @@ export const KNOWN_COMMANDS = [
 	"help",
 	"whoami",
 	"about",
+	"work",
 	"projects",
 	"ls",
 	"socials",

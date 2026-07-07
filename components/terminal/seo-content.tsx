@@ -1,6 +1,7 @@
 import { PROJECTS } from "@/lib/projects";
 import { SITE } from "@/lib/site";
 import { SOCIALS } from "@/lib/socials";
+import { WORK_EXPERIENCE } from "@/lib/work";
 
 /**
  * Server-rendered, visually-hidden content mirror. The interactive terminal
@@ -13,6 +14,23 @@ export function SeoContent() {
 			<h1>{SITE.name}</h1>
 			<p>{SITE.tagline}</p>
 			<p>{SITE.description}</p>
+
+			<h2>Experience</h2>
+			<ul>
+				{WORK_EXPERIENCE.map((job) => (
+					<li key={`${job.org}-${job.role}`}>
+						{job.role} at{" "}
+						{job.href ? (
+							<a href={job.href} tabIndex={-1}>
+								{job.org}
+							</a>
+						) : (
+							job.org
+						)}{" "}
+						({job.location}, {job.period}) — {job.description}
+					</li>
+				))}
+			</ul>
 
 			<h2>Projects</h2>
 			<ul>
