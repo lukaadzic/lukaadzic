@@ -88,6 +88,14 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 	const [universeShrinking, setUniverseShrinking] = useState(false);
 	const [universeHidden, setUniverseHidden] = useState(false);
 	const [universeRestoring, setUniverseRestoring] = useState(false);
+	// The traffic-light glyphs reveal on hover of the cluster. Driven by real
+	// pointer events rather than CSS `:hover`/`group-hover` — Safari has a
+	// known bug where `:hover` style recompute gets stuck stale on
+	// descendants of a `backdrop-filter` ancestor (the titlebar's
+	// `backdrop-blur-sm`), leaving the glyphs visible after the cursor
+	// actually leaves. Real pointerenter/pointerleave events aren't subject
+	// to that recompute bug.
+	const [lightsHovered, setLightsHovered] = useState(false);
 
 	// Pending timers must not fire into an unmounted component.
 	useEffect(() => {
@@ -299,9 +307,13 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 				<div className="terminal-window-titlebar relative flex h-[38px] items-center justify-center bg-gradient-to-b from-white/[0.07] to-black/[0.15] px-3 backdrop-blur-sm">
 					{/* biome-ignore lint/a11y/noStaticElementInteractions: passive intent-warm listener only (loads a script), not a control — the real interactive elements are the buttons inside. */}
 					<div
-						className="group absolute left-5 flex items-center gap-2"
+						className="absolute left-5 flex items-center gap-2"
 						onPointerOver={warmSpotify}
 						onFocus={warmSpotify}
+						onPointerEnter={() => setLightsHovered(true)}
+						onPointerLeave={() => setLightsHovered(false)}
+						onFocusCapture={() => setLightsHovered(true)}
+						onBlurCapture={() => setLightsHovered(false)}
 					>
 						<button
 							ref={closeButtonRef}
@@ -310,7 +322,9 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 							onClick={handleClose}
 							className="relative flex h-3 w-3 items-center justify-center rounded-full bg-[#ff5f57] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.15)]"
 						>
-							<span className="select-none opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+							<span
+								className={`select-none transition-opacity duration-150 ${lightsHovered ? "opacity-100" : "opacity-0"}`}
+							>
 								{/* macOS close: thin diagonal cross */}
 								<svg
 									aria-hidden="true"
@@ -322,7 +336,7 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 									<path
 										d="M1.7 1.7 L6.3 6.3 M6.3 1.7 L1.7 6.3"
 										stroke="#990000"
-										strokeWidth="1.1"
+										strokeWidth="1.4"
 										strokeLinecap="round"
 									/>
 								</svg>
@@ -335,7 +349,9 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 							onClick={handleMinimize}
 							className="relative flex h-3 w-3 items-center justify-center rounded-full bg-[#febc2e] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.15)]"
 						>
-							<span className="select-none opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+							<span
+								className={`select-none transition-opacity duration-150 ${lightsHovered ? "opacity-100" : "opacity-0"}`}
+							>
 								{/* macOS minimize: single horizontal bar */}
 								<svg
 									aria-hidden="true"
@@ -347,7 +363,7 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 									<path
 										d="M1.4 4 L6.6 4"
 										stroke="#985601"
-										strokeWidth="1.3"
+										strokeWidth="1.6"
 										strokeLinecap="round"
 									/>
 								</svg>
@@ -360,7 +376,9 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 							onClick={handleUniverseOpen}
 							className="relative flex h-3 w-3 items-center justify-center rounded-full bg-[#28c840] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.15)]"
 						>
-							<span className="select-none opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+							<span
+								className={`select-none transition-opacity duration-150 ${lightsHovered ? "opacity-100" : "opacity-0"}`}
+							>
 								{/* macOS zoom glyph: two diagonal outward-pointing triangles.
 								    This used to flip inward/outward with the floating<->
 								    fullscreen toggle it drove; now that fullscreen is the
@@ -375,11 +393,11 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 									className="block"
 								>
 									<path
-										d="M31.2 64.6h26.7c3.6 0 6.5-2.9 6.5-6.5V31.4z"
+										d="M29.5 67.9h30.7c4.1 0 7.5-3.3 7.5-7.5V29.7z"
 										fill="#006200"
 									/>
 									<path
-										d="M54.4 20.9H27.6c-3.6 0-6.5 2.9-6.5 6.5V54.2z"
+										d="M56.2 17.6H25.3c-4.1 0-7.5 3.3-7.5 7.5V55.9z"
 										fill="#006200"
 									/>
 								</svg>
