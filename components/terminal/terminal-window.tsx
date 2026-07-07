@@ -96,6 +96,15 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 	// actually leaves. Real pointerenter/pointerleave events aren't subject
 	// to that recompute bug.
 	const [lightsHovered, setLightsHovered] = useState(false);
+	// Set right before a programmatic `.focus()` call on the minimize/zoom
+	// button (restoring from the dock or the universe) so the resulting
+	// focus event doesn't itself trigger the hover-reveal glyphs below — that
+	// focus is a11y bookkeeping, not the user's cursor actually being there,
+	// and since nothing else will ever blur that button (the mouse is
+	// elsewhere), `onBlurCapture` never fires to clear it back out. That's
+	// what "stuck in hover state" looked like: restore/exit the universe and
+	// the glyph stays revealed forever.
+	const suppressFocusRevealRef = useRef(false);
 
 	// Pending timers must not fire into an unmounted component.
 	useEffect(() => {
@@ -213,6 +222,7 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 			return;
 		}
 		if (!windowHidden) {
+			suppressFocusRevealRef.current = true;
 			minimizeButtonRef.current?.focus();
 		}
 	}, [windowHidden]);
@@ -226,9 +236,21 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 			return;
 		}
 		if (!universeHidden) {
+			suppressFocusRevealRef.current = true;
 			zoomButtonRef.current?.focus();
 		}
 	}, [universeHidden]);
+
+	// The cluster itself stays mounted (`visibility: hidden` only) while the
+	// dock splash or universe overlay covers it, so a pointerleave never
+	// fires just because the frame disappeared out from under a stationary
+	// cursor — without this, `lightsHovered` carries a stale `true` through
+	// the hide and the glyphs pop back in already "hovered" on restore.
+	useEffect(() => {
+		if (windowHidden || universeHidden) {
+			setLightsHovered(false);
+		}
+	}, [windowHidden, universeHidden]);
 
 	function handleUniverseOpen() {
 		// Don't stack with the close alert, and the green light isn't reachable
@@ -312,7 +334,13 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 						onFocus={warmSpotify}
 						onPointerEnter={() => setLightsHovered(true)}
 						onPointerLeave={() => setLightsHovered(false)}
-						onFocusCapture={() => setLightsHovered(true)}
+						onFocusCapture={() => {
+							if (suppressFocusRevealRef.current) {
+								suppressFocusRevealRef.current = false;
+								return;
+							}
+							setLightsHovered(true);
+						}}
 						onBlurCapture={() => setLightsHovered(false)}
 					>
 						<button
