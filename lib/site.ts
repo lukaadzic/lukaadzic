@@ -44,6 +44,7 @@ export const SITE = {
 	workLinks: {
 		c4r: "https://www.c4r.io/",
 		wharton: "https://www.wharton.upenn.edu/",
+		sydney: "https://www.sydney.edu.au/",
 	},
 } as const;
 

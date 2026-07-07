@@ -32,6 +32,7 @@ function WorkRow() {
 					<span key={`${part.text}-${index}`}>{part.text}</span>
 				),
 			)}
+			{" — full history: try `work`"}
 		</>
 	);
 }

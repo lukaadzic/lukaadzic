@@ -1078,13 +1078,15 @@ html:has(.terminal-window-frame[data-mode="fullscreen"]) body {
 [data-booted] .terminal-chip-row > *:nth-child(7) {
 	animation-delay: 1840ms;
 }
-/* 8th chip (today: `help`, the last of about/projects/github/socials/cv/
-   pets/love/help) — without its own delay it fell back to the base rule's
-   implicit 0s delay and popped in before every other chip, ahead of the
-   entire stagger. Caught while re-timing this block onto the `data-booted`
-   clock; add another rule here if a 9th chip ever ships. */
+/* 9th chip (today: `help`, the last of about/work/projects/github/socials/
+   cv/pets/love/help) — without its own delay it fell back to the base
+   rule's implicit 0s delay and popped in before every other chip, ahead of
+   the entire stagger. Add another rule here if a 10th chip ever ships. */
 [data-booted] .terminal-chip-row > *:nth-child(8) {
 	animation-delay: 1880ms;
+}
+[data-booted] .terminal-chip-row > *:nth-child(9) {
+	animation-delay: 1920ms;
 }
 
 /* Wraps the single displayed command group. Its height is driven entirely
