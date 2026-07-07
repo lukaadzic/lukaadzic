@@ -321,7 +321,7 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 								>
 									<path
 										d="M1.7 1.7 L6.3 6.3 M6.3 1.7 L1.7 6.3"
-										stroke="#460804"
+										stroke="#990000"
 										strokeWidth="1.1"
 										strokeLinecap="round"
 									/>
@@ -346,7 +346,7 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 								>
 									<path
 										d="M1.4 4 L6.6 4"
-										stroke="#90591d"
+										stroke="#985601"
 										strokeWidth="1.3"
 										strokeLinecap="round"
 									/>
@@ -375,12 +375,12 @@ export function TerminalWindow({ children }: TerminalWindowProps) {
 									className="block"
 								>
 									<path
-										d="M31.2 20.8h26.7c3.6 0 6.5 2.9 6.5 6.5V54z"
-										fill="#2a6218"
+										d="M31.2 64.6h26.7c3.6 0 6.5-2.9 6.5-6.5V31.4z"
+										fill="#006200"
 									/>
 									<path
-										d="M54.4 64.5H27.6c-3.6 0-6.5-2.9-6.5-6.5V31.2z"
-										fill="#2a6218"
+										d="M54.4 20.9H27.6c-3.6 0-6.5 2.9-6.5 6.5V54.2z"
+										fill="#006200"
 									/>
 								</svg>
 							</span>
