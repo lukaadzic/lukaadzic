@@ -45,12 +45,11 @@ ART_H = ROWS * CELL_H
 CANVAS_W = ART_W + PAD * 2
 CANVAS_H = TITLEBAR_H + ART_H + STATUS_H + PAD
 
-BG = "#0d1117"
-BG2 = "#111722"
-FRAME = "#30363d"
-TITLE_TEXT = "#7d8590"
-INK = "#c9d1d9"      # the single ascii color (matches Andrew6rant)
-CURSOR = "#c9d1d9"
+BG = "#0a0a0a"                    # matches --color-background on lukaadzic.dev
+FRAME = "rgba(255,255,255,0.08)"  # matches --color-hairline
+TITLE_TEXT = "rgba(237,237,237,0.5)"  # matches --color-muted
+INK = "#ededed"      # matches --color-foreground
+CURSOR = "#ededed"
 
 # ---- reveal timing (one-shot; a cursor rasters top -> bottom) -------------
 ROW_DUR = 0.11
@@ -87,20 +86,16 @@ art_top = TITLEBAR_H + PAD * 0.35
 parts = []
 parts.append(
     f'<svg xmlns="http://www.w3.org/2000/svg" width="{CANVAS_W}" height="{CANVAS_H}" '
-    f'viewBox="0 0 {CANVAS_W} {CANVAS_H}" font-family="ui-monospace, SFMono-Regular, '
-    f'Menlo, Consolas, monospace">'
+    f'viewBox="0 0 {CANVAS_W} {CANVAS_H}" font-family=\'ui-monospace, &quot;SF Mono&quot;, Menlo, '
+    f'Monaco, &quot;Cascadia Mono&quot;, &quot;Roboto Mono&quot;, monospace\'>'
 )
-parts.append('<defs>'
-             f'<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">'
-             f'<stop offset="0" stop-color="{BG2}"/><stop offset="1" stop-color="{BG}"/>'
-             f'</linearGradient></defs>')
 
-parts.append(f'<rect width="{CANVAS_W}" height="{CANVAS_H}" rx="12" fill="url(#bg)"/>')
+parts.append(f'<rect width="{CANVAS_W}" height="{CANVAS_H}" rx="12" fill="{BG}"/>')
 parts.append(f'<rect x="0.5" y="0.5" width="{CANVAS_W-1}" height="{CANVAS_H-1}" rx="12" '
              f'fill="none" stroke="{FRAME}" stroke-width="1"/>')
 
 parts.append(f'<line x1="0" y1="{TITLEBAR_H}" x2="{CANVAS_W}" y2="{TITLEBAR_H}" stroke="{FRAME}"/>')
-for i, dotcol in enumerate(["#ff5f56", "#ffbd2e", "#27c93f"]):
+for i, dotcol in enumerate(["#ff5f57", "#febc2e", "#28c840"]):
     parts.append(f'<circle cx="{PAD + i*16}" cy="{TITLEBAR_H/2}" r="5" fill="{dotcol}"/>')
 parts.append(f'<text x="{CANVAS_W/2}" y="{TITLEBAR_H/2 + 4}" fill="{TITLE_TEXT}" font-size="12" '
              f'text-anchor="middle">lukaadzic@github: ~$ ./portrait.sh</text>')
