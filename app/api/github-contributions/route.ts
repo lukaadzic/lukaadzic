@@ -8,7 +8,7 @@ import { SITE } from "@/lib/site";
 const GITHUB_USERNAME_REGEX =
 	/^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$/;
 
-const SUCCESS_CACHE_CONTROL = "s-maxage=3600, stale-while-revalidate=86400";
+const SUCCESS_CACHE_CONTROL = "s-maxage=300, stale-while-revalidate=3600";
 
 // Fallback data is degraded — keep it out of the CDN for long so real data
 // replaces it quickly once GitHub recovers.
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
 				query,
 				variables: { username },
 			}),
-			next: { revalidate: 3600 },
+			next: { revalidate: 300 },
 		});
 
 		if (!response.ok) {

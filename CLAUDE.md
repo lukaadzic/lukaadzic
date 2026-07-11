@@ -353,8 +353,8 @@ that same registry, so every path renders identical output.
   GitHub username regex, is rejected with 400.
 - Errors are always sanitized: on any upstream failure the route returns
   fallback data with `isFallback: true`, never the raw upstream error text.
-- Successful responses are CDN-cached for 1h
-  (`s-maxage=3600, stale-while-revalidate=86400`) under a single cache key —
+- Successful responses are CDN-cached for 5 minutes
+  (`s-maxage=300, stale-while-revalidate=3600`) under a single cache key —
   that caching *is* the rate limiting. Don't add a serverless in-memory
   limiter; it resets per invocation and does nothing.
 - Security headers + CSP live in `next.config.ts`. When adding any
