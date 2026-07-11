@@ -49,3 +49,9 @@ next-env.d.ts
 
 .vercel
 .gstack/
+
+# profile art (local generation intermediates, not part of the site)
+.venv-profile-art/
+source-photo.jpg
+source-prepped.png
+*.svg.png
